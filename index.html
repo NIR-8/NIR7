@@ -2,17 +2,28 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NIR8 Calculators - Assay & (A+C)-B</title>
+
 <meta name="color-scheme" content="light only">
-<title>NIR8 Calculators</title>
 
 <!-- MathJax -->
 <script>
 MathJax = {
     loader: { load: ['input/tex', 'output/chtml'] },
-    tex: { inlineMath: [['\( ',' \)'], ['\\(','\\)']], packages: {'[+]': ['base','ams']}, processEscapes: true },
-    chtml: { scale: 0.9, mtextInheritFont: true },
-    startup: { typeset: false, pageReady() { MathJax.startup.defaultPageReady(); document.dispatchEvent(new Event('MathJaxReady')); } }
+    tex: {
+        inlineMath: [['\( ',' \)'], ['\\(','\\)']],
+        packages: {'[+]': ['base','ams']},
+        processEscapes: true
+    },
+    chtml: { scale: 0.9 },
+    startup: {
+        typeset: false,
+        pageReady() {
+            MathJax.startup.defaultPageReady();
+            document.dispatchEvent(new Event('MathJaxReady'));
+        }
+    }
 };
 </script>
 
@@ -24,8 +35,9 @@ MathJax = {
     --primary: #28a745;
     --primary-dark: #218838;
     --danger: #dc3545;
-    --light-gray: #f8f9fa;
+    --light: #f8f9fa;
     --dark: #212529;
+    --gray: #6c757d;
 }
 
 * { box-sizing: border-box; margin:0; padding:0; }
@@ -34,15 +46,15 @@ body {
     font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
     min-height: 100vh;
-    color: #333;
-    padding-top: 90px;
+    color: #222;
+    padding-top: 100px;
 }
 
-/* ── Full-screen initial overlay ──────────────────────────────────────── */
+/* Overlay */
 #qtyOverlay {
     position: fixed;
     inset: 0;
-    background: rgba(20,30,50,0.9);
+    background: rgba(20,30,50,0.92);
     backdrop-filter: blur(8px);
     display: flex;
     align-items: center;
@@ -51,36 +63,37 @@ body {
     transition: opacity 0.7s ease;
 }
 
-#qtyOverlay.hidden { opacity: 0; pointer-events: none; }
+#qtyOverlay.hidden {
+    opacity: 0;
+    pointer-events: none;
+}
 
 .overlay-content {
     background: white;
-    padding: 3.2rem 4rem;
+    padding: 3rem 4rem;
     border-radius: 16px;
-    box-shadow: 0 24px 64px rgba(0,0,0,0.45);
+    box-shadow: 0 24px 70px rgba(0,0,0,0.45);
     text-align: center;
     max-width: 520px;
-    width: 92%;
-    transform: scale(0.9);
+    width: 90%;
+    transform: scale(0.92);
     opacity: 0;
-    animation: popupIn 0.65s 0.25s forwards cubic-bezier(0.34,1.56,0.64,1);
+    animation: popupAppear 0.6s 0.3s forwards cubic-bezier(0.34,1.56,0.64,1);
 }
 
-@keyframes popupIn {
+@keyframes popupAppear {
     to { transform: scale(1); opacity: 1; }
 }
 
 .overlay-content h2 {
-    margin-bottom: 1.5rem;
+    margin-bottom: 1.6rem;
     font-size: 1.9rem;
     color: var(--dark);
-    font-weight: 600;
 }
 
 #stdQtyOverlay {
     width: 280px;
-    font-size: 2.6rem;
-    font-weight: 500;
+    font-size: 2.5rem;
     padding: 0.9rem;
     text-align: center;
     border: 2px solid #dee2e6;
@@ -95,22 +108,44 @@ body {
 }
 
 #qtyWarning {
-    margin-top: 1.1rem;
+    margin: 1.2rem 0;
     color: var(--danger);
     font-size: 1.1rem;
-    min-height: 1.5em;
+    min-height: 1.4em;
 }
 
-/* Curtain lift animation */
+/* Curtain animation */
 #qtyOverlay.curtain-lift {
-    animation: curtainUp 950ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
+    animation: curtainLift 950ms cubic-bezier(0.23,1,0.32,1) forwards;
 }
 
-@keyframes curtainUp {
+@keyframes curtainLift {
     to { transform: translateY(-100%); }
 }
 
-/* ── Menu Bar ─────────────────────────────────────────────────────────── */
+/* Buttons in overlay */
+.overlay-buttons {
+    margin-top: 2rem;
+    display: flex;
+    gap: 1.4rem;
+    justify-content: center;
+}
+
+.btn {
+    padding: 0.9rem 2.4rem;
+    font-size: 1.1rem;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    transition: all 0.25s;
+}
+
+.btn-primary   { background: var(--primary); color: white; }
+.btn-primary:hover   { background: var(--primary-dark); transform: translateY(-1px); }
+.btn-secondary { background: var(--gray); color: white; }
+.btn-secondary:hover { background: #5a6268; }
+
+/* Menu bar */
 .menu-bar {
     position: fixed;
     top: 0; left: 0; right: 0;
@@ -128,19 +163,19 @@ body {
     padding: 0 1.6rem;
     display: flex;
     align-items: center;
-    gap: 1.8rem;
+    gap: 2rem;
     flex-wrap: wrap;
 }
 
 .menu-item {
-    padding: 0.65rem 1.4rem;
+    padding: 0.7rem 1.5rem;
     border-radius: 8px;
     cursor: pointer;
     font-weight: 500;
     transition: background 0.25s;
 }
 
-.menu-item:hover { background: rgba(255,255,255,0.13); }
+.menu-item:hover { background: rgba(255,255,255,0.15); }
 .menu-item.active { background: var(--primary); }
 
 .menu-qty-tracker {
@@ -157,7 +192,7 @@ body {
 }
 
 .menu-qty-label {
-    font-size: 0.8rem;
+    font-size: 0.82rem;
     color: #adb5bd;
     margin-bottom: 0.4rem;
 }
@@ -178,27 +213,15 @@ body {
     font-weight: 600;
 }
 
-.menu-qty-warning {
-    color: #ff6b6b;
-    font-size: 0.78rem;
-    margin-top: 0.35rem;
-    background: rgba(220,53,69,0.15);
-    padding: 0.25rem 0.65rem;
-    border-radius: 4px;
-    display: none;
-}
-
-.menu-qty-warning.active { display: inline-block; }
-
-/* ── Calculator containers ────────────────────────────────────────────── */
+/* Main content */
 .calculator-container {
     background: white;
     margin: 2.5rem auto;
     padding: 2.5rem;
     width: 92%;
-    max-width: 1000px;
+    max-width: 1100px;
     border-radius: 16px;
-    box-shadow: 0 12px 48px rgba(0,0,0,0.16);
+    box-shadow: 0 12px 48px rgba(0,0,0,0.15);
     display: none;
 }
 
@@ -218,19 +241,16 @@ body {
 }
 
 .acb-th {
-    background: var(--light-gray);
+    background: #f8f9fa;
     font-weight: 600;
-    color: var(--dark);
 }
 
 .acb-input {
     width: 100%;
     padding: 0.6rem;
-    font-size: 1rem;
     text-align: center;
     border: 1px solid #ced4da;
     border-radius: 6px;
-    transition: border-color 0.2s;
 }
 
 .acb-input:focus {
@@ -239,9 +259,6 @@ body {
     box-shadow: 0 0 0 3px rgba(40,167,69,0.15);
 }
 
-.acb-span { font-weight: 500; }
-
-/* Add lot button */
 .add-lot-btn {
     background: var(--primary);
     color: white;
@@ -250,46 +267,31 @@ body {
     width: 36px;
     height: 36px;
     font-size: 1.5rem;
-    line-height: 1;
     cursor: pointer;
-    margin-left: 14px;
+    margin-left: 12px;
     transition: background 0.2s;
 }
 
 .add-lot-btn:hover { background: var(--primary-dark); }
-
-/* Calculation entries / print styles would go here - kept minimal for brevity */
-.calculation-steps {
-    background: white;
-    margin: 2rem auto;
-    padding: 2rem;
-    max-width: 1000px;
-    border-radius: 16px;
-    box-shadow: 0 8px 32px rgba(0,0,0,0.12);
-}
-
-.calculation-entry {
-    border: 1px solid #000;
-    margin: 2rem 0;
-    padding: 5rem 1.5rem 4rem;
-    min-height: 240px;
-    position: relative;
-    background: white;
-}
 </style>
 </head>
 <body>
 
-<!-- Initial full-screen qty input overlay -->
+<!-- Initial overlay -->
 <div id="qtyOverlay">
     <div class="overlay-content">
         <h2>Theoretical Standard Quantity <small>(per lot)</small></h2>
-        <input type="number" id="stdQtyOverlay" step="0.001" min="0.001" placeholder="500.000" autofocus>
+        <input type="number" id="stdQtyOverlay" step="0.001" min="0.001" placeholder="e.g. 500.000" autofocus>
         <div id="qtyWarning"></div>
+
+        <div class="overlay-buttons">
+            <button id="btnSkipOverlay" class="btn btn-secondary">Skip for now</button>
+            <button id="btnSubmitOverlay" class="btn btn-primary">Submit</button>
+        </div>
     </div>
 </div>
 
-<!-- Fixed menu bar -->
+<!-- Menu bar -->
 <div class="menu-bar">
     <div class="menu-container">
         <div class="menu-item active" id="menuFormula">Formula Calculator</div>
@@ -307,7 +309,6 @@ body {
             <div class="menu-qty-group">
                 <label class="menu-qty-label">Remaining</label>
                 <div id="remainingQty" class="menu-qty-value">-</div>
-                <div id="quantityWarning" class="menu-qty-warning">Qty mismatch!</div>
             </div>
             <div class="menu-qty-group" id="lotSelectGroup" style="display:none;">
                 <label class="menu-qty-label">Assign to Lot</label>
@@ -324,11 +325,12 @@ body {
     </div>
 </div>
 
-<!-- Main content area - add your original calculator HTML here -->
+<!-- Main containers -->
 <div id="formulaCalculator" class="calculator-container active">
     <h2>Formula Calculator</h2>
-    <!-- Your original formula calculator fields/buttons go here -->
-    <p style="color:#666; font-style:italic;">(Formula calculator content placeholder)</p>
+    <p style="color:#555; font-style:italic;">
+        (Formula calculator fields will be placed here - currently placeholder)
+    </p>
 </div>
 
 <div id="acbCalculator" class="calculator-container">
@@ -337,46 +339,38 @@ body {
         <thead>
             <tr id="tableHeader">
                 <th></th>
-                <!-- Lot columns will be added here dynamically -->
+                <!-- Dynamic lot columns -->
                 <th>TOTAL (kg)</th>
             </tr>
         </thead>
         <tbody id="tableBody">
-            <!-- Rows will be populated dynamically -->
+            <!-- Dynamic rows -->
         </tbody>
     </table>
 </div>
 
-<!-- Calculation steps / print area -->
-<div class="calculation-steps" id="calculationSteps" style="display:none;">
-    <div id="stepsContainer"></div>
-</div>
-
 <script>
 // ============================================================================
-//                           MAIN APPLICATION LOGIC
+//                              APPLICATION LOGIC
 // ============================================================================
 
 const LOT_ROMAN = ['I','II','III','IV','V'];
-let visibleLots = 1;           // starts with only Lot I
-let calculations = [];
+let visibleLots = 1;
 
-// DOM references
+// DOM elements
 const els = {
     overlay: document.getElementById('qtyOverlay'),
     overlayInput: document.getElementById('stdQtyOverlay'),
     qtyWarning: document.getElementById('qtyWarning'),
+    btnSubmit: document.getElementById('btnSubmitOverlay'),
+    btnSkip: document.getElementById('btnSkipOverlay'),
     stdQty: document.getElementById('stdQty'),
-    dispensedQty: document.getElementById('dispensedQty'),
-    remainingQty: document.getElementById('remainingQty'),
-    lotSelect: document.getElementById('lotSelect'),
-    lotSelectGroup: document.getElementById('lotSelectGroup'),
     tableHeader: document.getElementById('tableHeader'),
     tableBody: document.getElementById('tableBody')
 };
 
-// ── Overlay handling ───────────────────────────────────────────────────────
-function tryFinishOverlay() {
+// ── Overlay logic ──────────────────────────────────────────────────────────
+function validateAndSubmit() {
     const val = els.overlayInput.value.trim();
     const num = parseFloat(val);
 
@@ -388,8 +382,8 @@ function tryFinishOverlay() {
 
     els.qtyWarning.textContent = "";
     els.stdQty.value = val;
-    els.overlay.classList.add('curtain-lift');
 
+    els.overlay.classList.add('curtain-lift');
     setTimeout(() => {
         els.overlay.classList.add('hidden');
         els.overlay.style.display = 'none';
@@ -400,40 +394,56 @@ function tryFinishOverlay() {
     return true;
 }
 
-els.overlayInput.addEventListener('input', tryFinishOverlay);
+function skipOverlay() {
+    els.qtyWarning.textContent = "";
+    els.overlay.classList.add('curtain-lift');
+    setTimeout(() => {
+        els.overlay.classList.add('hidden');
+        els.overlay.style.display = 'none';
+        // stdQty remains empty - user can enter later
+    }, 1000);
+}
+
+els.btnSubmit.addEventListener('click', validateAndSubmit);
+els.btnSkip.addEventListener('click', skipOverlay);
+
 els.overlayInput.addEventListener('keydown', e => {
     if (e.key === 'Enter') {
         e.preventDefault();
-        tryFinishOverlay();
+        validateAndSubmit();
     }
 });
 
-// ── Dynamic A+C-B table creation ───────────────────────────────────────────
-function createACBTable() {
-    const types = [
-        { label: 'Std. Qty (A) kg', id: 'a' },
-        { label: 'Issued Qty (B) kg', id: 'b' },
-        { label: 'Std. Qty (C) kg', id: 'c' },
-        { label: '(A+C)-B kg', id: 'result' }
+// ── A+C-B table dynamic creation ──────────────────────────────────────────
+function initACBTable() {
+    const rowTypes = [
+        { label: 'Std. Qty (A) kg',      id: 'a'      },
+        { label: 'Issued Qty (B) kg',    id: 'b'      },
+        { label: 'Std. Qty (C) kg',      id: 'c'      },
+        { label: '(A+C)-B kg',           id: 'result' }
     ];
 
-    // Create rows
-    types.forEach(({label, id}) => {
+    rowTypes.forEach(({label, id}) => {
         const tr = document.createElement('tr');
-        const labelTd = document.createElement('td');
-        labelTd.textContent = label;
-        tr.appendChild(labelTd);
+        const labelCell = document.createElement('td');
+        labelCell.textContent = label;
+        tr.appendChild(labelCell);
 
-        // Will be filled later with dynamic cells
+        // Total cell will be added last
+        const totalCell = document.createElement('td');
+        const span = document.createElement('span');
+        span.textContent = id === 'result' ? '0.000' : '0.000';
+        totalCell.appendChild(span);
+        tr.appendChild(totalCell);
+
         els.tableBody.appendChild(tr);
     });
 
-    // Initial visible lots (only Lot I)
     updateVisibleLots();
 }
 
 function updateVisibleLots() {
-    // Clear existing dynamic columns (except label & total)
+    // Remove previous dynamic columns (except first and last)
     while (els.tableHeader.children.length > 2) {
         els.tableHeader.removeChild(els.tableHeader.children[1]);
     }
@@ -443,7 +453,6 @@ function updateVisibleLots() {
         th.textContent = `Lot-${LOT_ROMAN[i-1]}`;
         els.tableHeader.insertBefore(th, els.tableHeader.lastElementChild);
 
-        // Add cells to each row
         const rows = els.tableBody.children;
         for (let r = 0; r < rows.length; r++) {
             const type = ['a','b','c','result'][r];
@@ -460,7 +469,6 @@ function updateVisibleLots() {
                 input.step = '0.001';
                 input.className = 'acb-input';
                 input.id = `lot\( {i}- \){type}`;
-                input.value = '';
                 td.appendChild(input);
             }
 
@@ -468,10 +476,10 @@ function updateVisibleLots() {
         }
     }
 
-    // Add + button to last visible lot header if not max
+    // Add + button if not max lots
     if (visibleLots < LOT_ROMAN.length) {
-        const lastTh = els.tableHeader.children[visibleLots];
-        if (!lastTh.querySelector('.add-lot-btn')) {
+        const lastHeader = els.tableHeader.children[visibleLots];
+        if (!lastHeader.querySelector('.add-lot-btn')) {
             const btn = document.createElement('button');
             btn.className = 'add-lot-btn';
             btn.textContent = '+';
@@ -480,7 +488,7 @@ function updateVisibleLots() {
                 updateVisibleLots();
                 syncStdQtyToAllVisibleLots();
             };
-            lastTh.appendChild(btn);
+            lastHeader.appendChild(btn);
         }
     }
 
@@ -493,74 +501,43 @@ function syncStdQtyToAllVisibleLots() {
     if (!value) return;
 
     for (let i = 1; i <= visibleLots; i++) {
-        const aInput = document.getElementById(`lot${i}-a`);
-        if (aInput) aInput.value = value;
+        const input = document.getElementById(`lot${i}-a`);
+        if (input) input.value = value;
     }
     updateACB();
 }
 
-// ── ACB calculation logic ──────────────────────────────────────────────────
 function updateACB() {
-    let totalA = 0, totalB = 0, totalC = 0, totalRes = 0;
+    let sumA = 0, sumB = 0, sumC = 0, sumResult = 0;
 
     for (let i = 1; i <= visibleLots; i++) {
-        const a = parseFloat(document.getElementById(`lot${i}-a`)?.value || 0);
-        const b = parseFloat(document.getElementById(`lot${i}-b`)?.value || 0);
-        const c = parseFloat(document.getElementById(`lot${i}-c`)?.value || 0);
+        const a = Number(document.getElementById(`lot${i}-a`)?.value || 0);
+        const b = Number(document.getElementById(`lot${i}-b`)?.value || 0);
+        const c = Number(document.getElementById(`lot${i}-c`)?.value || 0);
         const result = a + c - b;
 
         const resultEl = document.getElementById(`lot${i}-result`);
-        if (resultEl) resultEl.textContent = Number.isNaN(result) ? '-' : result.toFixed(3);
+        if (resultEl) resultEl.textContent = isNaN(result) ? '-' : result.toFixed(3);
 
-        totalA += a;
-        totalB += b;
-        totalC += c;
-        totalRes += result;
+        sumA += a;
+        sumB += b;
+        sumC += c;
+        sumResult += result;
     }
 
-    // Update totals row (last cell of each row)
-    const totalCells = els.tableBody.querySelectorAll('tr td:last-child span');
-    if (totalCells.length === 4) {
-        totalCells[0].textContent = totalA.toFixed(3);
-        totalCells[1].textContent = totalB.toFixed(3);
-        totalCells[2].textContent = totalC.toFixed(3);
-        totalCells[3].textContent = totalRes.toFixed(3);
+    // Update total cells
+    const totalSpans = els.tableBody.querySelectorAll('tr td:last-child span');
+    if (totalSpans.length === 4) {
+        totalSpans[0].textContent = sumA.toFixed(3);
+        totalSpans[1].textContent = sumB.toFixed(3);
+        totalSpans[2].textContent = sumC.toFixed(3);
+        totalSpans[3].textContent = sumResult.toFixed(3);
     }
 }
 
-// ── Lot selection → show lot + assign dispensed value ──────────────────────
-els.lotSelect.addEventListener('change', () => {
-    const idx = parseInt(els.lotSelect.value);
-    if (isNaN(idx) || idx < 1) return;
-
-    if (idx > visibleLots) {
-        visibleLots = idx;
-        updateVisibleLots();
-    }
-
-    // Assign current dispensed value to selected lot B
-    const bInput = document.getElementById(`lot${idx}-b`);
-    if (bInput && els.dispensedQty.textContent !== '0.000') {
-        bInput.value = els.dispensedQty.textContent;
-    }
-
-    updateACB();
-    els.lotSelect.value = '';
-});
-
-// ── Input listeners ────────────────────────────────────────────────────────
-els.stdQty.addEventListener('input', syncStdQtyToAllVisibleLots);
-
-document.getElementById('acbCalculator').addEventListener('input', e => {
-    if (e.target.classList.contains('acb-input')) {
-        updateACB();
-    }
-});
-
-// ── Initialize ─────────────────────────────────────────────────────────────
+// ── Init ───────────────────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
-    createACBTable();
-    // Focus overlay input automatically
+    initACBTable();
     els.overlayInput.focus();
 });
 </script>
