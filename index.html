@@ -552,61 +552,8 @@
             background: rgba(255, 107, 107, 0.1);
             transform: rotate(90deg);
         }
-        .info-modal {
-            display: none;
-            position: fixed;
-            z-index: 1000;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, .4);
-        }
-        .modal-content {
-            background-color: #fefefe;
-            margin: 15% auto;
-            padding: 20px;
-            border: 1px solid #888;
-            width: 80%;
-            max-width: 500px;
-            border-radius: 10px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, .1);
-        }
-        .close {
-            color: #aaa;
-            float: right;
-            font-size: 28px;
-            font-weight: 700;
-            cursor: pointer;
-            user-select: none;
-        }
-        .close:hover, .close:focus {
-            color: #000;
-            text-decoration: none;
-            cursor: pointer;
-        }
-        .info-section {
-            margin-bottom: 15px;
-        }
-        .info-section h3 {
-            margin-top: 0;
-            color: #333;
-            border-bottom: 1px solid #ddd;
-            padding-bottom: 5px;
-        }
-        .info-item {
-            margin-bottom: 8px;
-        }
-        .info-key {
-            font-weight: 700;
-            color: #28a745;
-        }
-        .info-footer {
-            text-align: center;
-            margin-top: 20px;
-            font-size: 12px;
-            color: #777;
-        }
+       
+        
         #mathjax-loading {
             display: none;
             position: fixed;
@@ -617,30 +564,7 @@
             font-style: italic;
             z-index: 1000;
         }
-        footer {
-            width: 100%;
-            background: rgba(0, 0, 0, .8);
-            color: #fff;
-            text-align: center;
-            padding: 10px 0;
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            font-size: 14px;
-            z-index: 5;
-        }
-        .info-btn {
-            background: transparent;
-            border: none;
-            color: #ff9;
-            cursor: pointer;
-            font-weight: 700;
-            padding: 0 5px;
-            text-decoration: underline;
-        }
-        .info-btn:hover {
-            color: #fff;
-        }
+        
         #remainingQty {
             cursor: pointer;
             transition: all 0.2s ease;
@@ -1369,38 +1293,7 @@
         <button type="button" onclick="printWithCheck()" class="print-btn" aria-label="Print calculations">Print Calculations</button>
         <div id="stepsContainer"></div>
     </div>
-    <div id="infoModal" class="info-modal">
-        <div class="modal-content">
-            <span class="close" onclick="closeModal()" aria-label="Close information modal">×</span>
-            <div id="formulaInfo" class="info-section">
-                <h3>Formula Calculator-Shortcuts</h3>
-                <div class="info-item"><span class="info-key">F1/F2/F3:</span>Calculate respective formulas</div>
-              
-                <div class="info-item"><span class="info-key">❌:</span>Remove individual calculations</div>
-
-                <div class="info-item"><span class="info-key">F5:</span>Refresh page</div>
-
- <div class="info-item"><span class="info-key">F8:</span>Print calculations</div>
-
-                <div class="info-item"><span class="info-key">Enter:</span>Navigate between fields</div>
-                <div class="info-item"><span class="info-key">Click Remaining Qty:</span>Copy to Q field</div>
-                  <div class="info-item"><span class="info-key">Lot Select:</span>Assign dispensed qty to selected lot</div>
-            </div>
-            <div id="acbInfo" class="info-section" style="display:none">
-                <h3>(A+C)-B Calculator Features</h3>
-                <div class="info-item"><span class="info-key">Edit Button:</span>Toggle editing of standard quantities</div>
-                <div class="info-item"><span class="info-key">Enter:</span>Navigate between editable fields</div>
-                <div class="info-item"><span class="info-key">Auto-update:</span>Changes automatically update totals</div>
-                <div class="info-item"><span class="info-key">Reset Button (↻):</span>Reset all values in this calculator</div>
-              
-            </div>
-            <div class="info-footer">This tool is continuously improving to serve you better.</div>
-        </div>
-    </div>
-    <footer>
-        This tool is continuously improving to serve you better. Results are reliable but always double-check.
-        <button type="button" class="info-btn" onclick="showInfo()" aria-label="Show help and shortcuts">ℹ️ Click for Help & Shortcuts</button>
-    </footer>
+    
     <script>
         // Named constants
         const CONSTANTS = {
