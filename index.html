@@ -742,6 +742,84 @@
             color: #4facfe;
             text-decoration: underline;
         }
+
+        /* Verification Modal Styles */
+        #verifyModal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, .4);
+            overflow: auto;
+        }
+        
+        #verifyModal .modal-content {
+            background-color: #fefefe;
+            margin: 15% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 80%;
+            max-width: 500px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, .1);
+            overflow: visible;
+        }
+        
+        .verify-label {
+            font-weight: bold;
+            color: #000;
+            display: inline-block;
+            width: 140px;
+            text-align: right;
+            margin-right: 10px;
+        }
+        
+        .verify-value {
+            font-weight: bold;
+            background-color: #d4edda;
+            color: #155724;
+            padding: 3px 6px;
+            border-radius: 5px;
+        }
+        
+        .verify-row {
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            margin-bottom: 10px;
+        }
+        
+        .cancel-btn {
+            background-color: #ff4444;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        
+        .cancel-btn:hover {
+            background-color: #cc0000;
+        }
+        
+        .confirm-btn {
+            background-color: #28a745;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        
+        .confirm-btn:hover {
+            background-color: #218838;
+        }
+
         @media (max-width: 768px) {
             .calculation-entry {
                 min-height: 180px;
@@ -2185,18 +2263,17 @@
         window.addEventListener('resize', updatePageNumbers);
     </script>
 
-     <div class="reference-values">W="${formatNumber(W, true)}" A="${formatNumber(A, true)}"</div>
-                <div class="calculation-content">${calculationResult.mathJax}</div>
-                <div class="page-number">${calculationCount}/${calculationCount}</div>
-            `;
-            queueMathJax(newEntry);
-        }, 50);
-    } else {
-        newEntry.querySelector('.loading-indicator').style.display = 'block';
-        setTimeout(() => {
-            if (!isMathJaxReady) retryMathJaxLoad();
-        }, CONSTANTS.MATHJAX_TIMEOUT);
-    }
+    <!-- Verification Modal -->
+    <div id="verifyModal" class="info-modal" style="display: none;" role="dialog" aria-modal="true" aria-labelledby="verifyTitle">
+        <div class="modal-content">
+            <span class="close" onclick="closeVerifyModal()" aria-label="Close verification modal">&times;</span>
+            <div id="verifyDetails"></div>
+            <div style="margin-top: 15px; display: flex; justify-content: space-between;">
+                <button onclick="confirmVerification(false)" class="cancel-btn">Cancel</button>
+                <button onclick="confirmVerification(true)" id="confirmBtn" class="confirm-btn">Confirm</button>
+            </div>
+        </div>
+    </div>
 
 </body>
 </html>
