@@ -1,3 +1,5 @@
+
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -2023,55 +2025,46 @@
         }
 
         // Verification modal functions
-function verifyCalculation(calculation, Q, W, A) {
-    return new Promise(resolve => {
-        const verifyModal = document.getElementById("verifyModal");
-        const verifyDetails = document.getElementById("verifyDetails");
+        function verifyCalculation(calculation, Q, W, A) {
+            const verifyModal = document.getElementById("verifyModal");
+            const verifyDetails = document.getElementById("verifyDetails");
 
-        verifyDetails.innerHTML = `
-            <h3 id="verifyTitle" style="text-align:center;">Please verify the following:</h3>
-            <div class="verify-row"><span class="verify-label">Quantity (Q):</span> <span class="verify-value">${Q}</span></div>
-            <div class="verify-row"><span class="verify-label">Water Content (W):</span> <span class="verify-value">${W}%</span></div>
-            <div class="verify-row"><span class="verify-label">Assay Content (A):</span> <span class="verify-value">${A}%</span></div>
-            <div class="verify-row"><span class="verify-label">Formula:</span> <span class="verify-value">F${calculation.formulaType.replace("F", "")}</span></div>
-        `;
+            verifyDetails.innerHTML = `
+                <h3 id="verifyTitle" style="text-align:center;">Please verify the following:</h3>
+                <div class="verify-row"><span class="verify-label">Quantity (Q):</span> <span class="verify-value">${Q}</span></div>
+                <div class="verify-row"><span class="verify-label">Water Content (W):</span> <span class="verify-value">${W}%</span></div>
+                <div class="verify-row"><span class="verify-label">Assay Content (A):</span> <span class="verify-value">${A}%</span></div>
+                <div class="verify-row"><span class="verify-label">Formula:</span> <span class="verify-value">F${calculation.formulaType.replace("F", "")}</span></div>
+            `;
 
-        verifyModal.style.display = "block";
-        document.getElementById("confirmBtn").focus();
+            verifyModal.style.display = "flex";
+            document.getElementById("confirmBtn").focus();
 
-        // Set up one-time event handlers
-        const confirmHandler = function() {
-            verifyModal.style.display = "none";
-            document.getElementById("confirmBtn").removeEventListener("click", confirmHandler);
-            document.querySelector(".verify-cancel").removeEventListener("click", cancelHandler);
-            resolve(true);
-        };
-        
-        const cancelHandler = function() {
-            verifyModal.style.display = "none";
-            // Restore input values if user cancels
-            domCache.QInput.value = Q;
-            domCache.waterInput.value = W;
-            domCache.assayInput.value = A;
-            domCache.progressBar.style.width = "100%";
-            domCache.buttons.style.display = "flex";
-            domCache.assayGroup.style.display = "block";
-            domCache.waterGroup.style.display = "block";
-            domCache.QInput.focus();
-            
-            document.getElementById("confirmBtn").removeEventListener("click", confirmHandler);
-            document.querySelector(".verify-cancel").removeEventListener("click", cancelHandler);
-            resolve(false);
-        };
+            return new Promise(resolve => {
+                window.confirmVerification = function (confirmed) {
+                    verifyModal.style.display = "none";
+                    if (!confirmed) {
+                        // Restore input values if user cancels
+                        domCache.QInput.value = Q;
+                        domCache.waterInput.value = W;
+                        domCache.assayInput.value = A;
+                        domCache.progressBar.style.width = "100%";
+                        domCache.buttons.style.display = "flex";
+                        domCache.assayGroup.style.display = "block";
+                        domCache.waterGroup.style.display = "block";
+                        domCache.QInput.focus();
+                    }
+                    resolve(confirmed);
+                };
+            });
+        }
 
-        document.getElementById("confirmBtn").addEventListener("click", confirmHandler);
-        document.querySelector(".verify-cancel").addEventListener("click", cancelHandler);
-    });
-}
-
-function closeVerifyModal() {
-    document.getElementById("verifyModal").style.display = "none";
-}
+        function closeVerifyModal() {
+            document.getElementById("verifyModal").style.display = "none";
+            if (typeof window.confirmVerification === 'function') {
+                window.confirmVerification(false);
+            }
+        }
 
         // Initialize
         document.addEventListener("DOMContentLoaded", () => {
@@ -2194,18 +2187,17 @@ function closeVerifyModal() {
         window.addEventListener('resize', updatePageNumbers);
     </script>
 
-     
-<!-- Verification Modal -->
-<div id="verifyModal" class="verify-modal" style="display: none;" role="dialog" aria-modal="true" aria-labelledby="verifyTitle">
-    <div class="verify-content">
-        <div id="verifyDetails">
-            <!-- Populated dynamically -->
-        </div>
-        <div class="verify-buttons">
-            <button class="verify-btn verify-cancel">Cancel</button>
-            <button class="verify-btn verify-confirm" id="confirmBtn">Confirm</button>
+    <!-- Verification Modal -->
+    <div id="verifyModal" class="info-modal" style="display: none;" role="dialog" aria-modal="true" aria-labelledby="verifyTitle">
+        <div class="modal-content">
+            <span class="close" onclick="closeVerifyModal()" aria-label="Close verification modal">&times;</span>
+            <div id="verifyDetails"></div>
+            <div style="margin-top: 15px; display: flex; justify-content: space-between;">
+                <button onclick="confirmVerification(false)" class="cancel-btn" style="background-color: #ff4444; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; transition: background-color 0.3s;">Cancel</button>
+                <button onclick="confirmVerification(true)" id="confirmBtn" class="confirm-btn" style="background-color: #28a745; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; transition: background-color 0.3s;">Confirm</button>
+            </div>
         </div>
     </div>
-</div>
+
 </body>
 </html>
