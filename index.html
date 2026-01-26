@@ -71,14 +71,11 @@
                 } else {
                     console.error('Failed to load MathJax from CDN after multiple attempts.');
                     alert('Unable to load MathJax. Equations will be displayed as plain text.');
-                    document.getElementById('mathjax-loading').textContent = 'Failed to load equations.';
-                    document.getElementById('mathjax-loading').style.display = 'block';
                     document.dispatchEvent(new Event('MathJaxReady'));
                 }
             };
             script.onload = () => {
                 console.log('MathJax loaded successfully from CDN.');
-                document.getElementById('mathjax-loading').style.display = 'none';
                 MathJax.startup.getComponents();
             };
             document.head.appendChild(script);
@@ -86,7 +83,7 @@
     </script>
 
     <style>
-        /* Chat Interface Styles */
+        /* Reset and Base Styles */
         * {
             box-sizing: border-box;
             margin: 0;
@@ -99,49 +96,61 @@
             min-height: 100vh;
             display: flex;
             flex-direction: column;
+            padding: 20px;
         }
 
+        /* Chat Interface */
         .chat-container {
-            display: flex;
-            flex-direction: column;
-            max-width: 1200px;
-            margin: 20px auto;
+            max-width: 1400px;
+            margin: 0 auto;
             background: white;
             border-radius: 20px;
             box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
             overflow: hidden;
-            height: calc(100vh - 100px);
-            width: 95%;
+            height: calc(100vh - 40px);
+            display: flex;
+            flex-direction: column;
         }
 
         .chat-header {
             background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
             color: white;
             padding: 20px 30px;
-            text-align: center;
-            position: relative;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-shrink: 0;
         }
 
         .chat-header h1 {
             font-size: 24px;
             font-weight: 600;
-            margin: 0;
         }
 
-        .chat-header p {
+        .chat-header-controls {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+
+        .mode-indicator {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 8px 16px;
+            border-radius: 20px;
             font-size: 14px;
-            opacity: 0.9;
-            margin-top: 5px;
         }
 
+        /* Main Layout */
         .chat-main {
             display: flex;
             flex: 1;
             overflow: hidden;
+            position: relative;
         }
 
+        /* Sidebar */
         .sidebar {
-            width: 300px;
+            width: 320px;
             background: #f8f9fa;
             border-right: 1px solid #e9ecef;
             padding: 20px;
@@ -149,8 +158,30 @@
             flex-direction: column;
             gap: 20px;
             overflow-y: auto;
+            flex-shrink: 0;
         }
 
+        .sidebar-section {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+
+        .sidebar-section h3 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .sidebar-section h3 i {
+            color: #4facfe;
+        }
+
+        /* Quick Actions */
         .quick-actions {
             display: flex;
             flex-direction: column;
@@ -159,76 +190,95 @@
 
         .action-btn {
             background: white;
-            border: 2px solid #4facfe;
-            color: #4facfe;
-            padding: 12px 15px;
+            border: 2px solid #e9ecef;
+            color: #333;
+            padding: 14px;
             border-radius: 10px;
             cursor: pointer;
             font-weight: 500;
             transition: all 0.3s ease;
             text-align: left;
             font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
         }
 
         .action-btn:hover {
-            background: #4facfe;
-            color: white;
+            border-color: #4facfe;
+            background: #f0f8ff;
             transform: translateX(5px);
         }
 
         .action-btn.active {
+            border-color: #4facfe;
             background: #4facfe;
             color: white;
         }
 
-        .status-panel {
-            background: white;
-            border-radius: 10px;
-            padding: 15px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        .action-btn i {
+            font-size: 16px;
+        }
+
+        /* Status Panel */
+        .status-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
         }
 
         .status-item {
             display: flex;
-            justify-content: space-between;
-            margin-bottom: 8px;
-            font-size: 13px;
+            flex-direction: column;
+            gap: 5px;
         }
 
         .status-label {
             color: #666;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
 
         .status-value {
-            font-weight: 500;
+            font-weight: 600;
+            font-size: 18px;
             color: #4facfe;
             cursor: pointer;
         }
 
+        .status-value:hover {
+            text-decoration: underline;
+        }
+
+        /* Chat Area */
         .chat-area {
             flex: 1;
             display: flex;
             flex-direction: column;
             overflow: hidden;
+            background: #fafafa;
         }
 
         .messages-container {
             flex: 1;
             overflow-y: auto;
             padding: 20px;
-            background: #fafafa;
             display: flex;
             flex-direction: column;
             gap: 15px;
+            background: #f5f7fa;
         }
 
+        /* Messages */
         .message {
-            max-width: 70%;
-            padding: 15px 20px;
+            max-width: 80%;
+            padding: 20px;
             border-radius: 18px;
             position: relative;
             animation: fadeIn 0.3s ease;
             word-wrap: break-word;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
         }
 
         @keyframes fadeIn {
@@ -256,25 +306,157 @@
             align-self: center;
             max-width: 90%;
             text-align: center;
-            font-size: 13px;
+            font-size: 14px;
+            color: #856404;
+        }
+
+        .message-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .bot-avatar {
+            width: 32px;
+            height: 32px;
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 14px;
+        }
+
+        .message-sender {
+            font-weight: 600;
+            color: #4facfe;
         }
 
         .message-time {
-            font-size: 11px;
-            opacity: 0.7;
-            margin-top: 5px;
+            font-size: 12px;
+            color: #999;
+            margin-top: 8px;
             text-align: right;
         }
 
-        .calculation-result {
-            background: #e8f4fd;
-            border-left: 4px solid #4facfe;
+        /* Calculation Steps (From Original) */
+        .calculation-steps {
+            margin-top: 20px;
             padding: 15px;
-            margin-top: 10px;
-            border-radius: 10px;
-            font-family: monospace;
+            width: 100%;
+            background: #fff;
+            border-radius: 0;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, .1);
+            color: #555;
+            text-align: left;
+            position: relative;
+            padding-top: 20px;
+            will-change: transform;
+            display: none;
         }
 
+        .calculation-steps.active {
+            display: block;
+        }
+
+        .calculation-entry {
+            margin-bottom: 15px;
+            border: 1px solid #000;
+            padding: 15px;
+            position: relative;
+            width: 100%;
+            min-height: 200px;
+            font-size: 14pt;
+            border-radius: 0;
+            box-sizing: border-box;
+            contain: content;
+            overflow: hidden;
+        }
+
+        .calculation-entry::before {
+            content: "Assay Based Calculation";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            background: #f0f0f0;
+            padding: 5mm;
+            text-align: center;
+            font-size: 16pt;
+            font-weight: 600;
+            border-bottom: 1px solid #000;
+            box-sizing: border-box;
+        }
+
+        .calculation-entry::after {
+            content: "Remarks: ______________________________________________________________";
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background: #f0f0f0;
+            padding: 5mm;
+            font-size: 14pt;
+            border-top: 1px solid #000;
+            box-sizing: border-box;
+        }
+
+        .calculation-entry .lot-label::before {
+            content: "LOT: ";
+            position: absolute;
+            top: 24mm;
+            left: 15mm;
+            font-size: 14pt;
+        }
+
+        .reference-values {
+            position: absolute;
+            top: 24mm;
+            right: 15mm;
+            font-size: 10pt;
+            color: #000;
+            z-index: 10;
+        }
+
+        .calculation-content {
+            margin-top: 30mm;
+            margin-bottom: 30mm;
+            padding: 0 15mm;
+            overflow: hidden;
+            font-size: 14pt;
+        }
+
+        .page-number {
+            position: absolute;
+            bottom: 1mm;
+            right: 4mm;
+            font-size: 8pt;
+            color: #000;
+            font-weight: 700;
+            z-index: 5;
+        }
+
+        .delete-button {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            font-size: 20px;
+            color: red;
+            padding: 0;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Input Area */
         .input-area {
             padding: 20px;
             background: white;
@@ -282,15 +464,17 @@
             display: flex;
             gap: 10px;
             align-items: center;
+            flex-shrink: 0;
         }
 
         .input-area input {
             flex: 1;
-            padding: 15px 20px;
+            padding: 16px 24px;
             border: 2px solid #e9ecef;
             border-radius: 50px;
-            font-size: 14px;
+            font-size: 15px;
             transition: all 0.3s ease;
+            font-family: 'Poppins', sans-serif;
         }
 
         .input-area input:focus {
@@ -303,8 +487,8 @@
             background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
             color: white;
             border: none;
-            width: 50px;
-            height: 50px;
+            width: 56px;
+            height: 56px;
             border-radius: 50%;
             cursor: pointer;
             font-size: 20px;
@@ -312,37 +496,36 @@
             align-items: center;
             justify-content: center;
             transition: all 0.3s ease;
+            flex-shrink: 0;
         }
 
         .input-btn:hover {
-            transform: scale(1.1);
+            transform: scale(1.05);
             box-shadow: 0 5px 15px rgba(79, 172, 254, 0.4);
         }
 
-        .input-buttons {
-            display: flex;
-            gap: 10px;
-        }
-
+        /* Suggestions */
         .suggestions {
             display: flex;
             gap: 10px;
-            padding: 10px 20px;
+            padding: 15px 20px;
             background: white;
             border-top: 1px solid #e9ecef;
             overflow-x: auto;
+            flex-shrink: 0;
         }
 
         .suggestion-chip {
             background: #f1f8ff;
             border: 1px solid #d1e9ff;
             color: #4facfe;
-            padding: 8px 16px;
-            border-radius: 20px;
+            padding: 10px 20px;
+            border-radius: 25px;
             cursor: pointer;
-            font-size: 13px;
+            font-size: 14px;
             white-space: nowrap;
             transition: all 0.3s ease;
+            flex-shrink: 0;
         }
 
         .suggestion-chip:hover {
@@ -351,16 +534,19 @@
             transform: translateY(-2px);
         }
 
+        /* Forms */
         .form-inputs {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
             margin: 15px 0;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
         }
 
         .form-row {
             display: flex;
-            gap: 10px;
+            gap: 15px;
+            margin-bottom: 15px;
         }
 
         .form-group {
@@ -369,18 +555,18 @@
 
         .form-group label {
             display: block;
-            margin-bottom: 5px;
-            color: #666;
-            font-size: 13px;
+            margin-bottom: 8px;
+            color: #333;
+            font-size: 14px;
             font-weight: 500;
         }
 
         .form-group input {
             width: 100%;
-            padding: 10px;
+            padding: 12px;
             border: 2px solid #e9ecef;
             border-radius: 8px;
-            font-size: 14px;
+            font-size: 15px;
             transition: all 0.3s ease;
         }
 
@@ -389,106 +575,246 @@
             border-color: #4facfe;
         }
 
-        .result-display {
-            background: #f8f9fa;
-            border-radius: 10px;
-            padding: 15px;
-            margin-top: 15px;
-            font-family: monospace;
-            border-left: 4px solid #28a745;
+        .form-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
         }
 
-        .bot-avatar {
-            width: 30px;
-            height: 30px;
-            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-right: 10px;
-            color: white;
+        .calc-btn {
+            flex: 1;
+            padding: 14px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 15px;
+            transition: all 0.3s ease;
+        }
+
+        .calc-btn.f1 { background: #4facfe; color: white; }
+        .calc-btn.f2 { background: #00f2fe; color: white; }
+        .calc-btn.f3 { background: #28a745; color: white; }
+
+        .calc-btn:hover {
+            opacity: 0.9;
+            transform: translateY(-2px);
+        }
+
+        /* Results */
+        .result-display {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 20px;
+            margin: 15px 0;
+            border-left: 4px solid #28a745;
+            font-family: monospace;
             font-size: 14px;
         }
 
-        .message-header {
-            display: flex;
-            align-items: center;
-            margin-bottom: 5px;
+        /* ACB Calculator */
+        .acb-table {
+            border-collapse: collapse;
+            width: 100%;
+            margin: 10px 0;
+            font-family: Poppins, sans-serif;
+            table-layout: auto;
         }
 
-        .message-header .bot-name {
+        .acb-td, .acb-th {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: center;
+            font-size: 14px;
+            min-width: 60px;
+            word-wrap: break-word;
+            white-space: normal;
+        }
+
+        .acb-th {
+            background-color: #f2f2f2;
+            color: #444;
             font-weight: 600;
-            color: #4facfe;
+        }
+
+        .acb-input {
+            width: calc(100% - 16px);
+            padding: 6px;
+            margin: 2px 0;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+            text-align: center;
+            background: transparent;
+            transition: border-color .3s ease;
+        }
+
+        /* Print Styles (From Original) */
+        @media print {
+            @page {
+                size: A4 landscape;
+                margin: 8mm;
+            }
+
+            body {
+                background: transparent;
+                padding: 0;
+                margin: 0;
+            }
+
+            .chat-container, .sidebar, .input-area, .suggestions, .delete-button {
+                display: none !important;
+            }
+
+            .calculation-steps {
+                display: block !important;
+                width: 100%;
+                max-width: none;
+                margin: 0;
+                padding: 0;
+                background: transparent;
+            }
+
+            .calculation-entry {
+                width: 280mm !important;
+                height: 190mm !important;
+                margin: 0 auto;
+                padding: 0;
+                border: 1px solid #000;
+                font-size: 12pt;
+                position: relative;
+                background: #fff;
+                overflow: hidden;
+                page-break-after: always;
+            }
         }
 
         /* Responsive Design */
-        @media (max-width: 768px) {
+        @media (max-width: 1024px) {
             .chat-container {
-                height: calc(100vh - 40px);
-                margin: 10px;
-                width: calc(100% - 20px);
+                height: calc(100vh - 20px);
             }
-
-            .chat-main {
-                flex-direction: column;
-            }
-
+            
             .sidebar {
-                width: 100%;
-                height: 200px;
-                border-right: none;
-                border-bottom: 1px solid #e9ecef;
-            }
-
-            .messages-container {
-                padding: 15px;
-            }
-
-            .message {
-                max-width: 85%;
+                width: 280px;
             }
         }
 
-        @media (max-width: 480px) {
-            .chat-header {
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+            
+            .chat-container {
+                height: calc(100vh - 20px);
+                border-radius: 15px;
+            }
+            
+            .chat-main {
+                flex-direction: column;
+            }
+            
+            .sidebar {
+                width: 100%;
+                height: auto;
+                max-height: 300px;
+                border-right: none;
+                border-bottom: 1px solid #e9ecef;
+            }
+            
+            .messages-container {
                 padding: 15px;
             }
-
-            .input-area {
-                padding: 15px;
+            
+            .message {
+                max-width: 90%;
             }
-
+            
             .form-row {
                 flex-direction: column;
             }
         }
 
-        /* MathJax styles */
-        .mjx-chtml {
-            font-size: 110% !important;
+        @media (max-width: 480px) {
+            .chat-header {
+                flex-direction: column;
+                gap: 15px;
+                text-align: center;
+                padding: 15px;
+            }
+            
+            .chat-header-controls {
+                width: 100%;
+                justify-content: center;
+            }
+            
+            .input-area input {
+                padding: 14px;
+                font-size: 14px;
+            }
+            
+            .suggestion-chip {
+                padding: 8px 16px;
+                font-size: 12px;
+            }
+            
+            .status-grid {
+                grid-template-columns: 1fr;
+            }
         }
 
-        /* Loading animation */
+        /* Utility Classes */
+        .hidden {
+            display: none !important;
+        }
+
+        .loading {
+            opacity: 0.7;
+            pointer-events: none;
+        }
+
+        .error {
+            color: #dc3545;
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            padding: 10px;
+            border-radius: 8px;
+            margin: 10px 0;
+        }
+
+        .success {
+            color: #155724;
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            padding: 10px;
+            border-radius: 8px;
+            margin: 10px 0;
+        }
+
+        /* Typing Indicator */
         .typing-indicator {
-            display: inline-block;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 8px 16px;
+            background: white;
+            border-radius: 18px;
+            border: 1px solid #e9ecef;
         }
 
-        .typing-indicator span {
-            display: inline-block;
+        .typing-dot {
             width: 8px;
             height: 8px;
             background: #4facfe;
             border-radius: 50%;
-            margin: 0 2px;
             animation: typing 1.4s infinite;
         }
 
-        .typing-indicator span:nth-child(2) {
+        .typing-dot:nth-child(2) {
             animation-delay: 0.2s;
         }
 
-        .typing-indicator span:nth-child(3) {
+        .typing-dot:nth-child(3) {
             animation-delay: 0.4s;
         }
 
@@ -497,609 +823,1071 @@
             50% { transform: translateY(-5px); }
         }
 
-        /* Scrollbar styling */
-        .messages-container::-webkit-scrollbar {
+        /* Scrollbar Styling */
+        ::-webkit-scrollbar {
             width: 8px;
+            height: 8px;
         }
 
-        .messages-container::-webkit-scrollbar-track {
+        ::-webkit-scrollbar-track {
             background: #f1f1f1;
+            border-radius: 4px;
         }
 
-        .messages-container::-webkit-scrollbar-thumb {
+        ::-webkit-scrollbar-thumb {
             background: #c1c1c1;
             border-radius: 4px;
         }
 
-        .messages-container::-webkit-scrollbar-thumb:hover {
+        ::-webkit-scrollbar-thumb:hover {
             background: #a8a8a8;
         }
     </style>
 </head>
 <body>
-    <div id="mathjax-loading" style="display: none;">Loading equations...</div>
-    
     <div class="chat-container">
+        <!-- Header -->
         <div class="chat-header">
             <h1>🤖 NIR8 Chat Calculator</h1>
-            <p>Chat with AI to perform calculations, track quantities, and generate reports</p>
+            <div class="chat-header-controls">
+                <div class="mode-indicator" id="modeIndicator">Ready</div>
+                <button class="input-btn" onclick="printAllCalculations()" title="Print All Calculations">🖨️</button>
+                <button class="input-btn" onclick="clearAllCalculations()" title="Clear All Calculations">🗑️</button>
+            </div>
         </div>
 
+        <!-- Main Area -->
         <div class="chat-main">
+            <!-- Sidebar -->
             <div class="sidebar">
-                <div class="quick-actions">
-                    <button class="action-btn active" onclick="sendMessage('help')">
-                        🆘 Get Started
-                    </button>
-                    <button class="action-btn" onclick="sendMessage('calculate formula')">
-                        🧮 Formula Calculator
-                    </button>
-                    <button class="action-btn" onclick="sendMessage('acb calculator')">
-                        📊 (A+C)-B Calculator
-                    </button>
-                    <button class="action-btn" onclick="sendMessage('track quantities')">
-                        📈 Track Quantities
-                    </button>
-                    <button class="action-btn" onclick="sendMessage('print report')">
-                        🖨️ Print Report
-                    </button>
-                    <button class="action-btn" onclick="clearChat()">
-                        🗑️ Clear Chat
-                    </button>
+                <div class="sidebar-section">
+                    <h3>🚀 Quick Actions</h3>
+                    <div class="quick-actions">
+                        <button class="action-btn" onclick="sendMessage('help')">
+                            <i>❓</i> Get Started
+                        </button>
+                        <button class="action-btn active" onclick="showFormulaCalculator()">
+                            <i>🧮</i> Formula Calculator
+                        </button>
+                        <button class="action-btn" onclick="showACBCalculator()">
+                            <i>📊</i> (A+C)-B Calculator
+                        </button>
+                        <button class="action-btn" onclick="sendMessage('show quantities')">
+                            <i>📈</i> Track Quantities
+                        </button>
+                        <button class="action-btn" onclick="printAllCalculations()">
+                            <i>🖨️</i> Print Report
+                        </button>
+                    </div>
                 </div>
 
-                <div class="status-panel">
+                <div class="sidebar-section">
                     <h3>📊 Current Status</h3>
-                    <div class="status-item">
-                        <span class="status-label">Calculations:</span>
-                        <span id="calcCount" class="status-value">0</span>
-                    </div>
-                    <div class="status-item">
-                        <span class="status-label">Std Qty:</span>
-                        <span id="statusStdQty" class="status-value">0.000</span>
-                    </div>
-                    <div class="status-item">
-                        <span class="status-label">Dispensed:</span>
-                        <span id="statusDispensed" class="status-value">0.000</span>
-                    </div>
-                    <div class="status-item">
-                        <span class="status-label">Remaining:</span>
-                        <span id="statusRemaining" class="status-value">0.000</span>
-                    </div>
-                    <div class="status-item">
-                        <span class="status-label">Mode:</span>
-                        <span id="statusMode" class="status-value">Ready</span>
+                    <div class="status-grid">
+                        <div class="status-item">
+                            <div class="status-label">Calculations</div>
+                            <div class="status-value" id="statusCalculations">0</div>
+                        </div>
+                        <div class="status-item">
+                            <div class="status-label">Std Qty (kg)</div>
+                            <div class="status-value" id="statusStdQty" onclick="promptSetStdQty()">0.000</div>
+                        </div>
+                        <div class="status-item">
+                            <div class="status-label">Dispensed</div>
+                            <div class="status-value" id="statusDispensed">0.000</div>
+                        </div>
+                        <div class="status-item">
+                            <div class="status-label">Remaining</div>
+                            <div class="status-value" id="statusRemaining" onclick="useRemainingAsQ()">0.000</div>
+                        </div>
                     </div>
                 </div>
 
-                <div class="status-panel">
+                <div class="sidebar-section">
                     <h3>💡 Quick Examples</h3>
-                    <p style="font-size: 12px; color: #666; margin-top: 10px;">
-                        Try: "Calculate F1 with Q=100, W=5, A=95"<br>
-                        Or: "Show ACB calculator"<br>
-                        Or: "Set std quantity to 1000"
-                    </p>
+                    <div style="font-size: 12px; color: #666; line-height: 1.6;">
+                        <p><strong>Formulas:</strong><br>
+                        "Calculate F1 Q=100 W=5 A=95"<br>
+                        "Calculate F2 with Q=500"<br>
+                        "F3 Q=1000 W=3 A=98"</p>
+                        
+                        <p><strong>Quantity:</strong><br>
+                        "Set std qty 1500"<br>
+                        "Show quantities"<br>
+                        "Clear calculations"</p>
+                        
+                        <p><strong>ACB:</strong><br>
+                        "ACB Lot 1 B=100"<br>
+                        "Show ACB totals"<br>
+                        "Reset ACB"</p>
+                    </div>
                 </div>
             </div>
 
+            <!-- Chat Area -->
             <div class="chat-area">
+                <!-- Messages -->
                 <div class="messages-container" id="messagesContainer">
-                    <!-- Messages will be inserted here -->
+                    <div class="message system">
+                        Welcome to NIR8 Chat Calculator! I can help you with formula calculations, quantity tracking, and (A+C)-B calculations. Type your commands or use the quick actions.
+                    </div>
                 </div>
 
+                <!-- Suggestions -->
                 <div class="suggestions" id="suggestions">
-                    <!-- Suggestions will be inserted here -->
+                    <div class="suggestion-chip" onclick="sendMessage('Calculate F1')">Calculate F1</div>
+                    <div class="suggestion-chip" onclick="sendMessage('Calculate F2')">Calculate F2</div>
+                    <div class="suggestion-chip" onclick="sendMessage('Calculate F3')">Calculate F3</div>
+                    <div class="suggestion-chip" onclick="sendMessage('Set std qty 1000')">Set Std Qty</div>
+                    <div class="suggestion-chip" onclick="showACBCalculator()">ACB Calculator</div>
+                    <div class="suggestion-chip" onclick="clearChat()">Clear Chat</div>
                 </div>
 
+                <!-- Input Area -->
                 <div class="input-area">
-                    <input type="text" id="userInput" placeholder="Type your message here... (Press Enter to send)" 
-                           onkeypress="handleKeyPress(event)">
+                    <input type="text" id="userInput" 
+                           placeholder="Type your command here (e.g., 'Calculate F1 Q=100 W=5 A=95')..." 
+                           onkeypress="handleInputKeyPress(event)">
                     <button class="input-btn" onclick="sendUserMessage()">↵</button>
                 </div>
             </div>
         </div>
+
+        <!-- Hidden Calculation Steps Container (From Original) -->
+        <div class="calculation-steps hidden" id="calculationSteps" role="region" aria-label="Calculation steps">
+            <button type="button" onclick="printWithCheck()" class="calc-btn" style="background: #007bff; color: white; margin-bottom: 20px;">Print Calculations</button>
+            <div id="stepsContainer"></div>
+        </div>
     </div>
 
     <script>
+        // ============================================================================
+        // CONSTANTS & CONFIGURATION (From Original)
+        // ============================================================================
+        const CONSTANTS = {
+            MAX_CALCULATIONS: 15,
+            ACB_DEFAULT_A: 417.000,
+            ACB_DEFAULT_C: 84.375,
+            ACB_TOTAL_A: 1668.000,
+            ACB_TOTAL_C: 337.500,
+            Q_MAX: 9999999,
+            W_MAX: 99.99,
+            A_MAX: 100.00,
+            MATHJAX_TIMEOUT: 10000
+        };
+
         // Configure Decimal.js
         Decimal.set({ precision: 20, toExpNeg: -9, toExpPos: 20 });
 
-        // State variables
-        let chatState = {
-            mode: 'idle', // 'idle', 'awaiting_q', 'awaiting_w', 'awaiting_a', 'acb_mode'
-            currentFormula: null,
-            pendingCalculation: null,
+        // ============================================================================
+        // STATE MANAGEMENT
+        // ============================================================================
+        const state = {
+            // Chat state
+            currentMode: 'ready',
+            messages: [],
             calculations: [],
-            stdQty: 0,
-            dispensedQty: 0,
-            remainingQty: 0
+            
+            // Formula calculator state
+            formulaState: {
+                Q: '',
+                W: '',
+                A: '',
+                formulaType: null
+            },
+            
+            // Quantity tracking
+            quantities: {
+                stdQty: 0,
+                dispensedQty: 0,
+                remainingQty: 0
+            },
+            
+            // ACB calculator state
+            acbState: {
+                values: {
+                    a: [CONSTANTS.ACB_DEFAULT_A, CONSTANTS.ACB_DEFAULT_A, CONSTANTS.ACB_DEFAULT_A, CONSTANTS.ACB_DEFAULT_A],
+                    b: [0, 0, 0, 0],
+                    c: [CONSTANTS.ACB_DEFAULT_C, CONSTANTS.ACB_DEFAULT_C, CONSTANTS.ACB_DEFAULT_C, CONSTANTS.ACB_DEFAULT_C]
+                },
+                totals: {
+                    a: CONSTANTS.ACB_TOTAL_A,
+                    b: 0,
+                    c: CONSTANTS.ACB_TOTAL_C,
+                    result: 0
+                }
+            }
         };
 
-        // DOM Elements
-        const dom = {
+        // ============================================================================
+        // DOM ELEMENTS
+        // ============================================================================
+        const elements = {
+            // Chat elements
             messagesContainer: document.getElementById('messagesContainer'),
             userInput: document.getElementById('userInput'),
             suggestions: document.getElementById('suggestions'),
-            statusElements: {
-                calcCount: document.getElementById('calcCount'),
-                stdQty: document.getElementById('statusStdQty'),
-                dispensed: document.getElementById('statusDispensed'),
-                remaining: document.getElementById('statusRemaining'),
-                mode: document.getElementById('statusMode')
-            }
+            modeIndicator: document.getElementById('modeIndicator'),
+            
+            // Status elements
+            statusCalculations: document.getElementById('statusCalculations'),
+            statusStdQty: document.getElementById('statusStdQty'),
+            statusDispensed: document.getElementById('statusDispensed'),
+            statusRemaining: document.getElementById('statusRemaining'),
+            
+            // Calculation steps (from original)
+            calculationSteps: document.getElementById('calculationSteps'),
+            stepsContainer: document.getElementById('stepsContainer')
         };
 
-        // Initialize chat
-        function initChat() {
-            addMessage('system', 'Welcome to NIR8 Chat Calculator! I can help you with formula calculations, quantity tracking, and ACB calculations. How can I assist you today?');
-            updateSuggestions(['Get started', 'Calculate formula', 'Track quantities', 'Show ACB calculator']);
-            updateStatus();
+        // ============================================================================
+        // UTILITY FUNCTIONS (From Original)
+        // ============================================================================
+        function truncateTo12Digits(num) {
+            try {
+                const numStr = new Decimal(num).toString();
+                const isNegative = numStr.startsWith("-");
+                const absNumStr = isNegative ? numStr.slice(1) : numStr;
+                let result = isNegative ? "-" : "";
+                let digitCount = 0;
+                for (let i = 0; i < absNumStr.length && digitCount < 12; i++) {
+                    if (absNumStr[i] === ".") {
+                        result += ".";
+                    } else {
+                        result += absNumStr[i];
+                        digitCount++;
+                    }
+                }
+                return result;
+            } catch {
+                return num.toString();
+            }
         }
 
-        // Add message to chat
+        function formatNumber(num, isAW = false) {
+            try {
+                const d = new Decimal(num);
+                const formatted = isAW ? d.toFixed(2) : d.toFixed(3);
+                return truncateTo12Digits(formatted);
+            } catch {
+                return num.toString();
+            }
+        }
+
+        // ============================================================================
+        // CHAT FUNCTIONS
+        // ============================================================================
         function addMessage(type, content, showTime = true) {
-            const container = dom.messagesContainer;
+            const message = {
+                id: Date.now(),
+                type,
+                content,
+                timestamp: new Date(),
+                showTime
+            };
+            
+            state.messages.push(message);
+            renderMessage(message);
+            
+            // Auto-scroll to bottom
+            setTimeout(() => {
+                elements.messagesContainer.scrollTop = elements.messagesContainer.scrollHeight;
+            }, 100);
+        }
+
+        function renderMessage(message) {
+            const container = elements.messagesContainer;
             const messageDiv = document.createElement('div');
-            messageDiv.className = `message ${type}`;
+            messageDiv.className = `message ${message.type}`;
             
-            const time = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+            const time = message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
             
-            let messageContent = '';
-            if (type === 'bot') {
-                messageContent = `
+            let content = '';
+            if (message.type === 'bot') {
+                content = `
                     <div class="message-header">
                         <div class="bot-avatar">AI</div>
-                        <div class="bot-name">NIR8 Assistant</div>
+                        <div class="message-sender">NIR8 Assistant</div>
                     </div>
-                    <div class="message-content">${content}</div>
+                    <div>${message.content}</div>
                 `;
             } else {
-                messageContent = `
-                    <div class="message-content">${content}</div>
-                `;
+                content = `<div>${message.content}</div>`;
             }
             
-            if (showTime) {
-                messageContent += `<div class="message-time">${time}</div>`;
+            if (message.showTime) {
+                content += `<div class="message-time">${time}</div>`;
             }
             
-            messageDiv.innerHTML = messageContent;
+            messageDiv.innerHTML = content;
             container.appendChild(messageDiv);
-            container.scrollTop = container.scrollHeight;
         }
 
-        // Show typing indicator
-        function showTyping() {
-            const container = dom.messagesContainer;
+        function showTypingIndicator() {
+            const container = elements.messagesContainer;
             const typingDiv = document.createElement('div');
             typingDiv.className = 'message bot';
+            typingDiv.id = 'typingIndicator';
             typingDiv.innerHTML = `
                 <div class="message-header">
                     <div class="bot-avatar">AI</div>
-                    <div class="bot-name">NIR8 Assistant</div>
+                    <div class="message-sender">NIR8 Assistant</div>
                 </div>
                 <div class="typing-indicator">
-                    <span></span><span></span><span></span>
+                    <div class="typing-dot"></div>
+                    <div class="typing-dot"></div>
+                    <div class="typing-dot"></div>
                 </div>
             `;
             container.appendChild(typingDiv);
             container.scrollTop = container.scrollHeight;
+            
             return typingDiv;
         }
 
-        // Update suggestions
-        function updateSuggestions(suggestions) {
-            dom.suggestions.innerHTML = '';
-            suggestions.forEach(text => {
-                const chip = document.createElement('div');
-                chip.className = 'suggestion-chip';
-                chip.textContent = text;
-                chip.onclick = () => sendMessage(text);
-                dom.suggestions.appendChild(chip);
-            });
-        }
-
-        // Update status panel
-        function updateStatus() {
-            dom.statusElements.calcCount.textContent = chatState.calculations.length;
-            dom.statusElements.stdQty.textContent = formatNumber(chatState.stdQty);
-            dom.statusElements.dispensed.textContent = formatNumber(chatState.dispensedQty);
-            dom.statusElements.remaining.textContent = formatNumber(chatState.remainingQty);
-            dom.statusElements.mode.textContent = chatState.mode.charAt(0).toUpperCase() + chatState.mode.slice(1);
-        }
-
-        // Format number
-        function formatNumber(num) {
-            try {
-                return new Decimal(num).toFixed(3);
-            } catch {
-                return '0.000';
+        function removeTypingIndicator() {
+            const typingDiv = document.getElementById('typingIndicator');
+            if (typingDiv) {
+                typingDiv.remove();
             }
         }
 
-        // Send user message
-        function sendUserMessage() {
-            const text = dom.userInput.value.trim();
+        // ============================================================================
+        // MESSAGE PROCESSING
+        // ============================================================================
+        async function processMessage(text) {
+            text = text.trim().toLowerCase();
+            
             if (!text) return;
             
-            addMessage('user', text);
-            dom.userInput.value = '';
+            // Show typing indicator
+            showTypingIndicator();
             
-            // Simulate typing
-            const typing = showTyping();
-            
-            // Process after delay
+            // Process after delay for realistic typing
             setTimeout(() => {
-                typing.remove();
-                processMessage(text);
-            }, 1000);
+                removeTypingIndicator();
+                
+                // Process the message
+                const response = routeMessage(text);
+                addMessage('bot', response);
+                
+                // Update status
+                updateStatus();
+            }, 500);
         }
 
-        // Send message (for quick actions)
-        function sendMessage(text) {
-            dom.userInput.value = text;
-            sendUserMessage();
-        }
-
-        // Process user message
-        async function processMessage(text) {
-            text = text.toLowerCase();
+        function routeMessage(text) {
+            // Check for formula calculations
+            if (text.includes('calculate') || text.includes('f1') || text.includes('f2') || text.includes('f3')) {
+                return handleFormulaCommand(text);
+            }
             
+            // Check for quantity commands
+            if (text.includes('qty') || text.includes('quantity') || text.includes('std')) {
+                return handleQuantityCommand(text);
+            }
+            
+            // Check for ACB commands
+            if (text.includes('acb') || text.includes('lot') || text.includes('a+c') || text.includes('(a+c)-b')) {
+                return handleACBCommand(text);
+            }
+            
+            // Check for help
             if (text.includes('help') || text.includes('start')) {
-                showHelp();
-            } 
-            else if (text.includes('calculate') || text.includes('formula')) {
-                startFormulaCalculation(text);
+                return getHelpMessage();
             }
-            else if (text.includes('acb') || text.includes('a+c') || text.includes('(a+c)-b')) {
-                showACBCalculator();
-            }
-            else if (text.includes('track') || text.includes('quantity')) {
-                trackQuantities(text);
-            }
-            else if (text.includes('print') || text.includes('report')) {
-                printReport();
-            }
-            else if (text.includes('clear')) {
-                clearChat();
-            }
-            else {
-                handleRegularInput(text);
-            }
-        }
-
-        // Show help
-        function showHelp() {
-            const helpText = `
-                <h3>📋 Available Commands:</h3>
-                <p><strong>Formula Calculations:</strong></p>
-                <ul>
-                    <li>"Calculate formula" - Start formula calculation</li>
-                    <li>"Calculate F1 with Q=100, W=5, A=95" - Direct calculation</li>
-                    <li>"F2 calculation" - Specific formula</li>
-                </ul>
-                <p><strong>Quantity Tracking:</strong></p>
-                <ul>
-                    <li>"Set std quantity 1000" - Set standard quantity</li>
-                    <li>"Show quantities" - Display current quantities</li>
-                    <li>"Update dispensed 500" - Update dispensed quantity</li>
-                </ul>
-                <p><strong>ACB Calculator:</strong></p>
-                <ul>
-                    <li>"Show ACB calculator" - Open ACB calculator</li>
-                    <li>"Update Lot 1 issued 100" - Update issued quantity</li>
-                </ul>
-                <p><strong>Other:</strong></p>
-                <ul>
-                    <li>"Print report" - Generate printable report</li>
-                    <li>"Clear chat" - Clear conversation</li>
-                    <li>"Help" - Show this help</li>
-                </ul>
-            `;
-            addMessage('bot', helpText);
-            updateSuggestions(['Calculate F1', 'Set std quantity', 'Show ACB', 'Print report']);
-        }
-
-        // Start formula calculation
-        function startFormulaCalculation(text) {
-            // Try to extract parameters from message
-            const params = extractParams(text);
             
+            // Check for clear
+            if (text.includes('clear')) {
+                return handleClearCommand(text);
+            }
+            
+            // Check for print
+            if (text.includes('print') || text.includes('report')) {
+                return handlePrintCommand();
+            }
+            
+            // Default response
+            return "I'm not sure what you mean. Try saying 'help' to see available commands, or use one of the quick actions.";
+        }
+
+        // ============================================================================
+        // FORMULA CALCULATION FUNCTIONS (From Original - Adapted)
+        // ============================================================================
+        function handleFormulaCommand(text) {
+            // Extract parameters from text
+            const params = extractParamsFromText(text);
+            
+            // Determine formula type
+            let formulaType = 'F1';
+            if (text.includes('f2')) formulaType = 'F2';
+            if (text.includes('f3')) formulaType = 'F3';
+            
+            // If all parameters are provided, calculate directly
             if (params.Q && params.W && params.A) {
-                // Direct calculation
-                const formula = text.includes('f1') ? 'F1' : text.includes('f2') ? 'F2' : text.includes('f3') ? 'F3' : 'F1';
-                performCalculation(formula, params.Q, params.W, params.A);
-            } else {
-                // Start interactive mode
-                chatState.mode = 'awaiting_q';
-                chatState.currentFormula = text.includes('f1') ? 'F1' : 
-                                          text.includes('f2') ? 'F2' : 
-                                          text.includes('f3') ? 'F3' : null;
-                
-                let prompt = "Let's calculate a formula! ";
-                if (chatState.currentFormula) {
-                    prompt += `You selected ${chatState.currentFormula}. `;
-                } else {
-                    prompt += "Which formula would you like to use? (F1, F2, or F3) ";
-                }
-                prompt += "Please enter the Quantity (Q):";
-                
-                addMessage('bot', prompt);
-                updateSuggestions(['100', '500', '1000', 'Cancel']);
+                return performFormulaCalculation(formulaType, params.Q, params.W, params.A);
             }
+            
+            // Otherwise, start interactive mode
+            state.currentMode = 'formula_input';
+            state.formulaState.formulaType = formulaType;
+            
+            let response = `Let's calculate ${formulaType}. `;
+            
+            if (!params.Q) {
+                response += "Please enter Quantity (Q):";
+                state.formulaState.step = 'Q';
+            } else if (!params.W) {
+                response += `Got Q = ${params.Q}. Please enter Water Content (W):`;
+                state.formulaState.Q = params.Q;
+                state.formulaState.step = 'W';
+            } else if (!params.A) {
+                response += `Got Q = ${params.Q}, W = ${params.W}. Please enter Assay Content (A):`;
+                state.formulaState.Q = params.Q;
+                state.formulaState.W = params.W;
+                state.formulaState.step = 'A';
+            }
+            
+            return response;
         }
 
-        // Extract parameters from text
-        function extractParams(text) {
+        function extractParamsFromText(text) {
             const params = {};
-            const patterns = {
-                Q: /q\s*[=:]\s*([\d.]+)/i,
-                W: /w\s*[=:]\s*([\d.]+)/i,
-                A: /a\s*[=:]\s*([\d.]+)/i
-            };
             
-            for (const [key, pattern] of Object.entries(patterns)) {
-                const match = text.match(pattern);
-                if (match) params[key] = parseFloat(match[1]);
-            }
+            // Extract Q
+            const qMatch = text.match(/(?:q|quantity)[=:\s]+([\d.]+)/i);
+            if (qMatch) params.Q = parseFloat(qMatch[1]);
+            
+            // Extract W
+            const wMatch = text.match(/(?:w|water)[=:\s]+([\d.]+)/i);
+            if (wMatch) params.W = parseFloat(wMatch[1]);
+            
+            // Extract A
+            const aMatch = text.match(/(?:a|assay)[=:\s]+([\d.]+)/i);
+            if (aMatch) params.A = parseFloat(aMatch[1]);
             
             return params;
         }
 
-        // Handle regular input based on current mode
-        function handleRegularInput(text) {
-            const num = parseFloat(text);
-            
-            switch (chatState.mode) {
-                case 'awaiting_q':
-                    if (!isNaN(num)) {
-                        chatState.pendingCalculation = { Q: num };
-                        chatState.mode = 'awaiting_w';
-                        addMessage('bot', `Great! Q = ${num}. Now enter Water Content (W):`);
-                        updateSuggestions(['5', '10', '15', 'Cancel']);
-                    } else if (text.includes('cancel')) {
-                        chatState.mode = 'idle';
-                        addMessage('bot', 'Calculation cancelled.');
-                    } else {
-                        addMessage('bot', 'Please enter a valid number for Quantity (Q):');
-                    }
-                    break;
-                    
-                case 'awaiting_w':
-                    if (!isNaN(num)) {
-                        chatState.pendingCalculation.W = num;
-                        chatState.mode = 'awaiting_a';
-                        addMessage('bot', `Got it! W = ${num}%. Now enter Assay Content (A):`);
-                        updateSuggestions(['85', '90', '95', '98', 'Cancel']);
-                    } else if (text.includes('cancel')) {
-                        chatState.mode = 'idle';
-                        addMessage('bot', 'Calculation cancelled.');
-                    } else {
-                        addMessage('bot', 'Please enter a valid number for Water Content (W):');
-                    }
-                    break;
-                    
-                case 'awaiting_a':
-                    if (!isNaN(num)) {
-                        chatState.pendingCalculation.A = num;
-                        const formula = chatState.currentFormula || 'F1';
-                        performCalculation(formula, 
-                            chatState.pendingCalculation.Q, 
-                            chatState.pendingCalculation.W, 
-                            chatState.pendingCalculation.A);
-                        chatState.mode = 'idle';
-                    } else if (text.includes('cancel')) {
-                        chatState.mode = 'idle';
-                        addMessage('bot', 'Calculation cancelled.');
-                    } else {
-                        addMessage('bot', 'Please enter a valid number for Assay Content (A):');
-                    }
-                    break;
-                    
-                default:
-                    // Try to interpret the message
-                    if (!isNaN(num)) {
-                        if (text.includes('std') || text.includes('standard')) {
-                            chatState.stdQty = num;
-                            addMessage('bot', `Standard quantity set to ${formatNumber(num)} kg`);
-                            updateStatus();
-                        } else if (text.includes('dispense')) {
-                            chatState.dispensedQty = num;
-                            addMessage('bot', `Dispensed quantity updated to ${formatNumber(num)} kg`);
-                            updateStatus();
-                        } else {
-                            addMessage('bot', `I got the number ${num}. What would you like to do with it?`);
-                        }
-                    } else {
-                        addMessage('bot', "I'm not sure what you mean. Try saying 'help' to see available commands, or use one of the quick actions.");
-                    }
-            }
-        }
-
-        // Perform calculation
-        function performCalculation(formulaType, Q, W, A) {
+        function performFormulaCalculation(formulaType, Q, W, A) {
             try {
-                const hundred = new Decimal(100);
-                const dQ = new Decimal(Q);
-                const dW = new Decimal(W);
-                const dA = new Decimal(A);
+                // Validate inputs
+                Q = parseFloat(Q);
+                W = parseFloat(W);
+                A = parseFloat(A);
                 
-                let result, calculation;
-                
-                if (formulaType === 'F1' || formulaType === 'F3') {
-                    const numerator = dQ.times(hundred).times(hundred);
-                    const denominator = dA.times(hundred.minus(dW));
-                    result = numerator.div(denominator);
-                    
-                    calculation = {
-                        type: formulaType,
-                        Q: Q,
-                        W: W,
-                        A: A,
-                        result: result.toNumber(),
-                        timestamp: new Date()
-                    };
-                    
-                    const resultText = `
-                        <div class="calculation-result">
-                            <h4>${formulaType} Calculation Result:</h4>
-                            <p>Formula: F = (Q × 100 × 100) / (A × (100 - W))</p>
-                            <p>Q = ${Q}, W = ${W}%, A = ${A}%</p>
-                            <p>Calculation: (${Q} × 100 × 100) / (${A} × (100 - ${W}))</p>
-                            <p><strong>Result: ${result.toFixed(3)}</strong></p>
-                        </div>
-                    `;
-                    
-                    addMessage('bot', `✅ ${formulaType} calculation complete!${resultText}`);
-                    
-                } else if (formulaType === 'F2') {
-                    const numerator = dQ.times(dA).times(hundred.minus(dW));
-                    const denominator = hundred.times(hundred);
-                    result = numerator.div(denominator);
-                    
-                    calculation = {
-                        type: formulaType,
-                        Q: Q,
-                        W: W,
-                        A: A,
-                        result: result.toNumber(),
-                        timestamp: new Date()
-                    };
-                    
-                    const resultText = `
-                        <div class="calculation-result">
-                            <h4>${formulaType} Calculation Result:</h4>
-                            <p>Formula: F = (Q × A × (100 - W)) / (100 × 100)</p>
-                            <p>Q = ${Q}, W = ${W}%, A = ${A}%</p>
-                            <p>Calculation: (${Q} × ${A} × (100 - ${W})) / (100 × 100)</p>
-                            <p><strong>Result: ${result.toFixed(3)}</strong></p>
-                        </div>
-                    `;
-                    
-                    addMessage('bot', `✅ ${formulaType} calculation complete!${resultText}`);
+                if (isNaN(Q) || isNaN(W) || isNaN(A)) {
+                    return "❌ Invalid input values. Please enter valid numbers.";
                 }
                 
-                // Store calculation
-                chatState.calculations.push(calculation);
+                if (Q <= 0 || W <= 0 || A <= 0) {
+                    return "❌ All values must be greater than 0.";
+                }
+                
+                if (Q > CONSTANTS.Q_MAX) {
+                    return `❌ Quantity (Q) must be less than or equal to ${CONSTANTS.Q_MAX}.`;
+                }
+                
+                if (A > CONSTANTS.A_MAX || W > CONSTANTS.W_MAX) {
+                    return "❌ Invalid values: Ensure A ≤ 100 and W ≤ 99.99.";
+                }
+                
+                // Perform calculation using original functions
+                const calculation = createCalculation(formulaType, new Decimal(Q), new Decimal(W), new Decimal(A));
+                
+                if (!calculation) {
+                    return "❌ Calculation failed. Please check your inputs.";
+                }
+                
+                // Add to calculations
+                state.calculations.push({
+                    ...calculation,
+                    timestamp: new Date()
+                });
                 
                 // Update dispensed quantity
-                if (formulaType === 'F2') {
-                    chatState.dispensedQty = new Decimal(chatState.dispensedQty).plus(Q).toNumber();
-                } else {
-                    chatState.dispensedQty = new Decimal(chatState.dispensedQty).plus(result).toNumber();
-                }
+                updateDispensedQuantity(formulaType, Q, calculation.result);
                 
-                // Update remaining
-                chatState.remainingQty = new Decimal(chatState.stdQty).minus(chatState.dispensedQty).toNumber();
+                // Show calculation in chat
+                let response = `✅ ${formulaType} Calculation Complete!\n\n`;
+                response += `**Parameters:**\n`;
+                response += `- Quantity (Q): ${formatNumber(Q)}\n`;
+                response += `- Water Content (W): ${formatNumber(W, true)}%\n`;
+                response += `- Assay Content (A): ${formatNumber(A, true)}%\n\n`;
+                response += `**Result:** ${formatNumber(calculation.result)}`;
                 
-                updateStatus();
-                updateSuggestions(['Calculate another', 'Show ACB', 'Print report', 'Clear']);
+                // Also add to original calculation steps for printing
+                addToCalculationSteps(calculation);
+                
+                state.currentMode = 'ready';
+                return response;
                 
             } catch (error) {
-                addMessage('bot', `❌ Calculation failed: ${error.message}`);
+                console.error('Calculation error:', error);
+                return `❌ Calculation error: ${error.message}`;
             }
         }
 
-        // Show ACB calculator
-        function showACBCalculator() {
-            const acbHtml = `
-                <div class="calculation-result">
-                    <h4>📊 (A+C)-B Calculator</h4>
-                    <p>This calculator helps track standard vs issued quantities across lots.</p>
-                    <p><strong>Available Commands:</strong></p>
-                    <ul>
-                        <li>"Set Lot 1 A 417" - Set standard quantity A for Lot 1</li>
-                        <li>"Set Lot 2 C 84.375" - Set standard quantity C for Lot 2</li>
-                        <li>"Issue Lot 1 100" - Update issued quantity for Lot 1</li>
-                        <li>"Show ACB totals" - Display current totals</li>
-                        <li>"Reset ACB" - Reset all values</li>
-                    </ul>
-                    <p>Try: "Issue Lot 1 150" or "Set Lot 3 A 450"</p>
-                </div>
-            `;
-            addMessage('bot', acbHtml);
-            chatState.mode = 'acb_mode';
-            updateSuggestions(['Issue Lot 1', 'Show totals', 'Reset ACB', 'Back to main']);
+        function createCalculation(formulaType, Q, W, A) {
+            try {
+                const hundred = new Decimal(100);
+                const formattedQ = formatNumber(Q);
+                const formattedA = formatNumber(A, true);
+                const formattedW = formatNumber(W, true);
+
+                if (formulaType === "F1" || formulaType === "F3") {
+                    const step1 = Q.mul(hundred);
+                    const step2 = step1.mul(hundred);
+                    const step3 = hundred.sub(W);
+                    const step4 = A.mul(step3);
+                    const numerator = step2;
+                    const denominator = step4;
+                    if (denominator.isZero()) throw new Error("Division by zero");
+                    const result = numerator.div(denominator);
+                    const roundedResult = result.toFixed(3);
+
+                    return {
+                        mathJax: `
+                            $$ F_${formulaType === "F1" ? "1" : "3"} = \\frac{${formattedQ} \\times 100 \\times 100}{${formattedA} \\times (100 - ${formattedW})} $$ <br><br>
+                            $$ = \\frac{${formattedQ} \\times 100 \\times 100}{${formattedA} \\times ${formatNumber(step3)}} $$ <br><br>
+                            $$ = \\frac{${formatNumber(numerator)}}{${formatNumber(denominator)}} $$ <br><br>
+                            $$ = ${truncateTo12Digits(roundedResult)} \\text{ (original: } ${formatNumber(result)} \\text{)} $$
+                        `,
+                        plainText: `
+                            F${formulaType === "F1" ? "1" : "3"} = (${formattedQ} × 100 × 100) / (${formattedA} × (100 - ${formattedW}))
+                            <br><br>
+                            = (${formattedQ} × 100 × 100) / (${formattedA} × ${formatNumber(step3)})
+                            <br><br>
+                            = ${formatNumber(numerator)} / ${formatNumber(denominator)}
+                            <br><br>
+                            = ${truncateTo12Digits(roundedResult)} <br> (original: ${formatNumber(result)})
+                        `,
+                        formulaType,
+                        Q: Q.toString(),
+                        W: W.toString(),
+                        A: A.toString(),
+                        result: roundedResult,
+                        isFinal: true
+                    };
+                } else if (formulaType === "F2") {
+                    const step1 = hundred.sub(W);
+                    const step2 = A.mul(step1);
+                    const step3 = Q.mul(step2);
+                    const denominator = hundred.mul(hundred);
+                    const numerator = step3;
+                    const result = numerator.div(denominator);
+                    const roundedResult = result.toFixed(3);
+
+                    return {
+                        mathJax: `
+                            $$ F_2 = \\frac{${formattedQ} \\times ${formattedA} \\times (100 - ${formattedW})}{100 \\times 100} $$ <br><br>
+                            $$ = \\frac{${formattedQ} \\times ${formattedA} \\times ${formatNumber(step1)}}{${formatNumber(denominator)}} $$ <br><br>
+                            $$ = \\frac{${formatNumber(numerator)}}{${formatNumber(denominator)}} $$ <br><br>
+                            $$ = ${truncateTo12Digits(roundedResult)} \\text{ (original: } ${formatNumber(result)} \\text{)} $$
+                        `,
+                        plainText: `
+                            F2 = (${formattedQ} × ${formattedA} × (100 - ${formattedW})) / (100 × 100)
+                            <br><br>
+                            = (${formattedQ} × ${formattedA} × ${formatNumber(step1)}) / ${formatNumber(denominator)}
+                            <br><br>
+                            = ${formatNumber(numerator)} / ${formatNumber(denominator)}
+                            <br><br>
+                            = ${truncateTo12Digits(roundedResult)} <br> (original: ${formatNumber(result)})
+                        `,
+                        formulaType,
+                        Q: Q.toString(),
+                        W: W.toString(),
+                        A: A.toString(),
+                        result: roundedResult,
+                        isFinal: false
+                    };
+                }
+                return null;
+            } catch (err) {
+                console.error("Calculation error:", err);
+                throw err;
+            }
         }
 
-        // Track quantities
-        function trackQuantities(text) {
-            const num = parseFloat(text.match(/\d+/)?.[0]);
+        function addToCalculationSteps(calculation) {
+            const newEntry = document.createElement("div");
+            newEntry.className = "calculation-entry";
+            newEntry.setAttribute("tabindex", "0");
+            newEntry.setAttribute("role", "region");
+            newEntry.setAttribute("aria-label", `Calculation ${calculation.formulaType}`);
+            newEntry.innerHTML = `
+                <button type="button" class="delete-button" onclick="deleteCalculation(this)" title="Delete" aria-label="Delete calculation">❌</button>
+                <div class="lot-label"></div>
+                <div class="reference-values">W="${formatNumber(calculation.W, true)}" A="${formatNumber(calculation.A, true)}"</div>
+                <div class="calculation-content">${calculation.plainText}</div>
+                <div class="page-number">${state.calculations.length}/${state.calculations.length}</div>
+            `;
+
+            elements.stepsContainer.insertBefore(newEntry, elements.stepsContainer.firstChild);
+            elements.calculationSteps.classList.remove("hidden");
             
-            if (text.includes('std') || text.includes('standard')) {
-                if (!isNaN(num)) {
-                    chatState.stdQty = num;
-                    addMessage('bot', `✅ Standard quantity set to ${formatNumber(num)} kg`);
-                    updateStatus();
+            // Update MathJax if available
+            if (typeof MathJax !== 'undefined' && MathJax.typeset) {
+                setTimeout(() => {
+                    MathJax.typeset([newEntry]);
+                }, 100);
+            }
+        }
+
+        // ============================================================================
+        // QUANTITY TRACKING FUNCTIONS
+        // ============================================================================
+        function handleQuantityCommand(text) {
+            const num = extractNumber(text);
+            
+            if (text.includes('set') || text.includes('std')) {
+                if (!isNaN(num) && num > 0) {
+                    state.quantities.stdQty = num;
+                    updateQuantities();
+                    return `✅ Standard quantity set to ${formatNumber(num)} kg`;
                 } else {
-                    const qtyHtml = `
-                        <div class="form-inputs">
-                            <h4>📈 Quantity Tracking</h4>
-                            <p>Current status:</p>
-                            <div class="result-display">
-                                <p>Standard Qty: ${formatNumber(chatState.stdQty)} kg</p>
-                                <p>Dispensed: ${formatNumber(chatState.dispensedQty)} kg</p>
-                                <p>Remaining: ${formatNumber(chatState.remainingQty)} kg</p>
-                            </div>
-                            <p>To update, say: "Set std quantity [number]"</p>
-                        </div>
-                    `;
-                    addMessage('bot', qtyHtml);
+                    return "❌ Please provide a valid quantity (e.g., 'Set std qty 1000')";
                 }
             }
-        }
-
-        // Print report
-        function printReport() {
-            if (chatState.calculations.length === 0) {
-                addMessage('bot', 'No calculations to report. Perform some calculations first.');
-                return;
+            
+            if (text.includes('show') || text.includes('display')) {
+                return getQuantityStatus();
             }
             
-            let report = `<div class="calculation-result">
-                <h4>📄 Calculation Report</h4>
-                <p>Total Calculations: ${chatState.calculations.length}</p>
-                <p>Generated: ${new Date().toLocaleString()}</p>
-                <hr>`;
+            return getQuantityStatus();
+        }
+
+        function getQuantityStatus() {
+            return `📊 **Quantity Status:**\n\n` +
+                   `• Standard Qty: ${formatNumber(state.quantities.stdQty)} kg\n` +
+                   `• Dispensed: ${formatNumber(state.quantities.dispensedQty)} kg\n` +
+                   `• Remaining: ${formatNumber(state.quantities.remainingQty)} kg\n\n` +
+                   `*Click on remaining quantity to use it as Q in next calculation*`;
+        }
+
+        function updateDispensedQuantity(formulaType, Q, result) {
+            const resultNum = parseFloat(result);
             
-            chatState.calculations.forEach((calc, index) => {
-                report += `
-                    <p><strong>Calculation ${index + 1}:</strong></p>
-                    <p>Type: ${calc.type}</p>
-                    <p>Q: ${calc.Q}, W: ${calc.W}%, A: ${calc.A}%</p>
-                    <p>Result: ${formatNumber(calc.result)}</p>
-                    <hr>
-                `;
+            if (formulaType === "F2") {
+                state.quantities.dispensedQty += parseFloat(Q);
+            } else {
+                state.quantities.dispensedQty += resultNum;
+            }
+            
+            updateQuantities();
+        }
+
+        function updateQuantities() {
+            state.quantities.remainingQty = state.quantities.stdQty - state.quantities.dispensedQty;
+            
+            // Update UI
+            elements.statusStdQty.textContent = formatNumber(state.quantities.stdQty);
+            elements.statusDispensed.textContent = formatNumber(state.quantities.dispensedQty);
+            elements.statusRemaining.textContent = formatNumber(state.quantities.remainingQty);
+            elements.statusCalculations.textContent = state.calculations.length;
+        }
+
+        // ============================================================================
+        // ACB CALCULATOR FUNCTIONS
+        // ============================================================================
+        function handleACBCommand(text) {
+            if (text.includes('show') || text.includes('display')) {
+                return getACBStatus();
+            }
+            
+            if (text.includes('reset')) {
+                return resetACBCalculator();
+            }
+            
+            // Try to parse lot updates
+            const lotUpdate = parseLotUpdate(text);
+            if (lotUpdate) {
+                return updateACBValue(lotUpdate.lot, lotUpdate.type, lotUpdate.value);
+            }
+            
+            return getACBStatus();
+        }
+
+        function parseLotUpdate(text) {
+            const pattern = /lot\s*(\d+)\s*(a|b|c)[=:\s]+([\d.]+)/i;
+            const match = text.match(pattern);
+            
+            if (match) {
+                return {
+                    lot: parseInt(match[1]) - 1, // Convert to 0-based index
+                    type: match[2].toLowerCase(),
+                    value: parseFloat(match[3])
+                };
+            }
+            return null;
+        }
+
+        function updateACBValue(lotIndex, type, value) {
+            if (lotIndex < 0 || lotIndex > 3 || isNaN(value)) {
+                return "❌ Invalid lot or value. Please use format: 'Lot 1 B=100'";
+            }
+            
+            if (type === 'a' || type === 'c') {
+                // Update all lots if it's a standard value
+                for (let i = 0; i < 4; i++) {
+                    state.acbState.values[type][i] = value;
+                }
+            } else {
+                state.acbState.values[type][lotIndex] = value;
+            }
+            
+            // Recalculate totals
+            recalculateACBTotals();
+            
+            return `✅ Updated Lot ${lotIndex + 1} ${type.toUpperCase()} to ${formatNumber(value)}`;
+        }
+
+        function recalculateACBTotals() {
+            // Calculate totals
+            state.acbState.totals.a = state.acbState.values.a.reduce((sum, val) => sum + val, 0);
+            state.acbState.totals.b = state.acbState.values.b.reduce((sum, val) => sum + val, 0);
+            state.acbState.totals.c = state.acbState.values.c.reduce((sum, val) => sum + val, 0);
+            state.acbState.totals.result = state.acbState.totals.a + state.acbState.totals.c - state.acbState.totals.b;
+        }
+
+        function resetACBCalculator() {
+            state.acbState = {
+                values: {
+                    a: [CONSTANTS.ACB_DEFAULT_A, CONSTANTS.ACB_DEFAULT_A, CONSTANTS.ACB_DEFAULT_A, CONSTANTS.ACB_DEFAULT_A],
+                    b: [0, 0, 0, 0],
+                    c: [CONSTANTS.ACB_DEFAULT_C, CONSTANTS.ACB_DEFAULT_C, CONSTANTS.ACB_DEFAULT_C, CONSTANTS.ACB_DEFAULT_C]
+                },
+                totals: {
+                    a: CONSTANTS.ACB_TOTAL_A,
+                    b: 0,
+                    c: CONSTANTS.ACB_TOTAL_C,
+                    result: 0
+                }
+            };
+            
+            return "✅ ACB Calculator has been reset to default values.";
+        }
+
+        function getACBStatus() {
+            let response = `📊 **(A+C)-B Calculator Status:**\n\n`;
+            
+            response += `**Standard Quantities (A):**\n`;
+            state.acbState.values.a.forEach((val, i) => {
+                response += `Lot ${i + 1}: ${formatNumber(val)} kg\n`;
             });
+            response += `Total A: ${formatNumber(state.acbState.totals.a)} kg\n\n`;
             
-            report += `<p><strong>Summary:</strong></p>
-                <p>Standard Quantity: ${formatNumber(chatState.stdQty)} kg</p>
-                <p>Total Dispensed: ${formatNumber(chatState.dispensedQty)} kg</p>
-                <p>Remaining: ${formatNumber(chatState.remainingQty)} kg</p>
-            </div>`;
+            response += `**Issued Quantities (B):**\n`;
+            state.acbState.values.b.forEach((val, i) => {
+                response += `Lot ${i + 1}: ${formatNumber(val)} kg\n`;
+            });
+            response += `Total B: ${formatNumber(state.acbState.totals.b)} kg\n\n`;
             
-            addMessage('bot', report);
-            updateSuggestions(['Print now', 'Export', 'New calculation', 'Clear']);
+            response += `**Standard Quantities (C):**\n`;
+            state.acbState.values.c.forEach((val, i) => {
+                response += `Lot ${i + 1}: ${formatNumber(val)} kg\n`;
+            });
+            response += `Total C: ${formatNumber(state.acbState.totals.c)} kg\n\n`;
+            
+            response += `**Results ((A+C)-B):**\n`;
+            for (let i = 0; i < 4; i++) {
+                const result = state.acbState.values.a[i] + state.acbState.values.c[i] - state.acbState.values.b[i];
+                response += `Lot ${i + 1}: ${formatNumber(result)} kg\n`;
+            }
+            response += `Total Result: ${formatNumber(state.acbState.totals.result)} kg\n\n`;
+            
+            response += `*To update, use: 'Lot 1 B=100' or 'Set Lot 2 A=450'*`;
+            
+            return response;
         }
 
-        // Clear chat
-        function clearChat() {
-            if (confirm('Clear all chat messages?')) {
-                dom.messagesContainer.innerHTML = '';
-                addMessage('system', 'Chat cleared. How can I help you?');
-                updateSuggestions(['Get started', 'Calculate formula', 'Track quantities', 'Show ACB calculator']);
+        // ============================================================================
+        // OTHER COMMAND HANDLERS
+        // ============================================================================
+        function getHelpMessage() {
+            return `🤖 **NIR8 Chat Calculator Help**\n\n` +
+                   `**Formula Calculations:**\n` +
+                   `• Calculate F1 Q=100 W=5 A=95\n` +
+                   `• Calculate F2 with Q=500 W=3 A=98\n` +
+                   `• F3 Q=1000 W=2 A=99\n\n` +
+                   `**Quantity Tracking:**\n` +
+                   `• Set std qty 1500\n` +
+                   `• Show quantities\n` +
+                   `• Use remaining as Q\n\n` +
+                   `**ACB Calculator:**\n` +
+                   `• Show ACB\n` +
+                   `• Lot 1 B=100\n` +
+                   `• Lot 2 A=450\n` +
+                   `• Reset ACB\n\n` +
+                   `**Other Commands:**\n` +
+                   `• Help\n` +
+                   `• Clear calculations\n` +
+                   `• Print report\n` +
+                   `• Clear chat\n\n` +
+                   `*You can also use the quick action buttons in the sidebar.*`;
+        }
+
+        function handleClearCommand(text) {
+            if (text.includes('calculation') || text.includes('calc')) {
+                return clearAllCalculations();
+            } else if (text.includes('chat')) {
+                return clearChat();
+            } else {
+                return clearAllCalculations();
             }
         }
 
-        // Handle Enter key
-        function handleKeyPress(event) {
+        function handlePrintCommand() {
+            if (state.calculations.length === 0) {
+                return "❌ No calculations to print. Please perform some calculations first.";
+            }
+            
+            // Show the calculation steps container
+            elements.calculationSteps.classList.add('active');
+            
+            setTimeout(() => {
+                printWithCheck();
+            }, 500);
+            
+            return `✅ Ready to print ${state.calculations.length} calculations. The print preview will open shortly.`;
+        }
+
+        // ============================================================================
+        // UI FUNCTIONS
+        // ============================================================================
+        function sendMessage(text) {
+            elements.userInput.value = text;
+            sendUserMessage();
+        }
+
+        function sendUserMessage() {
+            const text = elements.userInput.value.trim();
+            if (!text) return;
+            
+            addMessage('user', text);
+            elements.userInput.value = '';
+            
+            processMessage(text);
+        }
+
+        function handleInputKeyPress(event) {
             if (event.key === 'Enter') {
                 sendUserMessage();
             }
         }
 
-        // Initialize on load
-        document.addEventListener('DOMContentLoaded', initChat);
+        function updateStatus() {
+            elements.modeIndicator.textContent = state.currentMode.charAt(0).toUpperCase() + state.currentMode.slice(1);
+            elements.statusCalculations.textContent = state.calculations.length;
+        }
+
+        function clearChat() {
+            if (confirm('Clear all chat messages?')) {
+                elements.messagesContainer.innerHTML = '';
+                state.messages = [];
+                addMessage('system', 'Chat cleared. How can I help you?');
+            }
+            return "✅ Chat cleared.";
+        }
+
+        function clearAllCalculations() {
+            if (state.calculations.length === 0) {
+                return "❌ No calculations to clear.";
+            }
+            
+            if (confirm(`Clear all ${state.calculations.length} calculations?`)) {
+                state.calculations = [];
+                state.quantities.dispensedQty = 0;
+                state.quantities.remainingQty = state.quantities.stdQty;
+                elements.stepsContainer.innerHTML = '';
+                elements.calculationSteps.classList.add('hidden');
+                updateQuantities();
+                return "✅ All calculations cleared.";
+            }
+            return "❌ Operation cancelled.";
+        }
+
+        function showFormulaCalculator() {
+            const calculatorHTML = `
+                <div class="form-inputs">
+                    <h3>🧮 Formula Calculator</h3>
+                    <p>Enter values for calculation:</p>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="chatQ">Quantity (Q):</label>
+                            <input type="number" id="chatQ" step="0.001" min="0.001" placeholder="Enter quantity">
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="chatW">Water Content (W):</label>
+                            <input type="number" id="chatW" step="0.01" min="0.01" max="99.99" placeholder="Enter water content">
+                        </div>
+                        <div class="form-group">
+                            <label for="chatA">Assay Content (A):</label>
+                            <input type="number" id="chatA" step="0.01" min="0.01" max="100.00" placeholder="Enter assay content">
+                        </div>
+                    </div>
+                    
+                    <div class="form-buttons">
+                        <button class="calc-btn f1" onclick="calculateFromForm('F1')">Calculate F1</button>
+                        <button class="calc-btn f2" onclick="calculateFromForm('F2')">Calculate F2</button>
+                        <button class="calc-btn f3" onclick="calculateFromForm('F3')">Calculate F3</button>
+                    </div>
+                </div>
+            `;
+            
+            addMessage('bot', calculatorHTML);
+        }
+
+        function calculateFromForm(formulaType) {
+            const Q = document.getElementById('chatQ')?.value;
+            const W = document.getElementById('chatW')?.value;
+            const A = document.getElementById('chatA')?.value;
+            
+            if (!Q || !W || !A) {
+                addMessage('bot', "❌ Please fill in all fields.");
+                return;
+            }
+            
+            const result = performFormulaCalculation(formulaType, Q, W, A);
+            addMessage('bot', result);
+        }
+
+        function showACBCalculator() {
+            addMessage('bot', getACBStatus());
+        }
+
+        function useRemainingAsQ() {
+            if (state.quantities.remainingQty > 0) {
+                if (confirm(`Use remaining quantity (${formatNumber(state.quantities.remainingQty)}) as Q?`)) {
+                    showFormulaCalculator();
+                    setTimeout(() => {
+                        const qInput = document.getElementById('chatQ');
+                        if (qInput) {
+                            qInput.value = formatNumber(state.quantities.remainingQty);
+                        }
+                    }, 100);
+                }
+            }
+        }
+
+        function promptSetStdQty() {
+            const newQty = prompt("Enter new standard quantity (kg):", formatNumber(state.quantities.stdQty));
+            if (newQty && !isNaN(parseFloat(newQty))) {
+                state.quantities.stdQty = parseFloat(newQty);
+                updateQuantities();
+                addMessage('bot', `✅ Standard quantity set to ${formatNumber(state.quantities.stdQty)} kg`);
+            }
+        }
+
+        // ============================================================================
+        // PRINT FUNCTIONS (From Original)
+        // ============================================================================
+        function printWithCheck() {
+            if (window.innerWidth <= 768 && !confirm("For optimal printing, use a larger screen or PC. Continue?")) {
+                return;
+            }
+            
+            // Hide chat interface during print
+            document.querySelector('.chat-container').classList.add('hidden');
+            elements.calculationSteps.classList.remove('hidden');
+            
+            setTimeout(() => {
+                window.print();
+                
+                // Restore chat interface after print
+                setTimeout(() => {
+                    document.querySelector('.chat-container').classList.remove('hidden');
+                    elements.calculationSteps.classList.add('hidden');
+                }, 500);
+            }, 500);
+        }
+
+        function printAllCalculations() {
+            if (state.calculations.length === 0) {
+                addMessage('bot', "❌ No calculations to print.");
+                return;
+            }
+            
+            // Show calculation steps
+            elements.calculationSteps.classList.add('active');
+            
+            setTimeout(() => {
+                printWithCheck();
+            }, 100);
+            
+            addMessage('bot', `✅ Preparing ${state.calculations.length} calculations for printing...`);
+        }
+
+        // ============================================================================
+        // ORIGINAL FUNCTIONS (Adapted for Chat)
+        // ============================================================================
+        function deleteCalculation(button) {
+            if (!confirm("Are you sure you want to delete this calculation?")) return;
+            
+            const entry = button.parentElement;
+            const entries = Array.from(elements.stepsContainer.children);
+            const entryIndex = entries.indexOf(entry);
+            const arrayIndex = state.calculations.length - 1 - entryIndex;
+            
+            if (arrayIndex >= 0 && arrayIndex < state.calculations.length) {
+                // Update dispensed quantity
+                const calc = state.calculations[arrayIndex];
+                if (calc.formulaType === "F2") {
+                    state.quantities.dispensedQty -= parseFloat(calc.Q);
+                } else {
+                    state.quantities.dispensedQty -= parseFloat(calc.result);
+                }
+                
+                // Remove calculation
+                state.calculations.splice(arrayIndex, 1);
+                
+                // Update quantities
+                updateQuantities();
+            }
+            
+            entry.remove();
+            
+            if (state.calculations.length === 0) {
+                elements.calculationSteps.classList.add('hidden');
+            }
+            
+            addMessage('bot', "✅ Calculation deleted.");
+        }
+
+        // ============================================================================
+        // HELPER FUNCTIONS
+        // ============================================================================
+        function extractNumber(text) {
+            const match = text.match(/(\d+(\.\d+)?)/);
+            return match ? parseFloat(match[1]) : NaN;
+        }
+
+        // ============================================================================
+        // INITIALIZATION
+        // ============================================================================
+        function init() {
+            // Initialize Decimal.js
+            if (typeof Decimal !== 'undefined') {
+                Decimal.set({ precision: 20, toExpNeg: -9, toExpPos: 20 });
+            }
+            
+            // Initialize state
+            updateQuantities();
+            updateStatus();
+            
+            // Set up event listeners
+            elements.userInput.focus();
+            
+            // Welcome message
+            addMessage('bot', getHelpMessage());
+        }
+
+        // Initialize when page loads
+        document.addEventListener('DOMContentLoaded', init);
     </script>
 </body>
 </html>
