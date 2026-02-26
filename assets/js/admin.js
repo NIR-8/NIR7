@@ -1,17 +1,33 @@
-// admin.js
+const ADMIN_PASSWORD = "vemagal123";
 
-// Admin functionality for NIR-8/NIR7
+function login(password) {
+  if (password === ADMIN_PASSWORD) {
+    document.getElementById("adminPanel").style.display = "block";
+  } else {
+    alert("Wrong password");
+  }
+}
 
-(function() {
-    'use strict';
+function addProduct(data) {
+  data.id = Date.now();
+  PRODUCTS.push(data);
+  saveProducts();
+  alert("Product added");
+}
 
-    // Add your admin-specific functions here
+function updateOrderStatus(orderID, status) {
+  let order = ORDERS.find(o => o.id === orderID);
+  if (order) {
+    order.status = status;
+    saveOrders();
+  }
+}
 
-    function initAdmin() {
-        console.log('Admin functionality initialized.');
-        // Additional initialization code
-    }
+function getLowStockProducts() {
+  return PRODUCTS.filter(p => p.stock < 10);
+}
 
-    // Load admin functions on document ready
-    document.addEventListener('DOMContentLoaded', initAdmin);
-})();
+function getTodaySales() {
+  let today = new Date().toISOString().split("T")[0];
+  return ORDERS.filter(o => o.date.startsWith(today));
+}
