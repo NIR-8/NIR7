@@ -1,164 +1,202 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Vemagal Quick-Mart</title>
-<script src="https://cdn.tailwindcss.com"></script>
+  <meta charset="UTF-8">
+  <title>Vemagal Quick-Mart</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <!-- Tailwind -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- PWA -->
+  <link rel="manifest" href="manifest.json">
 </head>
 
 <body class="bg-gray-100 font-sans">
 
-<header class="bg-yellow-400 p-4 flex justify-between shadow-lg">
-  <h1 class="text-xl font-bold">🛒 Vemagal Quick-Mart</h1>
-  <button onclick="toggleCart()" class="bg-black text-white px-4 py-2 rounded">
+<!-- HEADER -->
+<header class="bg-yellow-400 p-4 flex justify-between items-center shadow-lg sticky top-0 z-50">
+  <h1 class="text-2xl font-bold">🛒 Vemagal Quick-Mart</h1>
+  <button onclick="toggleCart()" class="bg-black text-white px-4 py-2 rounded-full">
     Cart (<span id="cartCount">0</span>)
   </button>
 </header>
 
-<main id="products" class="grid grid-cols-2 md:grid-cols-4 gap-4 p-4"></main>
+<!-- SEARCH + FILTER -->
+<section class="p-4 grid md:grid-cols-3 gap-4 bg-white shadow">
+  <input id="searchInput" type="text" placeholder="Search products..."
+    class="p-2 border rounded col-span-2">
+  
+  <select id="categoryFilter" class="p-2 border rounded">
+    <option value="all">All Categories</option>
+  </select>
+</section>
+
+<!-- PRODUCT GRID -->
+<main id="productGrid"
+  class="p-4 grid grid-cols-2 md:grid-cols-4 gap-6">
+</main>
 
 <!-- CART DRAWER -->
-<div id="cartDrawer" class="fixed right-0 top-0 w-96 h-full bg-white shadow-lg transform translate-x-full transition p-4 overflow-y-auto">
+<div id="cartDrawer"
+  class="fixed right-0 top-0 w-96 h-full bg-white shadow-2xl transform translate-x-full transition duration-300 p-5 overflow-y-auto">
 
-  <h2 class="text-xl font-bold mb-4">Checkout</h2>
+  <h2 class="text-xl font-bold mb-4">Your Cart</h2>
+
   <div id="cartItems"></div>
 
-  <h3 class="mt-4 font-bold">Total: ₹<span id="totalAmount">0</span></h3>
-
-  <input id="name" placeholder="Full Name" class="w-full mt-3 p-2 border rounded">
-  <input id="phone" placeholder="Phone Number" class="w-full mt-2 p-2 border rounded">
-  <input id="address" placeholder="Delivery Address" class="w-full mt-2 p-2 border rounded">
-
-  <select id="paymentMethod" class="w-full mt-2 p-2 border rounded">
-    <option value="COD">Cash on Delivery</option>
-    <option value="UPI">UPI Payment</option>
-  </select>
-
-  <!-- UPI QR -->
-  <div id="upiSection" class="hidden mt-3 text-center">
-    <p class="text-sm mb-2">Scan & Pay</p>
-    <img src="https://via.placeholder.com/200x200?text=Your+UPI+QR" class="mx-auto rounded">
-    <p class="text-xs mt-1">After payment click Confirm Order</p>
+  <div class="border-t pt-4 mt-4">
+    <p>Subtotal: ₹<span id="subtotal">0</span></p>
+    <p>GST (5%): ₹<span id="gst">0</span></p>
+    <p>Delivery: ₹<span id="delivery">0</span></p>
+    <h3 class="font-bold text-lg">Total: ₹<span id="total">0</span></h3>
   </div>
 
-  <button onclick="placeOrder()" class="w-full mt-4 bg-green-600 text-white py-2 rounded">
-    Confirm Order
+  <!-- Customer -->
+  <div class="mt-4">
+    <input id="custName" placeholder="Name"
+      class="w-full mb-2 p-2 border rounded">
+    <input id="custPhone" placeholder="Phone"
+      class="w-full mb-2 p-2 border rounded">
+    <input id="custAddress" placeholder="Address"
+      class="w-full mb-2 p-2 border rounded">
+  </div>
+
+  <button onclick="checkout()" 
+    class="w-full mt-4 bg-green-600 text-white py-2 rounded hover:bg-green-700">
+    Place Order
   </button>
 
-  <button onclick="toggleCart()" class="w-full mt-2 bg-gray-300 py-2 rounded">
+  <button onclick="toggleCart()" 
+    class="w-full mt-2 bg-gray-300 py-2 rounded">
     Close
   </button>
+
 </div>
 
+
+<!-- JS FILES -->
+<script src="assets/js/data.js"></script>
+<script src="assets/js/store.js"></script>
+
 <script>
+/* ---------- UI RENDERING ---------- */
 
-// PRODUCTS
-const products = [
-  {id:1,name:"Milk",price:24},
-  {id:2,name:"Rice",price:60},
-  {id:3,name:"Sugar",price:45},
-  {id:4,name:"Maggi",price:14}
-];
+const grid = document.getElementById("productGrid");
+const categorySelect = document.getElementById("categoryFilter");
 
-let cart = {};
-
-const container = document.getElementById("products");
-
-products.forEach(p=>{
-  container.innerHTML += `
-    <div class="bg-white p-3 shadow rounded">
-      <h3 class="font-bold">${p.name}</h3>
-      <p>₹${p.price}</p>
-      <button onclick="addToCart(${p.id})"
-        class="bg-blue-600 text-white w-full py-1 mt-2 rounded">
-        Add
-      </button>
-    </div>
-  `;
-});
-
-function addToCart(id){
-  if(cart[id]) cart[id].qty++;
-  else{
-    let product=products.find(p=>p.id===id);
-    cart[id]={...product,qty:1};
-  }
-  updateCart();
+function loadCategories() {
+  let categories = [...new Set(PRODUCTS.map(p => p.category))];
+  categories.forEach(cat => {
+    let option = document.createElement("option");
+    option.value = cat;
+    option.textContent = cat;
+    categorySelect.appendChild(option);
+  });
 }
 
-function updateCart(){
-  let total=0,count=0;
-  let cartDiv=document.getElementById("cartItems");
-  cartDiv.innerHTML="";
+function renderProducts() {
+  grid.innerHTML = "";
 
-  Object.values(cart).forEach(item=>{
-    total+=item.price*item.qty;
-    count+=item.qty;
+  let search = document.getElementById("searchInput").value.toLowerCase();
+  let category = categorySelect.value;
 
-    cartDiv.innerHTML+=`
-      <div class="flex justify-between border-b py-1">
+  PRODUCTS
+    .filter(p =>
+      (category === "all" || p.category === category) &&
+      p.name.toLowerCase().includes(search)
+    )
+    .forEach(product => {
+
+      grid.innerHTML += `
+        <div class="bg-white p-4 rounded shadow hover:shadow-lg transition">
+          <img src="${product.image}" 
+               class="w-full h-32 object-cover rounded mb-2">
+          <h3 class="font-bold">${product.name}</h3>
+          <p class="text-gray-600">₹${product.price}</p>
+          <p class="text-sm ${product.stock < 10 ? 'text-red-500' : 'text-green-600'}">
+            Stock: ${product.stock}
+          </p>
+          <button onclick="addToCart(${product.id})"
+            class="mt-2 w-full bg-blue-600 text-white py-1 rounded">
+            Add to Cart
+          </button>
+        </div>
+      `;
+    });
+}
+
+function renderCart() {
+  let itemsDiv = document.getElementById("cartItems");
+  itemsDiv.innerHTML = "";
+
+  let totals = calculateTotals();
+
+  Object.values(cart).forEach(item => {
+    itemsDiv.innerHTML += `
+      <div class="flex justify-between border-b py-2">
         <span>${item.name} x${item.qty}</span>
-        <span>₹${item.price*item.qty}</span>
+        <div>
+          <button onclick="changeQty(${item.id}, -1)">-</button>
+          <button onclick="changeQty(${item.id}, 1)">+</button>
+        </div>
       </div>
     `;
   });
 
-  document.getElementById("totalAmount").innerText=total;
-  document.getElementById("cartCount").innerText=count;
+  document.getElementById("subtotal").innerText = totals.subtotal.toFixed(2);
+  document.getElementById("gst").innerText = totals.gst.toFixed(2);
+  document.getElementById("delivery").innerText = totals.delivery;
+  document.getElementById("total").innerText = totals.total.toFixed(2);
+  document.getElementById("cartCount").innerText =
+    Object.values(cart).reduce((sum, item) => sum + item.qty, 0);
 }
 
-function toggleCart(){
+function changeQty(id, val) {
+  if (cart[id]) {
+    cart[id].qty += val;
+    if (cart[id].qty <= 0) delete cart[id];
+    saveCart();
+    renderCart();
+  }
+}
+
+function toggleCart() {
   document.getElementById("cartDrawer")
     .classList.toggle("translate-x-full");
 }
 
-document.getElementById("paymentMethod")
-  .addEventListener("change",function(){
-    document.getElementById("upiSection")
-      .classList.toggle("hidden", this.value !== "UPI");
-});
+function checkout() {
+  let customer = {
+    name: document.getElementById("custName").value,
+    phone: document.getElementById("custPhone").value,
+    address: document.getElementById("custAddress").value
+  };
 
-function generateOrderID(){
-  return "VQ" + Date.now();
-}
-
-function placeOrder(){
-
-  let name=document.getElementById("name").value;
-  let phone=document.getElementById("phone").value;
-  let address=document.getElementById("address").value;
-  let payment=document.getElementById("paymentMethod").value;
-  let total=document.getElementById("totalAmount").innerText;
-
-  if(!name||!phone||!address){
-    alert("Please fill all details");
+  if (!customer.name || !customer.phone || !customer.address) {
+    alert("Please fill customer details");
     return;
   }
 
-  let orderID = generateOrderID();
+  placeOrder(customer);
+  renderProducts();
+  renderCart();
+}
 
-  let message = `🛒 *New Order - Vemagal Quick-Mart*\n\n`;
-  message += `Order ID: ${orderID}\n\n`;
+/* ---------- INIT ---------- */
 
-  Object.values(cart).forEach((item,i)=>{
-    message += `${i+1}. ${item.name} x${item.qty} - ₹${item.price*item.qty}\n`;
-  });
+loadCategories();
+renderProducts();
+renderCart();
 
-  message += `\nTotal: ₹${total}`;
-  message += `\nPayment: ${payment}`;
-  message += `\n\nCustomer: ${name}`;
-  message += `\nPhone: ${phone}`;
-  message += `\nAddress: ${address}`;
+document.getElementById("searchInput")
+  .addEventListener("input", renderProducts);
 
-  window.open(
-    `https://wa.me/919999999999?text=${encodeURIComponent(message)}`
-  );
+categorySelect.addEventListener("change", renderProducts);
 
-  alert("Order Placed Successfully!");
-  cart = {};
-  updateCart();
-  toggleCart();
+/* ---------- PWA ---------- */
+if ("serviceWorker" in navigator) {
+  navigator.serviceWorker.register("service-worker.js");
 }
 
 </script>
