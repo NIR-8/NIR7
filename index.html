@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Vemagal Quick-Mart</title>
+<script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body class="bg-gray-100 font-sans">
+
+<header class="bg-yellow-400 p-4 flex justify-between shadow-lg">
+  <h1 class="text-xl font-bold">🛒 Vemagal Quick-Mart</h1>
+  <button onclick="toggleCart()" class="bg-black text-white px-4 py-2 rounded">
+    Cart (<span id="cartCount">0</span>)
+  </button>
+</header>
+
+<main id="products" class="grid grid-cols-2 md:grid-cols-4 gap-4 p-4"></main>
+
+<!-- CART DRAWER -->
+<div id="cartDrawer" class="fixed right-0 top-0 w-96 h-full bg-white shadow-lg transform translate-x-full transition p-4 overflow-y-auto">
+
+  <h2 class="text-xl font-bold mb-4">Checkout</h2>
+  <div id="cartItems"></div>
+
+  <h3 class="mt-4 font-bold">Total: ₹<span id="totalAmount">0</span></h3>
+
+  <input id="name" placeholder="Full Name" class="w-full mt-3 p-2 border rounded">
+  <input id="phone" placeholder="Phone Number" class="w-full mt-2 p-2 border rounded">
+  <input id="address" placeholder="Delivery Address" class="w-full mt-2 p-2 border rounded">
+
+  <select id="paymentMethod" class="w-full mt-2 p-2 border rounded">
+    <option value="COD">Cash on Delivery</option>
+    <option value="UPI">UPI Payment</option>
+  </select>
+
+  <!-- UPI QR -->
+  <div id="upiSection" class="hidden mt-3 text-center">
+    <p class="text-sm mb-2">Scan & Pay</p>
+    <img src="https://via.placeholder.com/200x200?text=Your+UPI+QR" class="mx-auto rounded">
+    <p class="text-xs mt-1">After payment click Confirm Order</p>
+  </div>
+
+  <button onclick="placeOrder()" class="w-full mt-4 bg-green-600 text-white py-2 rounded">
+    Confirm Order
+  </button>
+
+  <button onclick="toggleCart()" class="w-full mt-2 bg-gray-300 py-2 rounded">
+    Close
+  </button>
+</div>
+
+<script>
+
+// PRODUCTS
+const products = [
+  {id:1,name:"Milk",price:24},
+  {id:2,name:"Rice",price:60},
+  {id:3,name:"Sugar",price:45},
+  {id:4,name:"Maggi",price:14}
+];
+
+let cart = {};
+
+const container = document.getElementById("products");
+
+products.forEach(p=>{
+  container.innerHTML += `
+    <div class="bg-white p-3 shadow rounded">
+      <h3 class="font-bold">${p.name}</h3>
+      <p>₹${p.price}</p>
+      <button onclick="addToCart(${p.id})"
+        class="bg-blue-600 text-white w-full py-1 mt-2 rounded">
+        Add
+      </button>
+    </div>
+  `;
+});
+
+function addToCart(id){
+  if(cart[id]) cart[id].qty++;
+  else{
+    let product=products.find(p=>p.id===id);
+    cart[id]={...product,qty:1};
+  }
+  updateCart();
+}
+
+function updateCart(){
+  let total=0,count=0;
+  let cartDiv=document.getElementById("cartItems");
+  cartDiv.innerHTML="";
+
+  Object.values(cart).forEach(item=>{
+    total+=item.price*item.qty;
+    count+=item.qty;
+
+    cartDiv.innerHTML+=`
+      <div class="flex justify-between border-b py-1">
+        <span>${item.name} x${item.qty}</span>
+        <span>₹${item.price*item.qty}</span>
+      </div>
+    `;
+  });
+
+  document.getElementById("totalAmount").innerText=total;
+  document.getElementById("cartCount").innerText=count;
+}
+
+function toggleCart(){
+  document.getElementById("cartDrawer")
+    .classList.toggle("translate-x-full");
+}
+
+document.getElementById("paymentMethod")
+  .addEventListener("change",function(){
+    document.getElementById("upiSection")
+      .classList.toggle("hidden", this.value !== "UPI");
+});
+
+function generateOrderID(){
+  return "VQ" + Date.now();
+}
+
+function placeOrder(){
+
+  let name=document.getElementById("name").value;
+  let phone=document.getElementById("phone").value;
+  let address=document.getElementById("address").value;
+  let payment=document.getElementById("paymentMethod").value;
+  let total=document.getElementById("totalAmount").innerText;
+
+  if(!name||!phone||!address){
+    alert("Please fill all details");
+    return;
+  }
+
+  let orderID = generateOrderID();
+
+  let message = `🛒 *New Order - Vemagal Quick-Mart*\n\n`;
+  message += `Order ID: ${orderID}\n\n`;
+
+  Object.values(cart).forEach((item,i)=>{
+    message += `${i+1}. ${item.name} x${item.qty} - ₹${item.price*item.qty}\n`;
+  });
+
+  message += `\nTotal: ₹${total}`;
+  message += `\nPayment: ${payment}`;
+  message += `\n\nCustomer: ${name}`;
+  message += `\nPhone: ${phone}`;
+  message += `\nAddress: ${address}`;
+
+  window.open(
+    `https://wa.me/919999999999?text=${encodeURIComponent(message)}`
+  );
+
+  alert("Order Placed Successfully!");
+  cart = {};
+  updateCart();
+  toggleCart();
+}
+
+</script>
+
+</body>
+</html>
