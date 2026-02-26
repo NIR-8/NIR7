@@ -1,205 +1,237 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Vemagal Quick-Mart</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-  <!-- Tailwind -->
-  <script src="https://cdn.tailwindcss.com"></script>
-
-  <!-- PWA -->
-  <link rel="manifest" href="manifest.json">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Vemagal Quick-Mart</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="manifest" href="manifest.json">
 </head>
 
 <body class="bg-gray-100 font-sans">
 
 <!-- HEADER -->
-<header class="bg-yellow-400 p-4 flex justify-between items-center shadow-lg sticky top-0 z-50">
-  <h1 class="text-2xl font-bold">🛒 Vemagal Quick-Mart</h1>
-  <button onclick="toggleCart()" class="bg-black text-white px-4 py-2 rounded-full">
+<header class="bg-yellow-400 p-4 flex justify-between items-center shadow-md sticky top-0 z-50">
+  <h1 class="text-lg md:text-2xl font-bold">🛒 Vemagal Quick-Mart</h1>
+  <button onclick="toggleCart()" 
+    class="bg-black text-white px-4 py-2 rounded-full text-sm md:text-base">
     Cart (<span id="cartCount">0</span>)
   </button>
 </header>
 
-<!-- SEARCH + FILTER -->
-<section class="p-4 grid md:grid-cols-3 gap-4 bg-white shadow">
-  <input id="searchInput" type="text" placeholder="Search products..."
-    class="p-2 border rounded col-span-2">
-  
-  <select id="categoryFilter" class="p-2 border rounded">
-    <option value="all">All Categories</option>
-  </select>
-</section>
+<!-- SEARCH -->
+<div class="p-3 bg-white shadow-sm">
+  <input id="searchInput" type="text" 
+    placeholder="Search groceries..."
+    class="w-full p-3 border rounded-lg">
+</div>
+
+<!-- CATEGORY CHIPS -->
+<div id="categoryChips" class="flex overflow-x-auto gap-2 p-3 bg-white"></div>
 
 <!-- PRODUCT GRID -->
 <main id="productGrid"
-  class="p-4 grid grid-cols-2 md:grid-cols-4 gap-6">
+  class="p-3 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 pb-24">
 </main>
+
+<!-- MOBILE CHECKOUT BAR -->
+<div class="fixed bottom-0 left-0 right-0 bg-white shadow-lg p-3 flex justify-between items-center md:hidden">
+  <span class="font-bold">₹<span id="mobileTotal">0</span></span>
+  <button onclick="toggleCart()" 
+    class="bg-green-600 text-white px-5 py-2 rounded-lg">
+    Checkout
+  </button>
+</div>
 
 <!-- CART DRAWER -->
 <div id="cartDrawer"
-  class="fixed right-0 top-0 w-96 h-full bg-white shadow-2xl transform translate-x-full transition duration-300 p-5 overflow-y-auto">
+  class="fixed inset-0 bg-white z-50 transform translate-x-full transition duration-300 overflow-y-auto">
 
-  <h2 class="text-xl font-bold mb-4">Your Cart</h2>
+  <div class="p-4">
+    <h2 class="text-xl font-bold mb-4">Your Cart</h2>
+    <div id="cartItems"></div>
 
-  <div id="cartItems"></div>
+    <div class="border-t pt-4 mt-4">
+      <h3 class="font-bold text-lg">
+        Total: ₹<span id="totalAmount">0</span>
+      </h3>
+    </div>
 
-  <div class="border-t pt-4 mt-4">
-    <p>Subtotal: ₹<span id="subtotal">0</span></p>
-    <p>GST (5%): ₹<span id="gst">0</span></p>
-    <p>Delivery: ₹<span id="delivery">0</span></p>
-    <h3 class="font-bold text-lg">Total: ₹<span id="total">0</span></h3>
+    <!-- Customer Info -->
+    <div class="mt-4 space-y-2">
+      <input id="custName" placeholder="Full Name"
+        class="w-full p-3 border rounded">
+      <input id="custPhone" placeholder="Phone Number"
+        class="w-full p-3 border rounded">
+      <input id="custAddress" placeholder="Delivery Address"
+        class="w-full p-3 border rounded">
+
+      <button onclick="getLocation()" 
+        class="w-full bg-blue-600 text-white py-2 rounded">
+        📍 Use My Location
+      </button>
+
+      <p id="locationStatus" class="text-sm text-green-600"></p>
+    </div>
+
+    <button onclick="placeOrder()"
+      class="w-full mt-4 bg-green-600 text-white py-3 rounded-lg text-lg">
+      Place Order
+    </button>
+
+    <button onclick="toggleCart()"
+      class="w-full mt-2 bg-gray-300 py-2 rounded">
+      Close
+    </button>
   </div>
-
-  <!-- Customer -->
-  <div class="mt-4">
-    <input id="custName" placeholder="Name"
-      class="w-full mb-2 p-2 border rounded">
-    <input id="custPhone" placeholder="Phone"
-      class="w-full mb-2 p-2 border rounded">
-    <input id="custAddress" placeholder="Address"
-      class="w-full mb-2 p-2 border rounded">
-  </div>
-
-  <button onclick="checkout()" 
-    class="w-full mt-4 bg-green-600 text-white py-2 rounded hover:bg-green-700">
-    Place Order
-  </button>
-
-  <button onclick="toggleCart()" 
-    class="w-full mt-2 bg-gray-300 py-2 rounded">
-    Close
-  </button>
-
 </div>
 
-
-<!-- JS FILES -->
-<script src="assets/js/data.js"></script>
-<script src="assets/js/store.js"></script>
-
 <script>
-/* ---------- UI RENDERING ---------- */
+
+/* DEMO PRODUCTS */
+const PRODUCTS = [
+  {id:1,name:"Nandini Milk",price:24,category:"Dairy",image:"https://images.unsplash.com/photo-1580910051074-3eb694886505"},
+  {id:2,name:"Banana",price:40,category:"Fruits",image:"https://images.unsplash.com/photo-1574226516831-e1dff420e43e"},
+  {id:3,name:"Tomato",price:30,category:"Vegetables",image:"https://images.unsplash.com/photo-1546470427-e26264be0b30"},
+  {id:4,name:"Rice (1kg)",price:60,category:"Grains",image:"https://images.unsplash.com/photo-1586201375761-83865001e31c"},
+  {id:5,name:"Coca Cola",price:40,category:"Beverages",image:"https://images.unsplash.com/photo-1580910051074-3eb694886505"},
+  {id:6,name:"Maggi Noodles",price:14,category:"Snacks",image:"https://images.unsplash.com/photo-1617196039897-7c04d2c2c16c"}
+];
+
+let cart = {};
+let selectedCategory = "All";
+let locationLink = "";
 
 const grid = document.getElementById("productGrid");
-const categorySelect = document.getElementById("categoryFilter");
+const chips = document.getElementById("categoryChips");
 
-function loadCategories() {
-  let categories = [...new Set(PRODUCTS.map(p => p.category))];
-  categories.forEach(cat => {
-    let option = document.createElement("option");
-    option.value = cat;
-    option.textContent = cat;
-    categorySelect.appendChild(option);
-  });
+/* CATEGORY CHIPS */
+const categories = ["All", ...new Set(PRODUCTS.map(p=>p.category))];
+
+categories.forEach(cat=>{
+  chips.innerHTML += `
+    <button onclick="filterCategory('${cat}')"
+      class="px-4 py-2 bg-gray-200 rounded-full text-sm whitespace-nowrap">
+      ${cat}
+    </button>
+  `;
+});
+
+function filterCategory(cat){
+  selectedCategory = cat;
+  renderProducts();
 }
 
-function renderProducts() {
-  grid.innerHTML = "";
-
-  let search = document.getElementById("searchInput").value.toLowerCase();
-  let category = categorySelect.value;
+/* RENDER PRODUCTS */
+function renderProducts(){
+  grid.innerHTML="";
+  let search=document.getElementById("searchInput").value.toLowerCase();
 
   PRODUCTS
-    .filter(p =>
-      (category === "all" || p.category === category) &&
+    .filter(p=>
+      (selectedCategory==="All"||p.category===selectedCategory) &&
       p.name.toLowerCase().includes(search)
     )
-    .forEach(product => {
-
-      grid.innerHTML += `
-        <div class="bg-white p-4 rounded shadow hover:shadow-lg transition">
-          <img src="${product.image}" 
-               class="w-full h-32 object-cover rounded mb-2">
-          <h3 class="font-bold">${product.name}</h3>
-          <p class="text-gray-600">₹${product.price}</p>
-          <p class="text-sm ${product.stock < 10 ? 'text-red-500' : 'text-green-600'}">
-            Stock: ${product.stock}
-          </p>
-          <button onclick="addToCart(${product.id})"
-            class="mt-2 w-full bg-blue-600 text-white py-1 rounded">
-            Add to Cart
-          </button>
+    .forEach(p=>{
+      grid.innerHTML+=`
+        <div class="bg-white rounded-xl shadow hover:shadow-lg transition">
+          <img src="${p.image}" class="h-32 w-full object-cover rounded-t-xl">
+          <div class="p-3">
+            <h3 class="font-semibold text-sm">${p.name}</h3>
+            <p class="text-gray-600 text-sm">₹${p.price}</p>
+            <button onclick="addToCart(${p.id})"
+              class="mt-2 w-full bg-blue-600 text-white py-1 rounded">
+              Add
+            </button>
+          </div>
         </div>
       `;
     });
 }
 
-function renderCart() {
-  let itemsDiv = document.getElementById("cartItems");
-  itemsDiv.innerHTML = "";
+document.getElementById("searchInput")
+  .addEventListener("input",renderProducts);
 
-  let totals = calculateTotals();
+/* CART */
+function addToCart(id){
+  let product=PRODUCTS.find(p=>p.id===id);
+  if(cart[id]) cart[id].qty++;
+  else cart[id]={...product,qty:1};
+  updateCart();
+}
 
-  Object.values(cart).forEach(item => {
-    itemsDiv.innerHTML += `
+function updateCart(){
+  let total=0,count=0;
+  let cartDiv=document.getElementById("cartItems");
+  cartDiv.innerHTML="";
+
+  Object.values(cart).forEach(item=>{
+    total+=item.price*item.qty;
+    count+=item.qty;
+
+    cartDiv.innerHTML+=`
       <div class="flex justify-between border-b py-2">
         <span>${item.name} x${item.qty}</span>
-        <div>
-          <button onclick="changeQty(${item.id}, -1)">-</button>
-          <button onclick="changeQty(${item.id}, 1)">+</button>
-        </div>
+        <span>₹${item.price*item.qty}</span>
       </div>
     `;
   });
 
-  document.getElementById("subtotal").innerText = totals.subtotal.toFixed(2);
-  document.getElementById("gst").innerText = totals.gst.toFixed(2);
-  document.getElementById("delivery").innerText = totals.delivery;
-  document.getElementById("total").innerText = totals.total.toFixed(2);
-  document.getElementById("cartCount").innerText =
-    Object.values(cart).reduce((sum, item) => sum + item.qty, 0);
+  document.getElementById("totalAmount").innerText=total;
+  document.getElementById("mobileTotal").innerText=total;
+  document.getElementById("cartCount").innerText=count;
 }
 
-function changeQty(id, val) {
-  if (cart[id]) {
-    cart[id].qty += val;
-    if (cart[id].qty <= 0) delete cart[id];
-    saveCart();
-    renderCart();
-  }
-}
-
-function toggleCart() {
+function toggleCart(){
   document.getElementById("cartDrawer")
     .classList.toggle("translate-x-full");
 }
 
-function checkout() {
-  let customer = {
-    name: document.getElementById("custName").value,
-    phone: document.getElementById("custPhone").value,
-    address: document.getElementById("custAddress").value
-  };
+/* LOCATION */
+function getLocation(){
+  if(navigator.geolocation){
+    navigator.geolocation.getCurrentPosition(position=>{
+      let lat=position.coords.latitude;
+      let lon=position.coords.longitude;
+      locationLink=`https://maps.google.com/?q=${lat},${lon}`;
+      document.getElementById("locationStatus").innerText="Location Added ✓";
+    });
+  }
+}
 
-  if (!customer.name || !customer.phone || !customer.address) {
-    alert("Please fill customer details");
+/* ORDER */
+function placeOrder(){
+  let name=document.getElementById("custName").value;
+  let phone=document.getElementById("custPhone").value;
+  let address=document.getElementById("custAddress").value;
+
+  if(!name||!phone||!address){
+    alert("Fill all details");
     return;
   }
 
-  placeOrder(customer);
-  renderProducts();
-  renderCart();
+  let message="🛒 *New Order - Vemagal Quick-Mart*\n\n";
+
+  Object.values(cart).forEach((item,i)=>{
+    message+=`${i+1}. ${item.name} x${item.qty}\n`;
+  });
+
+  message+=`\nTotal: ₹${document.getElementById("totalAmount").innerText}`;
+  message+=`\nCustomer: ${name}`;
+  message+=`\nPhone: ${phone}`;
+  message+=`\nAddress: ${address}`;
+
+  if(locationLink){
+    message+=`\nLocation: ${locationLink}`;
+  }
+
+  window.open(
+    `https://wa.me/919381487396?text=${encodeURIComponent(message)}`
+  );
 }
 
-/* ---------- INIT ---------- */
-
-loadCategories();
 renderProducts();
-renderCart();
-
-document.getElementById("searchInput")
-  .addEventListener("input", renderProducts);
-
-categorySelect.addEventListener("change", renderProducts);
-
-/* ---------- PWA ---------- */
-if ("serviceWorker" in navigator) {
-  navigator.serviceWorker.register("service-worker.js");
-}
 
 </script>
-
 </body>
 </html>
