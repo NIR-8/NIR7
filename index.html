@@ -3,15 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>SmartWardrobe Manual</title>
+    <title>SmartWardrobe Fixed</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         .img-card { aspect-ratio: 3/4; background: #fff; position: relative; border-radius: 12px; overflow: hidden; border: 1px solid #eee; }
         .img-card img { width: 100%; height: 100%; object-fit: contain; }
-        .selected-top { outline: 4px solid #4f46e5; outline-offset: -4px; }
-        .selected-bottom { outline: 4px solid #10b981; outline-offset: -4px; }
+        .selected { border: 4px solid #4f46e5; }
         .tab-active { color: #4f46e5; border-bottom: 3px solid #4f46e5; font-weight: 800; }
         .hidden { display: none; }
+        .scroll-x { display: flex; overflow-x: auto; gap: 8px; padding-bottom: 8px; }
+        .scroll-item { flex: 0 0 100px; aspect-ratio: 3/4; border-radius: 8px; overflow: hidden; border: 2px solid transparent; }
     </style>
 </head>
 <body class="bg-gray-50 pb-32">
@@ -20,146 +21,165 @@
         <div class="flex justify-around p-3 text-xs font-bold uppercase text-gray-400">
             <button onclick="switchTab('top')" id="btn-top" class="pb-2 px-2 tab-active">Tops</button>
             <button onclick="switchTab('bottom')" id="btn-bottom" class="pb-2 px-2">Bottoms</button>
-            <button onclick="switchTab('pairs')" id="btn-pairs" class="pb-2 px-2">Your Pairs</button>
+            <button onclick="switchTab('pairs')" id="btn-pairs" class="pb-2 px-2">Pairs</button>
         </div>
         
-        <div id="action-bar" class="p-3 bg-gray-100 border-t flex items-center justify-between">
-            <div id="pair-status" class="text-[10px] font-bold text-gray-500 uppercase">
-                Select items to pair
-            </div>
-            <button id="save-pair-btn" onclick="saveManualPair()" class="hidden bg-indigo-600 text-white px-4 py-2 rounded-lg font-bold text-xs animate-bounce">
-                SAVE PAIR +
-            </button>
-            <button onclick="suggestPair()" class="bg-black text-white px-6 py-2 rounded-lg font-bold text-xs">
-                SUGGEST OUTFIT
-            </button>
+        <div class="p-3 bg-gray-50 border-t flex gap-2">
+            <button onclick="suggestPair()" class="flex-1 bg-black text-white py-3 rounded-xl font-bold text-xs">SUGGEST OUTFIT</button>
+            <button onclick="exportData()" class="bg-white border p-3 rounded-xl">💾 Export</button>
+            <label class="bg-white border p-3 rounded-xl cursor-pointer">
+                📂 Import <input type="file" id="import-input" class="hidden" accept=".json">
+            </label>
         </div>
     </header>
 
     <main class="max-w-md mx-auto p-4">
         <div id="view-top" class="grid grid-cols-2 gap-3">
-            <label class="img-card flex flex-col items-center justify-center border-dashed border-2 border-indigo-200 bg-indigo-50/50">
-                <span class="text-3xl text-indigo-400">+</span>
+            <label class="img-card flex items-center justify-center border-dashed border-2 border-gray-300">
+                <span class="text-3xl text-gray-400">+</span>
                 <input type="file" multiple accept="image/*" class="hidden" onchange="handleFiles(event, 'tops')">
             </label>
             <div id="list-tops" class="contents"></div>
         </div>
 
         <div id="view-bottom" class="grid grid-cols-2 gap-3 hidden">
-            <label class="img-card flex flex-col items-center justify-center border-dashed border-2 border-emerald-200 bg-emerald-50/50">
-                <span class="text-3xl text-emerald-400">+</span>
+            <label class="img-card flex items-center justify-center border-dashed border-2 border-gray-300">
+                <span class="text-3xl text-gray-400">+</span>
                 <input type="file" multiple accept="image/*" class="hidden" onchange="handleFiles(event, 'bottoms')">
             </label>
             <div id="list-bottoms" class="contents"></div>
         </div>
 
-        <div id="view-pairs" class="hidden space-y-4">
+        <div id="view-pairs" class="hidden space-y-6">
+            <div class="bg-white p-4 rounded-2xl shadow-sm border border-indigo-100">
+                <h3 class="text-[10px] font-black text-indigo-600 uppercase mb-3 text-center">Create New Pair</h3>
+                <div class="scroll-x" id="pair-select-tops"></div>
+                <div class="scroll-x mt-2" id="pair-select-bottoms"></div>
+                <button onclick="saveManualPair()" id="save-btn" class="w-full mt-4 bg-indigo-600 text-white py-3 rounded-xl font-bold text-sm opacity-50 cursor-not-allowed" disabled>
+                    Link Selection
+                </button>
+            </div>
+            
+            <hr>
             <div id="list-pairs" class="grid grid-cols-1 gap-4"></div>
         </div>
     </main>
 
     <div id="modal" class="fixed inset-0 bg-black/95 hidden z-50 flex flex-col items-center justify-center p-8" onclick="this.classList.add('hidden')">
-        <h2 class="text-white font-bold mb-4 tracking-widest">MATCH FOUND</h2>
         <div class="w-full max-w-xs space-y-4">
             <div class="img-card"><img id="res-top" src=""></div>
             <div class="img-card"><img id="res-bottom" src=""></div>
         </div>
-        <p class="text-white/40 mt-8 text-xs">Tap to close</p>
     </div>
 
     <script>
-        let db = JSON.parse(localStorage.getItem('manualWardrobe')) || { tops: [], bottoms: [], pairs: [] };
-        let selection = { top: null, bottom: null };
+        let db = JSON.parse(localStorage.getItem('wardrobeFinal')) || { tops: [], bottoms: [], pairs: [] };
+        let tempSelection = { top: null, bottom: null };
 
-        // --- Core Functions ---
+        // --- Data Handling ---
+        function save() {
+            localStorage.setItem('wardrobeFinal', JSON.stringify(db));
+            render();
+        }
+
         async function handleFiles(e, type) {
             const files = Array.from(e.target.files);
             for (const file of files) {
                 const reader = new FileReader();
                 reader.onload = async (ev) => {
-                    const compressed = await compressImage(ev.target.result);
-                    db[type].push({ id: Date.now() + Math.random(), src: compressed, wears: 0, limit: 3 });
-                    save();
+                    const img = new Image();
+                    img.src = ev.target.result;
+                    img.onload = () => {
+                        const canvas = document.createElement('canvas');
+                        const MAX = 600;
+                        const scale = MAX / Math.max(img.width, img.height);
+                        canvas.width = img.width * scale; canvas.height = img.height * scale;
+                        canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+                        db[type].push({ id: Date.now() + Math.random(), src: canvas.toDataURL('image/jpeg', 0.7) });
+                        save();
+                    };
                 };
                 reader.readAsDataURL(file);
             }
         }
 
-        function compressImage(src) {
-            return new Promise(res => {
-                const img = new Image();
-                img.src = src;
-                img.onload = () => {
-                    const canvas = document.createElement('canvas');
-                    const MAX = 600;
-                    const scale = MAX / Math.max(img.width, img.height);
-                    canvas.width = img.width * scale; canvas.height = img.height * scale;
-                    canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
-                    res(canvas.toDataURL('image/jpeg', 0.7));
-                };
-            });
+        // --- JSON Fix ---
+        document.getElementById('import-input').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = (ev) => {
+                try {
+                    const imported = JSON.parse(ev.target.result);
+                    if (imported.tops && imported.bottoms) {
+                        db = imported;
+                        save();
+                        alert("Data imported successfully!");
+                    }
+                } catch (err) { alert("Invalid JSON file."); }
+            };
+            reader.readAsText(file);
+        });
+
+        function exportData() {
+            const blob = new Blob([JSON.stringify(db)], {type: "application/json"});
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url; a.download = "wardrobe.json";
+            a.click();
         }
 
-        function save() {
-            localStorage.setItem('manualWardrobe', JSON.stringify(db));
-            render();
-        }
-
-        function selectItem(type, id) {
-            if (type === 'tops') selection.top = (selection.top === id) ? null : id;
-            if (type === 'bottoms') selection.bottom = (selection.bottom === id) ? null : id;
-            
-            const btn = document.getElementById('save-pair-btn');
-            const status = document.getElementById('pair-status');
-            
-            if (selection.top && selection.bottom) {
-                btn.classList.remove('hidden');
-                status.innerText = "Ready to pair!";
-            } else {
-                btn.classList.add('hidden');
-                status.innerText = selection.top || selection.bottom ? "Select matching half..." : "Select items to pair";
+        // --- Pairing Logic ---
+        function setPairPart(type, id) {
+            tempSelection[type] = id;
+            const btn = document.getElementById('save-btn');
+            if(tempSelection.top && tempSelection.bottom) {
+                btn.classList.remove('opacity-50', 'cursor-not-allowed');
+                btn.disabled = false;
             }
             render();
         }
 
         function saveManualPair() {
-            const t = db.tops.find(x => x.id === selection.top);
-            const b = db.bottoms.find(x => x.id === selection.bottom);
-            db.pairs.push({ topId: t.id, topSrc: t.src, bottomId: b.id, bottomSrc: b.src });
-            selection = { top: null, bottom: null };
-            document.getElementById('save-pair-btn').classList.add('hidden');
+            const t = db.tops.find(x => x.id === tempSelection.top);
+            const b = db.bottoms.find(x => x.id === tempSelection.bottom);
+            db.pairs.push({ topSrc: t.src, bottomSrc: b.src });
+            tempSelection = { top: null, bottom: null };
             save();
-            switchTab('pairs');
         }
 
-        function deleteItem(type, id, e) {
-            e.stopPropagation();
-            if(confirm("Delete?")) {
-                db[type] = db[type].filter(x => x.id !== id);
-                db.pairs = db.pairs.filter(p => p.topId !== id && p.bottomId !== id);
-                save();
-            }
-        }
-
-        // --- UI ---
+        // --- UI Rendering ---
         function render() {
             ['tops', 'bottoms'].forEach(type => {
                 const list = document.getElementById(`list-${type}`);
                 list.innerHTML = db[type].map(item => `
-                    <div class="img-card ${selection.top === item.id ? 'selected-top' : ''} ${selection.bottom === item.id ? 'selected-bottom' : ''}" onclick="selectItem('${type}', ${item.id})">
+                    <div class="img-card">
                         <img src="${item.src}">
-                        <button onclick="deleteItem('${type}', ${item.id}, event)" class="absolute top-1 right-1 bg-black/50 text-white w-6 h-6 rounded-full text-[10px]">×</button>
+                        <button onclick="deleteItem('${type}', ${item.id})" class="absolute top-1 right-1 bg-black/50 text-white w-6 h-6 rounded-full text-xs">×</button>
+                    </div>
+                `).join('');
+
+                // Render the selection sliders in Pairs tab
+                const slider = document.getElementById(`pair-select-${type}`);
+                slider.innerHTML = db[type].map(item => `
+                    <div class="scroll-item ${tempSelection[type === 'tops' ? 'top' : 'bottom'] === item.id ? 'selected' : ''}" onclick="setPairPart('${type === 'tops' ? 'top' : 'bottom'}', ${item.id})">
+                        <img src="${item.src}" class="w-full h-full object-cover">
                     </div>
                 `).join('');
             });
 
             document.getElementById('list-pairs').innerHTML = db.pairs.map((p, i) => `
-                <div class="flex gap-2 bg-white p-2 rounded-2xl shadow-sm border border-gray-100">
-                    <div class="h-32 w-1/2 rounded-lg overflow-hidden bg-gray-50"><img src="${p.topSrc}" class="w-full h-full object-contain"></div>
-                    <div class="h-32 w-1/2 rounded-lg overflow-hidden bg-gray-50"><img src="${p.bottomSrc}" class="w-full h-full object-contain"></div>
+                <div class="flex gap-2 bg-white p-2 rounded-xl shadow-sm border">
+                    <div class="h-24 w-1/2 rounded overflow-hidden"><img src="${p.topSrc}" class="w-full h-full object-contain"></div>
+                    <div class="h-24 w-1/2 rounded overflow-hidden"><img src="${p.bottomSrc}" class="w-full h-full object-contain"></div>
                     <button onclick="db.pairs.splice(${i}, 1); save();" class="text-red-400 px-2 font-bold text-xl">×</button>
                 </div>
-            `).join('') || '<p class="text-center text-gray-400 py-10">No manual pairs saved yet.</p>';
+            `).join('');
+        }
+
+        function deleteItem(type, id) {
+            db[type] = db[type].filter(x => x.id !== id);
+            save();
         }
 
         function switchTab(t) {
@@ -170,7 +190,7 @@
         }
 
         function suggestPair() {
-            if (db.pairs.length === 0) return alert("Please save some pairs manually first!");
+            if (db.pairs.length === 0) return alert("Go to 'Pairs' tab and link items first!");
             const pair = db.pairs[Math.floor(Math.random() * db.pairs.length)];
             document.getElementById('res-top').src = pair.topSrc;
             document.getElementById('res-bottom').src = pair.bottomSrc;
