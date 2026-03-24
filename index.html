@@ -3,132 +3,175 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Smart Pairs Wardrobe</title>
+    <title>SmartWardrobe PWA</title>
+    <link rel="manifest" href="data:application/manifest+json,{%22name%22:%22SmartWardrobe%22,%22short_name%22:%22Wardrobe%22,%22start_url%22:%22.%22,%22display%22:%22standalone%22,%22background_color%22:%22#ffffff%22,%22theme_color%22:%22#4f46e5%22}">
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        .img-card { aspect-ratio: 3/4; background: #fff; overflow: hidden; position: relative; border-radius: 8px; border: 1px solid #e5e7eb; }
+        .img-card { aspect-ratio: 3/4; background: #fff; position: relative; border-radius: 12px; overflow: hidden; border: 1px solid #eee; }
         .img-card img { width: 100%; height: 100%; object-fit: contain; }
-        .tab-active { border-bottom: 2px solid #4f46e5; color: #4f46e5; font-weight: bold; }
+        .selected-item { outline: 4px solid #4f46e5; outline-offset: -4px; }
+        .tab-active { color: #4f46e5; border-bottom: 2px solid #4f46e5; font-weight: 700; }
         .hidden { display: none; }
     </style>
 </head>
-<body class="bg-gray-50 pb-24">
+<body class="bg-gray-50 pb-24 font-sans">
 
-    <div class="sticky top-0 bg-white shadow-sm z-20 p-4">
-        <div class="flex gap-2 max-w-md mx-auto">
-            <label class="flex-1 bg-indigo-600 text-white text-center py-2 rounded-lg text-sm font-bold cursor-pointer">
-                + Add Tops
-                <input type="file" multiple accept="image/*" class="hidden" onchange="handleUpload(event, 'top')">
-            </label>
-            <label class="flex-1 bg-emerald-600 text-white text-center py-2 rounded-lg text-sm font-bold cursor-pointer">
-                + Add Bottoms
-                <input type="file" multiple accept="image/*" class="hidden" onchange="handleUpload(event, 'bottom')">
-            </label>
+    <header class="sticky top-0 bg-white shadow-sm z-30">
+        <div class="flex justify-around p-3 text-sm font-medium text-gray-500">
+            <button onclick="switchTab('top')" id="btn-top" class="pb-2 px-2 tab-active">Tops</button>
+            <button onclick="switchTab('bottom')" id="btn-bottom" class="pb-2 px-2">Bottoms</button>
+            <button onclick="switchTab('pairs')" id="btn-pairs" class="pb-2 px-2">Saved Pairs</button>
         </div>
-        <div class="flex justify-around mt-4 border-t pt-2 text-sm text-gray-500">
-            <button onclick="switchTab('top')" id="btn-top" class="px-4 py-1 tab-active">Tops</button>
-            <button onclick="switchTab('bottom')" id="btn-bottom" class="px-4 py-1">Bottoms</button>
-            <button onclick="pickOutfit()" class="bg-black text-white px-4 py-1 rounded-full text-xs">SUGGEST PAIR</button>
+        <div class="p-2 flex justify-center">
+            <button onclick="suggestPair()" class="bg-indigo-600 text-white px-8 py-2 rounded-full font-bold text-sm shadow-lg active:scale-95 transition">
+                SUGGEST OUTFIT
+            </button>
         </div>
-    </div>
+    </header>
 
-    <main class="max-w-md mx-auto p-2">
-        <div id="grid-top" class="grid grid-cols-2 gap-2"></div>
-        <div id="grid-bottom" class="grid grid-cols-2 gap-2 hidden"></div>
+    <main class="max-w-md mx-auto p-3">
+        <div id="view-top" class="grid grid-cols-2 gap-3">
+            <label class="img-card flex items-center justify-center border-dashed border-2 border-indigo-300 bg-indigo-50 cursor-pointer">
+                <span class="text-4xl text-indigo-400">+</span>
+                <input type="file" multiple accept="image/*" class="hidden" onchange="upload(event, 'tops')">
+            </label>
+            <div id="list-tops" class="contents"></div>
+        </div>
+
+        <div id="view-bottom" class="grid grid-cols-2 gap-3 hidden">
+            <label class="img-card flex items-center justify-center border-dashed border-2 border-emerald-300 bg-emerald-50 cursor-pointer">
+                <span class="text-4xl text-emerald-400">+</span>
+                <input type="file" multiple accept="image/*" class="hidden" onchange="upload(event, 'bottoms')">
+            </label>
+            <div id="list-bottoms" class="contents"></div>
+        </div>
+
+        <div id="view-pairs" class="hidden space-y-4">
+            <div id="pair-creator" class="bg-indigo-100 p-3 rounded-lg text-center text-xs font-bold text-indigo-800 mb-4 hidden">
+                Pairing Mode: Select 1 Top and 1 Bottom, then click Save.
+                <button onclick="saveManualPair()" class="block w-full mt-2 bg-indigo-600 text-white py-2 rounded">Save This Pair</button>
+            </div>
+            <div id="list-pairs" class="grid grid-cols-1 gap-4"></div>
+        </div>
     </main>
 
-    <div id="modal" class="fixed inset-0 bg-black/95 hidden z-30 flex flex-col items-center justify-center p-6" onclick="this.classList.add('hidden')">
-        <div class="w-full max-w-xs space-y-2">
-            <div class="img-card bg-white"><img id="res-top" src=""></div>
-            <div class="img-card bg-white"><img id="res-bottom" src=""></div>
+    <div id="modal" class="fixed inset-0 bg-black/95 hidden z-50 flex flex-col items-center justify-center p-6" onclick="this.classList.add('hidden')">
+        <div id="modal-content" class="w-full max-w-xs space-y-2">
+            <div class="img-card"><img id="res-top" src=""></div>
+            <div class="img-card"><img id="res-bottom" src=""></div>
         </div>
-        <button class="mt-8 text-white border border-white px-6 py-2 rounded-full">Close</button>
+        <p class="text-white mt-6 opacity-70">Tap to close</p>
     </div>
 
     <script>
-        let wardrobe = JSON.parse(localStorage.getItem('pairWardrobe')) || { tops: [], bottoms: [] };
+        // --- State Management ---
+        let db = JSON.parse(localStorage.getItem('wardrobePWA')) || { tops: [], bottoms: [], pairs: [] };
+        let selection = { top: null, bottom: null };
 
-        function handleUpload(e, type) {
+        function upload(e, type) {
             const files = Array.from(e.target.files);
             files.forEach(file => {
                 const reader = new FileReader();
                 reader.onload = (ev) => {
-                    wardrobe[type === 'top' ? 'tops' : 'bottoms'].push({
-                        src: ev.target.result,
-                        wears: 0,
-                        limit: 3 // Default limit
-                    });
+                    db[type].push({ id: Date.now() + Math.random(), src: ev.target.result, wears: 0, limit: 3 });
                     save();
                 };
                 reader.readAsDataURL(file);
             });
         }
 
-        function toggleLimit(type, index) {
-            let item = wardrobe[type][index];
-            item.limit = item.limit >= 4 ? 2 : item.limit + 1;
-            save();
-        }
-
-        function markWorn(type, index) {
-            wardrobe[type][index].wears++;
-            save();
-        }
-
-        function resetWears(type, index) {
-            wardrobe[type][index].wears = 0;
-            save();
-        }
-
-        function remove(type, index) {
-            wardrobe[type].splice(index, 1);
-            save();
-        }
-
         function save() {
-            localStorage.setItem('pairWardrobe', JSON.stringify(wardrobe));
+            localStorage.setItem('wardrobePWA', JSON.stringify(db));
             render();
         }
 
         function render() {
             ['tops', 'bottoms'].forEach(type => {
-                const container = document.getElementById(`grid-${type.slice(0, -1)}`);
-                container.innerHTML = wardrobe[type].map((item, i) => {
-                    const isDirty = item.wears >= item.limit;
-                    return `
-                    <div class="img-card ${isDirty ? 'opacity-40 grayscale' : ''}">
+                const list = document.getElementById(`list-${type}`);
+                list.innerHTML = db[type].map(item => `
+                    <div class="img-card ${selection.top === item.id || selection.bottom === item.id ? 'selected-item' : ''}" onclick="selectItem('${type}', ${item.id})">
                         <img src="${item.src}">
-                        <div class="absolute bottom-0 left-0 right-0 bg-black/60 p-1 flex justify-between items-center text-[10px] text-white">
-                            <button onclick="toggleLimit('${type}', ${i})">Limit: ${item.limit}</button>
+                        <div class="absolute bottom-0 w-full bg-black/50 p-1 flex justify-between text-[10px] text-white">
+                            <button onclick="event.stopPropagation(); cycleLimit('${type}', ${item.id})">L:${item.limit}</button>
                             <span>${item.wears}/${item.limit}</span>
-                            <div class="flex gap-1">
-                                <button onclick="${isDirty ? `resetWears('${type}', ${i})` : `markWorn('${type}', ${i})`}" class="bg-white text-black px-1 rounded">
-                                    ${isDirty ? 'Wash' : 'Wear'}
-                                </button>
-                                <button onclick="remove('${type}', ${i})" class="text-red-400 font-bold">X</button>
-                            </div>
+                            <button onclick="event.stopPropagation(); deleteItem('${type}', ${item.id})" class="text-red-400">X</button>
                         </div>
-                    </div>`;
-                }).join('');
+                    </div>
+                `).join('');
             });
+
+            document.getElementById('list-pairs').innerHTML = db.pairs.map((p, i) => `
+                <div class="flex gap-2 bg-white p-2 rounded-xl shadow-sm border border-gray-200">
+                    <div class="h-24 w-1/2 rounded overflow-hidden"><img src="${p.topSrc}" class="w-full h-full object-contain"></div>
+                    <div class="h-24 w-1/2 rounded overflow-hidden"><img src="${p.bottomSrc}" class="w-full h-full object-contain"></div>
+                    <button onclick="deletePair(${i})" class="text-red-500 px-2 font-bold">×</button>
+                </div>
+            `).join('');
+        }
+
+        // --- Logic ---
+        function selectItem(type, id) {
+            const key = type === 'tops' ? 'top' : 'bottom';
+            selection[key] = selection[key] === id ? null : id;
+            document.getElementById('pair-creator').classList.toggle('hidden', !(selection.top && selection.bottom));
+            render();
+        }
+
+        function saveManualPair() {
+            const t = db.tops.find(x => x.id === selection.top);
+            const b = db.bottoms.find(x => x.id === selection.bottom);
+            db.pairs.push({ topId: t.id, topSrc: t.src, bottomId: b.id, bottomSrc: b.src });
+            selection = { top: null, bottom: null };
+            document.getElementById('pair-creator').classList.add('hidden');
+            save();
+            switchTab('pairs');
+        }
+
+        function cycleLimit(type, id) {
+            const item = db[type].find(x => x.id === id);
+            item.limit = item.limit >= 4 ? 2 : item.limit + 1;
+            save();
+        }
+
+        function deleteItem(type, id) {
+            db[type] = db[type].filter(x => x.id !== id);
+            save();
+        }
+
+        function deletePair(index) {
+            db.pairs.splice(index, 1);
+            save();
         }
 
         function switchTab(t) {
-            document.getElementById('grid-top').classList.toggle('hidden', t !== 'top');
-            document.getElementById('grid-bottom').classList.toggle('hidden', t !== 'bottom');
-            document.getElementById('btn-top').className = t === 'top' ? 'px-4 py-1 tab-active' : 'px-4 py-1';
-            document.getElementById('btn-bottom').className = t === 'bottom' ? 'px-4 py-1 tab-active' : 'px-4 py-1';
+            ['top', 'bottom', 'pairs'].forEach(tab => {
+                document.getElementById(`view-${tab}`).classList.add('hidden');
+                document.getElementById(`btn-${tab}`).classList.remove('tab-active');
+            });
+            document.getElementById(`view-${t}`).classList.remove('hidden');
+            document.getElementById(`btn-${t}`).classList.add('tab-active');
         }
 
-        function pickOutfit() {
-            const cleanTops = wardrobe.tops.filter(i => i.wears < i.limit);
-            const cleanBottoms = wardrobe.bottoms.filter(i => i.wears < i.limit);
-
-            if (!cleanTops.length || !cleanBottoms.length) return alert("Upload/Clean items first!");
-
-            document.getElementById('res-top').src = cleanTops[Math.floor(Math.random() * cleanTops.length)].src;
-            document.getElementById('res-bottom').src = cleanBottoms[Math.floor(Math.random() * cleanBottoms.length)].src;
+        function suggestPair() {
+            if (db.pairs.length > 0) {
+                // If manual pairs exist, prioritize suggesting from them
+                const pair = db.pairs[Math.floor(Math.random() * db.pairs.length)];
+                document.getElementById('res-top').src = pair.topSrc;
+                document.getElementById('res-bottom').src = pair.bottomSrc;
+            } else {
+                // Fallback to random if no pairs saved
+                if (db.tops.length === 0 || db.bottoms.length === 0) return alert("Add items first!");
+                document.getElementById('res-top').src = db.tops[Math.floor(Math.random() * db.tops.length)].src;
+                document.getElementById('res-bottom').src = db.bottoms[Math.floor(Math.random() * db.bottoms.length)].src;
+            }
             document.getElementById('modal').classList.remove('hidden');
+        }
+
+        // --- PWA Service Worker ---
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('sw.js').catch(() => {});
+            });
         }
 
         render();
