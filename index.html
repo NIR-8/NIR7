@@ -3,89 +3,135 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Quick Wardrobe</title>
+    <title>Smart Pairs Wardrobe</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        .img-container { aspect-ratio: 2/3; overflow: hidden; background: #eee; }
-        .img-container img { width: 100%; height: 100%; object-fit: contain; }
+        .img-card { aspect-ratio: 3/4; background: #fff; overflow: hidden; position: relative; border-radius: 8px; border: 1px solid #e5e7eb; }
+        .img-card img { width: 100%; height: 100%; object-fit: contain; }
+        .tab-active { border-bottom: 2px solid #4f46e5; color: #4f46e5; font-weight: bold; }
+        .hidden { display: none; }
     </style>
 </head>
-<body class="bg-gray-100 p-4">
+<body class="bg-gray-50 pb-24">
 
-    <div class="max-w-md mx-auto mb-6 sticky top-0 bg-gray-100 py-4 z-10 flex gap-2">
-        <label class="flex-1 bg-indigo-600 text-white text-center py-3 rounded-lg font-bold cursor-pointer hover:bg-indigo-700">
-            Bulk Upload
-            <input type="file" id="file-input" multiple accept="image/*" class="hidden">
-        </label>
-        <button onclick="pickOutfit()" class="flex-1 bg-black text-white py-3 rounded-lg font-bold">
-            Suggest Pair
-        </button>
-        <button onclick="clearAll()" class="bg-red-200 text-red-700 px-4 rounded-lg">Clear</button>
+    <div class="sticky top-0 bg-white shadow-sm z-20 p-4">
+        <div class="flex gap-2 max-w-md mx-auto">
+            <label class="flex-1 bg-indigo-600 text-white text-center py-2 rounded-lg text-sm font-bold cursor-pointer">
+                + Add Tops
+                <input type="file" multiple accept="image/*" class="hidden" onchange="handleUpload(event, 'top')">
+            </label>
+            <label class="flex-1 bg-emerald-600 text-white text-center py-2 rounded-lg text-sm font-bold cursor-pointer">
+                + Add Bottoms
+                <input type="file" multiple accept="image/*" class="hidden" onchange="handleUpload(event, 'bottom')">
+            </label>
+        </div>
+        <div class="flex justify-around mt-4 border-t pt-2 text-sm text-gray-500">
+            <button onclick="switchTab('top')" id="btn-top" class="px-4 py-1 tab-active">Tops</button>
+            <button onclick="switchTab('bottom')" id="btn-bottom" class="px-4 py-1">Bottoms</button>
+            <button onclick="pickOutfit()" class="bg-black text-white px-4 py-1 rounded-full text-xs">SUGGEST PAIR</button>
+        </div>
     </div>
 
-    <div id="grid" class="max-w-md mx-auto grid grid-cols-2 gap-2"></div>
+    <main class="max-w-md mx-auto p-2">
+        <div id="grid-top" class="grid grid-cols-2 gap-2"></div>
+        <div id="grid-bottom" class="grid grid-cols-2 gap-2 hidden"></div>
+    </main>
 
-    <div id="modal" class="fixed inset-0 bg-black/90 hidden flex-col items-center justify-center p-4 z-20" onclick="this.classList.add('hidden')">
-        <div class="grid grid-cols-1 gap-4 max-w-xs w-full">
-            <div class="img-container bg-white rounded shadow-xl"><img id="suggest-1" src=""></div>
-            <div class="img-container bg-white rounded shadow-xl"><img id="suggest-2" src=""></div>
+    <div id="modal" class="fixed inset-0 bg-black/95 hidden z-30 flex flex-col items-center justify-center p-6" onclick="this.classList.add('hidden')">
+        <div class="w-full max-w-xs space-y-2">
+            <div class="img-card bg-white"><img id="res-top" src=""></div>
+            <div class="img-card bg-white"><img id="res-bottom" src=""></div>
         </div>
-        <p class="text-white mt-4 text-sm">Tap anywhere to close</p>
+        <button class="mt-8 text-white border border-white px-6 py-2 rounded-full">Close</button>
     </div>
 
     <script>
-        let items = JSON.parse(localStorage.getItem('minWardrobe')) || [];
+        let wardrobe = JSON.parse(localStorage.getItem('pairWardrobe')) || { tops: [], bottoms: [] };
 
-        // Handle File Uploads
-        document.getElementById('file-input').addEventListener('change', function(e) {
+        function handleUpload(e, type) {
             const files = Array.from(e.target.files);
-            
             files.forEach(file => {
                 const reader = new FileReader();
-                reader.onload = (event) => {
-                    items.push(event.target.result); // Save Base64 string
-                    saveAndRender();
+                reader.onload = (ev) => {
+                    wardrobe[type === 'top' ? 'tops' : 'bottoms'].push({
+                        src: ev.target.result,
+                        wears: 0,
+                        limit: 3 // Default limit
+                    });
+                    save();
                 };
                 reader.readAsDataURL(file);
             });
-        });
-
-        function saveAndRender() {
-            localStorage.setItem('minWardrobe', JSON.stringify(items));
-            const grid = document.getElementById('grid');
-            grid.innerHTML = items.map((src, index) => `
-                <div class="img-container relative bg-white rounded shadow-sm">
-                    <img src="${src}">
-                    <button onclick="remove(${index})" class="absolute top-1 right-1 bg-black/50 text-white w-6 h-6 rounded-full text-xs">×</button>
-                </div>
-            `).join('');
         }
 
-        function remove(index) {
-            items.splice(index, 1);
-            saveAndRender();
+        function toggleLimit(type, index) {
+            let item = wardrobe[type][index];
+            item.limit = item.limit >= 4 ? 2 : item.limit + 1;
+            save();
         }
 
-        function clearAll() {
-            if(confirm("Delete all items?")) {
-                items = [];
-                saveAndRender();
-            }
+        function markWorn(type, index) {
+            wardrobe[type][index].wears++;
+            save();
+        }
+
+        function resetWears(type, index) {
+            wardrobe[type][index].wears = 0;
+            save();
+        }
+
+        function remove(type, index) {
+            wardrobe[type].splice(index, 1);
+            save();
+        }
+
+        function save() {
+            localStorage.setItem('pairWardrobe', JSON.stringify(wardrobe));
+            render();
+        }
+
+        function render() {
+            ['tops', 'bottoms'].forEach(type => {
+                const container = document.getElementById(`grid-${type.slice(0, -1)}`);
+                container.innerHTML = wardrobe[type].map((item, i) => {
+                    const isDirty = item.wears >= item.limit;
+                    return `
+                    <div class="img-card ${isDirty ? 'opacity-40 grayscale' : ''}">
+                        <img src="${item.src}">
+                        <div class="absolute bottom-0 left-0 right-0 bg-black/60 p-1 flex justify-between items-center text-[10px] text-white">
+                            <button onclick="toggleLimit('${type}', ${i})">Limit: ${item.limit}</button>
+                            <span>${item.wears}/${item.limit}</span>
+                            <div class="flex gap-1">
+                                <button onclick="${isDirty ? `resetWears('${type}', ${i})` : `markWorn('${type}', ${i})`}" class="bg-white text-black px-1 rounded">
+                                    ${isDirty ? 'Wash' : 'Wear'}
+                                </button>
+                                <button onclick="remove('${type}', ${i})" class="text-red-400 font-bold">X</button>
+                            </div>
+                        </div>
+                    </div>`;
+                }).join('');
+            });
+        }
+
+        function switchTab(t) {
+            document.getElementById('grid-top').classList.toggle('hidden', t !== 'top');
+            document.getElementById('grid-bottom').classList.toggle('hidden', t !== 'bottom');
+            document.getElementById('btn-top').className = t === 'top' ? 'px-4 py-1 tab-active' : 'px-4 py-1';
+            document.getElementById('btn-bottom').className = t === 'bottom' ? 'px-4 py-1 tab-active' : 'px-4 py-1';
         }
 
         function pickOutfit() {
-            if (items.length < 2) return alert("Upload at least 2 photos!");
-            const i1 = Math.floor(Math.random() * items.length);
-            let i2 = Math.floor(Math.random() * items.length);
-            while(i1 === i2) i2 = Math.floor(Math.random() * items.length);
+            const cleanTops = wardrobe.tops.filter(i => i.wears < i.limit);
+            const cleanBottoms = wardrobe.bottoms.filter(i => i.wears < i.limit);
 
-            document.getElementById('suggest-1').src = items[i1];
-            document.getElementById('suggest-2').src = items[i2];
+            if (!cleanTops.length || !cleanBottoms.length) return alert("Upload/Clean items first!");
+
+            document.getElementById('res-top').src = cleanTops[Math.floor(Math.random() * cleanTops.length)].src;
+            document.getElementById('res-bottom').src = cleanBottoms[Math.floor(Math.random() * cleanBottoms.length)].src;
             document.getElementById('modal').classList.remove('hidden');
         }
 
-        // Initial Load
-        saveAndRender();
+        render();
     </script>
 </body>
 </html>
