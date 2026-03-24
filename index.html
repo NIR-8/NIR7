@@ -1,0 +1,163 @@
+<!DOCTYPE html><html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Smart Wardrobe</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100">  <!-- Navbar -->  <nav class="bg-white shadow p-4 flex justify-between">
+    <h1 class="text-xl font-bold">👕 Smart Wardrobe</h1>
+    <div class="space-x-4">
+      <button onclick="showTab('wardrobe')" class="tab-btn">Wardrobe</button>
+      <button onclick="showTab('wash')" class="tab-btn">Wash Bin</button>
+      <button onclick="showTab('add')" class="tab-btn">Add Item</button>
+    </div>
+  </nav>  <!-- Main -->  <div class="p-4"><!-- Wardrobe -->
+<div id="wardrobeTab">
+  <div class="flex justify-between mb-4">
+    <h2 class="text-2xl font-semibold">Wardrobe</h2>
+    <button onclick="suggestOutfit()" class="bg-blue-500 text-white px-4 py-2 rounded">Suggest Outfit</button>
+  </div>
+  <div id="wardrobe" class="grid grid-cols-1 md:grid-cols-3 gap-4"></div>
+</div>
+
+<!-- Wash Bin -->
+<div id="washTab" class="hidden">
+  <h2 class="text-2xl font-semibold mb-4">Wash Bin</h2>
+  <div id="washBin" class="grid grid-cols-1 md:grid-cols-3 gap-4"></div>
+</div>
+
+<!-- Add Item -->
+<div id="addTab" class="hidden">
+  <h2 class="text-2xl font-semibold mb-4">Add Clothing Item</h2>
+  <form id="addForm" class="bg-white p-4 rounded shadow space-y-4">
+    <input type="text" id="name" placeholder="Item Name" class="w-full p-2 border rounded" required>
+    <select id="category" class="w-full p-2 border rounded">
+      <option value="top">Top</option>
+      <option value="bottom">Bottom</option>
+    </select>
+    <input type="number" id="maxWears" placeholder="Max Wears" class="w-full p-2 border rounded" required>
+    <input type="file" id="image" accept="image/*" class="w-full">
+    <button class="bg-green-500 text-white px-4 py-2 rounded">Add Item</button>
+  </form>
+</div>
+
+  </div><script>
+let wardrobe = JSON.parse(localStorage.getItem('wardrobe')) || [];
+let washBin = JSON.parse(localStorage.getItem('washBin')) || [];
+
+function saveData() {
+  localStorage.setItem('wardrobe', JSON.stringify(wardrobe));
+  localStorage.setItem('washBin', JSON.stringify(washBin));
+}
+
+function showTab(tab) {
+  document.getElementById('wardrobeTab').classList.add('hidden');
+  document.getElementById('washTab').classList.add('hidden');
+  document.getElementById('addTab').classList.add('hidden');
+
+  document.getElementById(tab + 'Tab').classList.remove('hidden');
+}
+
+function render() {
+  const wardrobeDiv = document.getElementById('wardrobe');
+  const washDiv = document.getElementById('washBin');
+
+  wardrobeDiv.innerHTML = '';
+  washDiv.innerHTML = '';
+
+  wardrobe.forEach((item, index) => {
+    wardrobeDiv.innerHTML += `
+      <div class="bg-white p-4 rounded shadow">
+        <img src="${item.image}" class="w-full h-40 object-cover mb-2">
+        <h3 class="font-bold">${item.name}</h3>
+        <p>Wear: ${item.wearCount}/${item.maxWears}</p>
+        <button onclick="wearItem(${index})" class="mt-2 bg-blue-500 text-white px-2 py-1 rounded">Mark as Worn</button>
+      </div>
+    `;
+  });
+
+  washBin.forEach((item, index) => {
+    washDiv.innerHTML += `
+      <div class="bg-yellow-100 p-4 rounded shadow">
+        <img src="${item.image}" class="w-full h-40 object-cover mb-2">
+        <h3 class="font-bold">${item.name}</h3>
+        <button onclick="cleanItem(${index})" class="mt-2 bg-green-500 text-white px-2 py-1 rounded">Mark as Clean</button>
+      </div>
+    `;
+  });
+}
+
+function wearItem(index) {
+  wardrobe[index].wearCount++;
+
+  if (wardrobe[index].wearCount >= wardrobe[index].maxWears) {
+    washBin.push(wardrobe[index]);
+    wardrobe.splice(index, 1);
+  }
+
+  saveData();
+  render();
+}
+
+function cleanItem(index) {
+  washBin[index].wearCount = 0;
+  wardrobe.push(washBin[index]);
+  washBin.splice(index, 1);
+
+  saveData();
+  render();
+}
+
+function suggestOutfit() {
+  const tops = wardrobe.filter(i => i.category === 'top');
+  const bottoms = wardrobe.filter(i => i.category === 'bottom');
+
+  if (tops.length === 0 || bottoms.length === 0) {
+    alert('Need at least one top and one bottom');
+    return;
+  }
+
+  const top = tops[Math.floor(Math.random() * tops.length)];
+  const bottom = bottoms[Math.floor(Math.random() * bottoms.length)];
+
+  alert(`Suggested Outfit:\nTop: ${top.name}\nBottom: ${bottom.name}`);
+}
+
+document.getElementById('addForm').addEventListener('submit', function(e) {
+  e.preventDefault();
+
+  const file = document.getElementById('image').files[0];
+  const reader = new FileReader();
+
+  reader.onload = function() {
+    const newItem = {
+      name: document.getElementById('name').value,
+      category: document.getElementById('category').value,
+      maxWears: parseInt(document.getElementById('maxWears').value),
+      wearCount: 0,
+      image: reader.result || 'https://via.placeholder.com/150'
+    };
+
+    wardrobe.push(newItem);
+    saveData();
+    render();
+    showTab('wardrobe');
+  };
+
+  if (file) {
+    reader.readAsDataURL(file);
+  } else {
+    reader.onload();
+  }
+});
+
+render();
+</script><style>
+.tab-btn {
+  padding: 8px 12px;
+  background: #e5e7eb;
+  border-radius: 6px;
+}
+</style></body>
+</html>
