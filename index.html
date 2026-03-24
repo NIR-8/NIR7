@@ -3,200 +3,89 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SmartWardrobe - Digital Closet</title>
+    <title>Quick Wardrobe</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        .active-tab { border-bottom: 3px solid #4f46e5; color: #4f46e5; }
-        .hidden { display: none; }
+        .img-container { aspect-ratio: 2/3; overflow: hidden; background: #eee; }
+        .img-container img { width: 100%; height: 100%; object-fit: contain; }
     </style>
 </head>
-<body class="bg-gray-50 min-h-screen pb-20">
+<body class="bg-gray-100 p-4">
 
-    <header class="bg-white shadow-sm sticky top-0 z-10">
-        <div class="max-w-4xl mx-auto px-4 py-4 flex justify-between items-center">
-            <h1 class="text-2xl font-bold text-indigo-600">SmartWardrobe</h1>
-            <button onclick="suggestOutfit()" class="bg-indigo-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-indigo-700 transition">
-                Suggest Outfit
-            </button>
+    <div class="max-w-md mx-auto mb-6 sticky top-0 bg-gray-100 py-4 z-10 flex gap-2">
+        <label class="flex-1 bg-indigo-600 text-white text-center py-3 rounded-lg font-bold cursor-pointer hover:bg-indigo-700">
+            Bulk Upload
+            <input type="file" id="file-input" multiple accept="image/*" class="hidden">
+        </label>
+        <button onclick="pickOutfit()" class="flex-1 bg-black text-white py-3 rounded-lg font-bold">
+            Suggest Pair
+        </button>
+        <button onclick="clearAll()" class="bg-red-200 text-red-700 px-4 rounded-lg">Clear</button>
+    </div>
+
+    <div id="grid" class="max-w-md mx-auto grid grid-cols-2 gap-2"></div>
+
+    <div id="modal" class="fixed inset-0 bg-black/90 hidden flex-col items-center justify-center p-4 z-20" onclick="this.classList.add('hidden')">
+        <div class="grid grid-cols-1 gap-4 max-w-xs w-full">
+            <div class="img-container bg-white rounded shadow-xl"><img id="suggest-1" src=""></div>
+            <div class="img-container bg-white rounded shadow-xl"><img id="suggest-2" src=""></div>
         </div>
-        <nav class="flex justify-center border-t">
-            <button onclick="showTab('wardrobe')" id="tab-wardrobe" class="px-6 py-3 font-medium active-tab">Wardrobe</button>
-            <button onclick="showTab('washbin')" id="tab-washbin" class="px-6 py-3 font-medium text-gray-500">Wash Bin</button>
-            <button onclick="showTab('add')" id="tab-add" class="px-6 py-3 font-medium text-gray-500">Add Item</button>
-        </nav>
-    </header>
-
-    <main class="max-w-4xl mx-auto p-4">
-        
-        <section id="view-wardrobe">
-            <div id="wardrobe-grid" class="grid grid-cols-2 md:grid-cols-3 gap-4">
-                </div>
-        </section>
-
-        <section id="view-washbin" class="hidden">
-            <h2 class="text-xl font-semibold mb-4 text-gray-700">Items to Wash</h2>
-            <div id="washbin-grid" class="grid grid-cols-2 md:grid-cols-3 gap-4">
-                </div>
-        </section>
-
-        <section id="view-add" class="hidden bg-white p-6 rounded-xl shadow-md">
-            <h2 class="text-xl font-semibold mb-4">Add New Clothing</h2>
-            <form id="add-item-form" class="space-y-4">
-                <div>
-                    <label class="block text-sm font-medium text-gray-700">Item Name</label>
-                    <input type="text" id="item-name" required class="w-full mt-1 p-2 border rounded-md">
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700">Category</label>
-                    <select id="item-category" class="w-full mt-1 p-2 border rounded-md">
-                        <option value="Top">Top</option>
-                        <option value="Bottom">Bottom</option>
-                        <option value="Shoes">Shoes</option>
-                        <option value="Other">Other</option>
-                    </select>
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700">Max Wears Before Wash</label>
-                    <input type="number" id="item-max-wears" value="3" min="1" class="w-full mt-1 p-2 border rounded-md">
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700">Image URL (or placeholder)</label>
-                    <input type="text" id="item-image" placeholder="https://via.placeholder.com/150" class="w-full mt-1 p-2 border rounded-md">
-                </div>
-                <button type="submit" class="w-full bg-indigo-600 text-white py-2 rounded-md font-bold">Save to Wardrobe</button>
-            </form>
-        </section>
-    </main>
-
-    <div id="suggestion-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4">
-        <div class="bg-white rounded-2xl p-6 max-w-sm w-full text-center">
-            <h2 class="text-2xl font-bold mb-4">Today's Outfit</h2>
-            <div id="suggestion-content" class="space-y-4"></div>
-            <button onclick="closeModal()" class="mt-6 text-gray-500 underline">Close</button>
-        </div>
+        <p class="text-white mt-4 text-sm">Tap anywhere to close</p>
     </div>
 
     <script>
-        // --- Core Logic & Data Persistence ---
-        let wardrobe = JSON.parse(localStorage.getItem('myWardrobe')) || [];
+        let items = JSON.parse(localStorage.getItem('minWardrobe')) || [];
 
-        const saveToStorage = () => {
-            localStorage.setItem('myWardrobe', JSON.stringify(wardrobe));
-            render();
-        };
-
-        // --- Functions ---
-        function addItem(e) {
-            e.preventDefault();
-            const newItem = {
-                id: Date.now(),
-                name: document.getElementById('item-name').value,
-                category: document.getElementById('item-category').value,
-                maxWears: parseInt(document.getElementById('item-max-wears').value),
-                image: document.getElementById('item-image').value || 'https://via.placeholder.com/150',
-                wearCount: 0
-            };
-            wardrobe.push(newItem);
-            saveToStorage();
-            e.target.reset();
-            showTab('wardrobe');
-        }
-
-        function markAsWorn(id) {
-            const item = wardrobe.find(i => i.id === id);
-            if (item.wearCount < item.maxWears) {
-                item.wearCount++;
-                saveToStorage();
-            }
-        }
-
-        function markAsClean(id) {
-            const item = wardrobe.find(i => i.id === id);
-            item.wearCount = 0;
-            saveToStorage();
-        }
-
-        function deleteItem(id) {
-            wardrobe = wardrobe.filter(i => i.id !== id);
-            saveToStorage();
-        }
-
-        // --- UI Rendering ---
-        function createCard(item, isWashBin) {
-            return `
-                <div class="bg-white rounded-xl shadow-sm overflow-hidden border border-gray-100 transition hover:shadow-md">
-                    <img src="${item.image}" alt="${item.name}" class="w-full h-40 object-cover">
-                    <div class="p-3">
-                        <div class="flex justify-between items-start">
-                            <h3 class="font-bold text-gray-800">${item.name}</h3>
-                            <span class="text-xs bg-gray-100 px-2 py-1 rounded text-gray-600">${item.category}</span>
-                        </div>
-                        <p class="text-sm text-gray-500 mt-1">Wears: ${item.wearCount} / ${item.maxWears}</p>
-                        
-                        <div class="mt-3 flex gap-2">
-                            ${isWashBin ? 
-                                `<button onclick="markAsClean(${item.id})" class="flex-1 bg-green-100 text-green-700 py-1 rounded-md text-sm font-medium">Clean</button>` :
-                                `<button onclick="markAsWorn(${item.id})" class="flex-1 bg-indigo-50 text-indigo-700 py-1 rounded-md text-sm font-medium">Wear</button>`
-                            }
-                            <button onclick="deleteItem(${item.id})" class="px-2 text-red-400 hover:text-red-600">×</button>
-                        </div>
-                    </div>
-                </div>
-            `;
-        }
-
-        function render() {
-            const wardrobeGrid = document.getElementById('wardrobe-grid');
-            const washbinGrid = document.getElementById('washbin-grid');
+        // Handle File Uploads
+        document.getElementById('file-input').addEventListener('change', function(e) {
+            const files = Array.from(e.target.files);
             
-            const cleanItems = wardrobe.filter(i => i.wearCount < i.maxWears);
-            const dirtyItems = wardrobe.filter(i => i.wearCount >= i.maxWears);
-
-            wardrobeGrid.innerHTML = cleanItems.map(i => createCard(i, false)).join('') || '<p class="col-span-full text-center text-gray-400 py-10">Wardrobe is empty or items are in wash.</p>';
-            washbinGrid.innerHTML = dirtyItems.map(i => createCard(i, true)).join('') || '<p class="col-span-full text-center text-gray-400 py-10">No laundry! Everything is clean.</p>';
-        }
-
-        // --- Navigation ---
-        function showTab(tab) {
-            ['wardrobe', 'washbin', 'add'].forEach(t => {
-                document.getElementById(`view-${t}`).classList.add('hidden');
-                document.getElementById(`tab-${t}`).classList.remove('active-tab');
-                document.getElementById(`tab-${t}`).classList.add('text-gray-500');
+            files.forEach(file => {
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    items.push(event.target.result); // Save Base64 string
+                    saveAndRender();
+                };
+                reader.readAsDataURL(file);
             });
-            document.getElementById(`view-${tab}`).classList.remove('hidden');
-            document.getElementById(`tab-${tab}`).classList.add('active-tab');
-        }
+        });
 
-        // --- Smart Suggestion ---
-        function suggestOutfit() {
-            const cleanItems = wardrobe.filter(i => i.wearCount < i.maxWears);
-            const tops = cleanItems.filter(i => i.category === 'Top');
-            const bottoms = cleanItems.filter(i => i.category === 'Bottom');
-
-            if (tops.length === 0 || bottoms.length === 0) {
-                alert("Please add at least one clean Top and one clean Bottom for suggestions!");
-                return;
-            }
-
-            const randomTop = tops[Math.floor(Math.random() * tops.length)];
-            const randomBottom = bottoms[Math.floor(Math.random() * bottoms.length)];
-
-            document.getElementById('suggestion-content').innerHTML = `
-                <div class="flex flex-col items-center gap-2">
-                    <p class="font-medium text-gray-600">Top: <span class="text-indigo-600">${randomTop.name}</span></p>
-                    <p class="font-medium text-gray-600">Bottom: <span class="text-indigo-600">${randomBottom.name}</span></p>
+        function saveAndRender() {
+            localStorage.setItem('minWardrobe', JSON.stringify(items));
+            const grid = document.getElementById('grid');
+            grid.innerHTML = items.map((src, index) => `
+                <div class="img-container relative bg-white rounded shadow-sm">
+                    <img src="${src}">
+                    <button onclick="remove(${index})" class="absolute top-1 right-1 bg-black/50 text-white w-6 h-6 rounded-full text-xs">×</button>
                 </div>
-            `;
-            document.getElementById('suggestion-modal').classList.remove('hidden');
+            `).join('');
         }
 
-        function closeModal() {
-            document.getElementById('suggestion-modal').classList.add('hidden');
+        function remove(index) {
+            items.splice(index, 1);
+            saveAndRender();
         }
 
-        // Initialize
-        document.getElementById('add-item-form').addEventListener('submit', addItem);
-        render();
+        function clearAll() {
+            if(confirm("Delete all items?")) {
+                items = [];
+                saveAndRender();
+            }
+        }
+
+        function pickOutfit() {
+            if (items.length < 2) return alert("Upload at least 2 photos!");
+            const i1 = Math.floor(Math.random() * items.length);
+            let i2 = Math.floor(Math.random() * items.length);
+            while(i1 === i2) i2 = Math.floor(Math.random() * items.length);
+
+            document.getElementById('suggest-1').src = items[i1];
+            document.getElementById('suggest-2').src = items[i2];
+            document.getElementById('modal').classList.remove('hidden');
+        }
+
+        // Initial Load
+        saveAndRender();
     </script>
 </body>
 </html>
