@@ -3,48 +3,43 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>SmartWardrobe Pro</title>
-    <link rel="manifest" href="data:application/manifest+json,{%22name%22:%22SmartWardrobe%22,%22short_name%22:%22Wardrobe%22,%22start_url%22:%22.%22,%22display%22:%22standalone%22,%22background_color%22:%22#ffffff%22,%22theme_color%22:%22#4f46e5%22}">
+    <title>SmartWardrobe Manual</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        .img-card { aspect-ratio: 3/4; background: #fff; position: relative; border-radius: 12px; overflow: hidden; border: 1px solid #eee; transition: all 0.2s; }
+        .img-card { aspect-ratio: 3/4; background: #fff; position: relative; border-radius: 12px; overflow: hidden; border: 1px solid #eee; }
         .img-card img { width: 100%; height: 100%; object-fit: contain; }
-        .selected-item { outline: 4px solid #4f46e5; outline-offset: -4px; transform: scale(0.96); }
+        .selected-top { outline: 4px solid #4f46e5; outline-offset: -4px; }
+        .selected-bottom { outline: 4px solid #10b981; outline-offset: -4px; }
         .tab-active { color: #4f46e5; border-bottom: 3px solid #4f46e5; font-weight: 800; }
         .hidden { display: none; }
-        body { -webkit-tap-highlight-color: transparent; }
     </style>
 </head>
 <body class="bg-gray-50 pb-32">
 
     <header class="sticky top-0 bg-white shadow-md z-30">
-        <div class="flex justify-around p-3 text-xs font-bold uppercase tracking-wider text-gray-400">
+        <div class="flex justify-around p-3 text-xs font-bold uppercase text-gray-400">
             <button onclick="switchTab('top')" id="btn-top" class="pb-2 px-2 tab-active">Tops</button>
             <button onclick="switchTab('bottom')" id="btn-bottom" class="pb-2 px-2">Bottoms</button>
-            <button onclick="switchTab('pairs')" id="btn-pairs" class="pb-2 px-2">Pairs</button>
-            <button onclick="switchTab('laundry')" id="btn-laundry" class="pb-2 px-2">Laundry</button>
+            <button onclick="switchTab('pairs')" id="btn-pairs" class="pb-2 px-2">Your Pairs</button>
         </div>
-        <div class="p-3 flex gap-2 justify-center bg-gray-50 border-t">
-            <button onclick="suggestPair()" class="flex-1 bg-indigo-600 text-white py-3 rounded-xl font-black text-sm shadow-indigo-200 shadow-lg active:scale-95 transition">
+        
+        <div id="action-bar" class="p-3 bg-gray-100 border-t flex items-center justify-between">
+            <div id="pair-status" class="text-[10px] font-bold text-gray-500 uppercase">
+                Select items to pair
+            </div>
+            <button id="save-pair-btn" onclick="saveManualPair()" class="hidden bg-indigo-600 text-white px-4 py-2 rounded-lg font-bold text-xs animate-bounce">
+                SAVE PAIR +
+            </button>
+            <button onclick="suggestPair()" class="bg-black text-white px-6 py-2 rounded-lg font-bold text-xs">
                 SUGGEST OUTFIT
             </button>
-            <button onclick="exportData()" class="bg-white border p-3 rounded-xl shadow-sm">💾</button>
-            <label class="bg-white border p-3 rounded-xl shadow-sm cursor-pointer">
-                📂 <input type="file" class="hidden" onchange="importData(event)">
-            </label>
         </div>
     </header>
 
     <main class="max-w-md mx-auto p-4">
-        <div id="pair-notif" class="hidden bg-indigo-600 text-white p-3 rounded-xl mb-4 text-center text-sm font-bold animate-pulse">
-            1 Top & 1 Bottom selected. 
-            <button onclick="saveManualPair()" class="underline ml-2">SAVE PAIR</button>
-        </div>
-
         <div id="view-top" class="grid grid-cols-2 gap-3">
             <label class="img-card flex flex-col items-center justify-center border-dashed border-2 border-indigo-200 bg-indigo-50/50">
                 <span class="text-3xl text-indigo-400">+</span>
-                <span class="text-[10px] font-bold text-indigo-400">ADD TOPS</span>
                 <input type="file" multiple accept="image/*" class="hidden" onchange="handleFiles(event, 'tops')">
             </label>
             <div id="list-tops" class="contents"></div>
@@ -53,42 +48,41 @@
         <div id="view-bottom" class="grid grid-cols-2 gap-3 hidden">
             <label class="img-card flex flex-col items-center justify-center border-dashed border-2 border-emerald-200 bg-emerald-50/50">
                 <span class="text-3xl text-emerald-400">+</span>
-                <span class="text-[10px] font-bold text-emerald-400">ADD BOTTOMS</span>
                 <input type="file" multiple accept="image/*" class="hidden" onchange="handleFiles(event, 'bottoms')">
             </label>
             <div id="list-bottoms" class="contents"></div>
         </div>
 
-        <div id="view-pairs" class="hidden grid grid-cols-1 gap-4">
-            <div id="list-pairs" class="space-y-4"></div>
-        </div>
-
-        <div id="view-laundry" class="hidden grid grid-cols-2 gap-3">
-            <div id="list-laundry" class="contents"></div>
+        <div id="view-pairs" class="hidden space-y-4">
+            <div id="list-pairs" class="grid grid-cols-1 gap-4"></div>
         </div>
     </main>
 
     <div id="modal" class="fixed inset-0 bg-black/95 hidden z-50 flex flex-col items-center justify-center p-8" onclick="this.classList.add('hidden')">
+        <h2 class="text-white font-bold mb-4 tracking-widest">MATCH FOUND</h2>
         <div class="w-full max-w-xs space-y-4">
-            <div class="img-card shadow-2xl"><img id="res-top" src=""></div>
-            <div class="img-card shadow-2xl"><img id="res-bottom" src=""></div>
+            <div class="img-card"><img id="res-top" src=""></div>
+            <div class="img-card"><img id="res-bottom" src=""></div>
         </div>
-        <p class="text-white/50 mt-8 font-bold tracking-widest text-xs">TAP TO DISMISS</p>
+        <p class="text-white/40 mt-8 text-xs">Tap to close</p>
     </div>
 
     <script>
-        let db = JSON.parse(localStorage.getItem('wardrobeV2')) || { tops: [], bottoms: [], pairs: [] };
+        let db = JSON.parse(localStorage.getItem('manualWardrobe')) || { tops: [], bottoms: [], pairs: [] };
         let selection = { top: null, bottom: null };
 
-        // --- Image Compression Engine ---
+        // --- Core Functions ---
         async function handleFiles(e, type) {
             const files = Array.from(e.target.files);
             for (const file of files) {
-                const base64 = await readFileAsBase64(file);
-                const compressed = await compressImage(base64);
-                db[type].push({ id: Date.now() + Math.random(), src: compressed, wears: 0, limit: 3 });
+                const reader = new FileReader();
+                reader.onload = async (ev) => {
+                    const compressed = await compressImage(ev.target.result);
+                    db[type].push({ id: Date.now() + Math.random(), src: compressed, wears: 0, limit: 3 });
+                    save();
+                };
+                reader.readAsDataURL(file);
             }
-            save();
         }
 
         function compressImage(src) {
@@ -99,33 +93,32 @@
                     const canvas = document.createElement('canvas');
                     const MAX = 600;
                     const scale = MAX / Math.max(img.width, img.height);
-                    canvas.width = img.width * scale;
-                    canvas.height = img.height * scale;
-                    const ctx = canvas.getContext('2d');
-                    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                    canvas.width = img.width * scale; canvas.height = img.height * scale;
+                    canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
                     res(canvas.toDataURL('image/jpeg', 0.7));
                 };
             });
         }
 
-        function readFileAsBase64(file) {
-            return new Promise(res => {
-                const reader = new FileReader();
-                reader.onload = e => res(e.target.result);
-                reader.readAsDataURL(file);
-            });
-        }
-
-        // --- Logic & Actions ---
         function save() {
-            localStorage.setItem('wardrobeV2', JSON.stringify(db));
+            localStorage.setItem('manualWardrobe', JSON.stringify(db));
             render();
         }
 
         function selectItem(type, id) {
-            const key = type === 'tops' ? 'top' : 'bottom';
-            selection[key] = (selection[key] === id) ? null : id;
-            document.getElementById('pair-notif').classList.toggle('hidden', !(selection.top && selection.bottom));
+            if (type === 'tops') selection.top = (selection.top === id) ? null : id;
+            if (type === 'bottoms') selection.bottom = (selection.bottom === id) ? null : id;
+            
+            const btn = document.getElementById('save-pair-btn');
+            const status = document.getElementById('pair-status');
+            
+            if (selection.top && selection.bottom) {
+                btn.classList.remove('hidden');
+                status.innerText = "Ready to pair!";
+            } else {
+                btn.classList.add('hidden');
+                status.innerText = selection.top || selection.bottom ? "Select matching half..." : "Select items to pair";
+            }
             render();
         }
 
@@ -134,117 +127,53 @@
             const b = db.bottoms.find(x => x.id === selection.bottom);
             db.pairs.push({ topId: t.id, topSrc: t.src, bottomId: b.id, bottomSrc: b.src });
             selection = { top: null, bottom: null };
-            document.getElementById('pair-notif').classList.add('hidden');
+            document.getElementById('save-pair-btn').classList.add('hidden');
             save();
             switchTab('pairs');
         }
 
-        function cycleLimit(type, id) {
-            const item = db[type].find(x => x.id === id);
-            item.limit = (item.limit >= 4) ? 2 : item.limit + 1;
-            save();
-        }
-
-        function markWorn(type, id) {
-            const item = db[type].find(x => x.id === id);
-            item.wears++;
-            save();
-        }
-
-        function resetWash(type, id) {
-            const item = db[type].find(x => x.id === id);
-            item.wears = 0;
-            save();
-        }
-
-        function deleteItem(type, id) {
-            if(confirm("Delete item?")) {
+        function deleteItem(type, id, e) {
+            e.stopPropagation();
+            if(confirm("Delete?")) {
                 db[type] = db[type].filter(x => x.id !== id);
                 db.pairs = db.pairs.filter(p => p.topId !== id && p.bottomId !== id);
                 save();
             }
         }
 
-        // --- UI Rendering ---
+        // --- UI ---
         function render() {
-            // Main Grids (Tops/Bottoms)
             ['tops', 'bottoms'].forEach(type => {
                 const list = document.getElementById(`list-${type}`);
-                const items = db[type].filter(i => i.wears < i.limit);
-                list.innerHTML = items.map(item => `
-                    <div class="img-card ${selection.top === item.id || selection.bottom === item.id ? 'selected-item' : ''}" onclick="selectItem('${type}', ${item.id})">
+                list.innerHTML = db[type].map(item => `
+                    <div class="img-card ${selection.top === item.id ? 'selected-top' : ''} ${selection.bottom === item.id ? 'selected-bottom' : ''}" onclick="selectItem('${type}', ${item.id})">
                         <img src="${item.src}">
-                        <div class="absolute bottom-0 w-full bg-black/60 backdrop-blur-sm p-1.5 flex justify-between text-[10px] text-white font-bold">
-                            <button onclick="event.stopPropagation(); cycleLimit('${type}', ${item.id})">LIMIT: ${item.limit}</button>
-                            <button onclick="event.stopPropagation(); markWorn('${type}', ${item.id})" class="bg-white text-black px-2 rounded">WEAR (${item.wears})</button>
-                        </div>
+                        <button onclick="deleteItem('${type}', ${item.id}, event)" class="absolute top-1 right-1 bg-black/50 text-white w-6 h-6 rounded-full text-[10px]">×</button>
                     </div>
                 `).join('');
             });
 
-            // Laundry View
-            const laundryList = document.getElementById('list-laundry');
-            const dirtyTops = db.tops.filter(i => i.wears >= i.limit).map(i => ({...i, type: 'tops'}));
-            const dirtyBottoms = db.bottoms.filter(i => i.wears >= i.limit).map(i => ({...i, type: 'bottoms'}));
-            const allDirty = [...dirtyTops, ...dirtyBottoms];
-            laundryList.innerHTML = allDirty.map(item => `
-                <div class="img-card grayscale opacity-70">
-                    <img src="${item.src}">
-                    <div class="absolute inset-0 flex items-center justify-center">
-                        <button onclick="resetWash('${item.type}', ${item.id})" class="bg-indigo-600 text-white px-4 py-2 rounded-lg text-xs font-black shadow-lg">WASHED</button>
-                    </div>
-                </div>
-            `).join('') || '<p class="col-span-2 text-center text-gray-400 py-10 font-bold">CLOSET IS CLEAN ✨</p>';
-
-            // Pairs View
             document.getElementById('list-pairs').innerHTML = db.pairs.map((p, i) => `
                 <div class="flex gap-2 bg-white p-2 rounded-2xl shadow-sm border border-gray-100">
                     <div class="h-32 w-1/2 rounded-lg overflow-hidden bg-gray-50"><img src="${p.topSrc}" class="w-full h-full object-contain"></div>
                     <div class="h-32 w-1/2 rounded-lg overflow-hidden bg-gray-50"><img src="${p.bottomSrc}" class="w-full h-full object-contain"></div>
-                    <button onclick="db.pairs.splice(${i}, 1); save();" class="text-red-300 pr-2">×</button>
+                    <button onclick="db.pairs.splice(${i}, 1); save();" class="text-red-400 px-2 font-bold text-xl">×</button>
                 </div>
-            `).join('');
-        }
-
-        // --- Backup / Restore ---
-        function exportData() {
-            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(db));
-            const dl = document.createElement('a');
-            dl.setAttribute("href", dataStr);
-            dl.setAttribute("download", "wardrobe_backup.json");
-            dl.click();
-        }
-
-        function importData(e) {
-            const reader = new FileReader();
-            reader.onload = ev => {
-                db = JSON.parse(ev.target.result);
-                save();
-            };
-            reader.readAsText(e.target.files[0]);
+            `).join('') || '<p class="text-center text-gray-400 py-10">No manual pairs saved yet.</p>';
         }
 
         function switchTab(t) {
-            ['top', 'bottom', 'pairs', 'laundry'].forEach(tab => {
+            ['top', 'bottom', 'pairs'].forEach(tab => {
                 document.getElementById(`view-${tab}`).classList.toggle('hidden', tab !== t);
                 document.getElementById(`btn-${tab}`).className = (tab === t) ? 'pb-2 px-2 tab-active' : 'pb-2 px-2';
             });
         }
 
         function suggestPair() {
-            let tSrc, bSrc;
-            if (db.pairs.length > 0 && Math.random() > 0.3) {
-                const pair = db.pairs[Math.floor(Math.random() * db.pairs.length)];
-                tSrc = pair.topSrc; bSrc = pair.bottomSrc;
-            } else {
-                const cleanT = db.tops.filter(i => i.wears < i.limit);
-                const cleanB = db.bottoms.filter(i => i.wears < i.limit);
-                if (!cleanT.length || !cleanB.length) return alert("No clean items!");
-                tSrc = cleanT[Math.floor(Math.random() * cleanT.length)].src;
-                bSrc = cleanB[Math.floor(Math.random() * cleanB.length)].src;
-            }
-            document.getElementById('res-top').src = tSrc;
-            document.getElementById('res-bottom').src = bSrc;
+            if (db.pairs.length === 0) return alert("Please save some pairs manually first!");
+            const pair = db.pairs[Math.floor(Math.random() * db.pairs.length)];
+            document.getElementById('res-top').src = pair.topSrc;
+            document.getElementById('res-bottom').src = pair.bottomSrc;
             document.getElementById('modal').classList.remove('hidden');
         }
 
