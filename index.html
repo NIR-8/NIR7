@@ -1067,5 +1067,61 @@ document.querySelectorAll('.modal-overlay').forEach(m => {
 // ─── INIT ────────────────────────────────────────────────────────────────────
 render();
 </script>
+<!-- Feedback Form Container -->
+<div id="feedback-container" style="max-width: 400px; margin: 20px auto; font-family: sans-serif;">
+  <h3>Send us feedback</h3>
+  <textarea id="feedback-text" placeholder="Tell us what you think..." rows="4" style="width: 100%; padding: 10px; border-radius: 5px; border: 1px solid #ccc;"></textarea>
+  <button onclick="submitFeedback()" id="submit-btn" style="margin-top: 10px; padding: 10px 20px; background: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer;">
+    Submit
+  </button>
+  <p id="response-msg" style="margin-top: 10px; display: none;"></p>
+</div>
+<script>
+async function submitFeedback() {
+  const btn = document.getElementById('submit-btn');
+  const msg = document.getElementById('response-msg');
+  const text = document.getElementById('feedback-text').value;
+
+  if (!text) {
+    alert("Please enter some feedback first!");
+    return;
+  }
+
+  // Update UI to show loading
+  btn.disabled = true;
+  btn.innerText = "Sending...";
+
+  try {
+    // REPLACE the URL below with your actual Worker URL from Step 4
+    const workerUrl = 'https://nir8-feedback.pages.dev/';
+
+    const response = await fetch(workerUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ 
+        feedback: text,
+        page: window.location.href,
+        userAgent: navigator.userAgent 
+      })
+    });
+
+    if (response.ok) {
+      msg.innerText = "Feedback sent successfully! Thank you.";
+      msg.style.color = "green";
+      document.getElementById('feedback-text').value = ""; // Clear box
+    } else {
+      throw new Error();
+    }
+  } catch (error) {
+    msg.innerText = "Oops! Something went wrong. Try again.";
+    msg.style.color = "red";
+  } finally {
+    msg.style.display = "block";
+    btn.disabled = false;
+    btn.innerText = "Submit";
+  }
+}
+</script>
+
 </body>
 </html>
