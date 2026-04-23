@@ -3,1125 +3,707 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ShiftOS — Smart Schedule Manager</title>
-<link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<title>VAULT — OneKey</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
 <style>
   :root {
-    --bg: #0c0f14;
-    --surface: #13171f;
-    --surface2: #1a1f2b;
-    --border: #252b38;
-    --accent: #00e5a0;
-    --accent2: #4f7cff;
-    --warn: #ff6b3d;
-    --text: #e8ecf4;
-    --text2: #7c8498;
-    --text3: #4a5168;
-    --mono: 'Space Mono', monospace;
-    --sans: 'DM Sans', sans-serif;
+    --bg: #0a0a0b; --surface: #111114; --border: #1e1e24; --border-hi: #2e2e38;
+    --text: #e8e8f0; --muted: #555566; --accent: #c8fb4a;
+    --accent-dim: rgba(200,251,74,0.1); --accent-glow: rgba(200,251,74,0.25);
+    --danger: #ff4d6a; --mono: 'DM Mono', monospace; --sans: 'Syne', sans-serif;
   }
-
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
   body {
-    font-family: var(--sans);
-    background: var(--bg);
-    color: var(--text);
-    min-height: 100vh;
-    overflow-x: hidden;
+    background: var(--bg); color: var(--text); font-family: var(--mono);
+    min-height: 100vh; display: flex; align-items: center;
+    justify-content: center; overflow-x: hidden;
   }
-
-  /* GRID BG */
   body::before {
-    content: '';
-    position: fixed; inset: 0;
+    content: ''; position: fixed; inset: 0;
     background-image:
-      linear-gradient(rgba(0,229,160,0.03) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(0,229,160,0.03) 1px, transparent 1px);
-    background-size: 40px 40px;
-    pointer-events: none;
-    z-index: 0;
+      linear-gradient(rgba(200,251,74,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(200,251,74,0.03) 1px, transparent 1px);
+    background-size: 40px 40px; pointer-events: none; z-index: 0;
+  }
+  body::after {
+    content: ''; position: fixed; width: 600px; height: 600px;
+    background: radial-gradient(circle, rgba(200,251,74,0.04) 0%, transparent 70%);
+    top: -200px; right: -200px; pointer-events: none; z-index: 0;
+  }
+  .app { position: relative; z-index: 1; width: 100%; max-width: 480px; padding: 20px; }
+
+  .screen { display: none; animation: fadeUp 0.3s ease; }
+  .screen.active { display: block; }
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(14px); }
+    to   { opacity: 1; transform: translateY(0); }
   }
 
-  .app { position: relative; z-index: 1; display: flex; flex-direction: column; min-height: 100vh; }
-
-  /* HEADER */
-  header {
-    display: flex; align-items: center; justify-content: space-between;
-    padding: 16px 32px;
-    border-bottom: 1px solid var(--border);
-    background: rgba(13,15,20,0.8);
-    backdrop-filter: blur(12px);
-    position: sticky; top: 0; z-index: 100;
-  }
   .logo {
-    font-family: var(--mono);
-    font-size: 18px;
-    color: var(--accent);
-    letter-spacing: -0.5px;
+    font-family: var(--sans); font-weight: 800; font-size: 13px;
+    letter-spacing: 0.25em; color: var(--accent); text-transform: uppercase;
+    margin-bottom: 48px; display: flex; align-items: center; gap: 10px;
   }
-  .logo span { color: var(--text2); }
-  .header-tabs { display: flex; gap: 4px; }
-  .tab {
-    padding: 7px 16px;
-    border-radius: 6px;
-    font-size: 13px;
-    font-weight: 500;
-    cursor: pointer;
-    border: none;
-    background: transparent;
-    color: var(--text2);
-    transition: all 0.15s;
-    font-family: var(--sans);
+  .logo-dot {
+    width: 8px; height: 8px; background: var(--accent); border-radius: 50%;
+    box-shadow: 0 0 12px var(--accent); animation: glowpulse 2s ease-in-out infinite;
   }
-  .tab:hover { background: var(--surface2); color: var(--text); }
-  .tab.active { background: var(--accent); color: #000; font-weight: 700; }
-
-  /* LAYOUT */
-  .main { display: flex; flex: 1; }
-  .sidebar {
-    width: 280px; min-width: 280px;
-    border-right: 1px solid var(--border);
-    padding: 24px 20px;
-    display: flex; flex-direction: column; gap: 24px;
-    background: var(--surface);
-  }
-  .content { flex: 1; padding: 28px 32px; overflow: auto; }
-
-  /* SIDEBAR SECTION */
-  .sidebar-section h3 {
-    font-family: var(--mono);
-    font-size: 10px;
-    letter-spacing: 2px;
-    color: var(--text3);
-    text-transform: uppercase;
-    margin-bottom: 12px;
+  @keyframes glowpulse {
+    0%,100% { box-shadow: 0 0 6px var(--accent); }
+    50%      { box-shadow: 0 0 18px var(--accent), 0 0 30px var(--accent-glow); }
   }
 
-  /* EMPLOYEE CARDS */
-  .emp-list { display: flex; flex-direction: column; gap: 8px; }
-  .emp-card {
-    display: flex; align-items: center; gap: 10px;
-    padding: 10px 12px;
-    border-radius: 8px;
-    background: var(--surface2);
-    border: 1px solid var(--border);
-    cursor: pointer;
-    transition: all 0.15s;
-    position: relative;
+  .screen-title {
+    font-family: var(--sans); font-weight: 700; font-size: 28px;
+    line-height: 1.1; margin-bottom: 8px;
   }
-  .emp-card:hover { border-color: var(--accent); }
-  .emp-card.selected { border-color: var(--accent); background: rgba(0,229,160,0.07); }
-  .emp-avatar {
-    width: 34px; height: 34px; border-radius: 50%;
+  .screen-sub { font-size: 12px; color: var(--muted); margin-bottom: 36px; line-height: 1.6; }
+
+  .notice {
+    background: var(--accent-dim); border: 1px solid rgba(200,251,74,0.2);
+    border-radius: 6px; padding: 12px 14px; font-size: 11px;
+    color: rgba(200,251,74,0.8); line-height: 1.6; margin-bottom: 24px;
+  }
+
+  .field { margin-bottom: 14px; }
+  .field label {
+    display: block; font-size: 10px; letter-spacing: 0.15em;
+    text-transform: uppercase; color: var(--muted); margin-bottom: 7px;
+  }
+  .input-wrap { position: relative; }
+  input[type="text"], input[type="password"], input[type="email"], input[type="url"] {
+    width: 100%; background: var(--surface); border: 1px solid var(--border);
+    border-radius: 6px; padding: 12px 40px 12px 16px; font-family: var(--mono);
+    font-size: 13px; color: var(--text); outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+  input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-dim); }
+  input::placeholder { color: var(--muted); }
+  .input-icon {
+    position: absolute; right: 12px; top: 50%; transform: translateY(-50%);
+    cursor: pointer; color: var(--muted); transition: color 0.15s;
+    background: none; border: none; padding: 4px; font-size: 14px; line-height: 1;
+  }
+  .input-icon:hover { color: var(--text); }
+
+  .btn {
+    width: 100%; padding: 13px 20px; border-radius: 6px;
+    font-family: var(--sans); font-weight: 600; font-size: 13px;
+    letter-spacing: 0.06em; cursor: pointer; border: none; transition: all 0.2s;
+  }
+  .btn-primary { background: var(--accent); color: #0a0a0b; }
+  .btn-primary:hover:not(:disabled) { box-shadow: 0 0 24px var(--accent-glow); transform: translateY(-1px); }
+  .btn-primary:active { transform: translateY(0); }
+  .btn-primary:disabled { opacity: 0.45; cursor: not-allowed; }
+  .btn-ghost {
+    background: transparent; color: var(--muted);
+    border: 1px solid var(--border); margin-top: 10px;
+  }
+  .btn-ghost:hover { border-color: var(--border-hi); color: var(--text); }
+  .btn-sm { padding: 8px 14px; font-size: 11px; width: auto; border-radius: 4px; margin-top: 0; }
+
+  /* VAULT HEADER */
+  .vault-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; }
+  .vault-header .logo { margin-bottom: 0; }
+  .vault-right { display: flex; align-items: center; gap: 10px; }
+  .user-tag { font-size: 11px; color: var(--muted); max-width: 110px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+  .sync-pill { display: flex; align-items: center; gap: 5px; font-size: 10px; color: var(--muted); }
+  .sync-dot {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--accent); animation: glowpulse 1.5s ease-in-out infinite;
+    flex-shrink: 0; transition: background 0.3s;
+  }
+  .sync-dot.syncing { background: #ffd32a; }
+  .sync-dot.error   { background: var(--danger); animation: none; }
+
+  /* SEARCH */
+  .search-bar { position: relative; margin-bottom: 14px; }
+  .search-bar input { padding-left: 38px; padding-right: 16px; }
+  .search-icon { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--muted); font-size: 14px; pointer-events: none; }
+
+  /* ENTRIES */
+  .entries { display: flex; flex-direction: column; gap: 6px; max-height: 370px; overflow-y: auto; padding-right: 2px; }
+  .entries::-webkit-scrollbar { width: 3px; }
+  .entries::-webkit-scrollbar-thumb { background: var(--border-hi); border-radius: 2px; }
+
+  .entry {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 8px; padding: 12px 14px;
+    display: flex; align-items: center; gap: 12px;
+    transition: border-color 0.15s, background 0.15s;
+  }
+  .entry:hover { border-color: var(--border-hi); background: #15151a; }
+
+  .entry-icon {
+    width: 36px; height: 36px; border-radius: 8px; background: var(--accent-dim);
     display: flex; align-items: center; justify-content: center;
-    font-size: 13px; font-weight: 700; flex-shrink: 0;
+    font-family: var(--sans); font-weight: 800; font-size: 14px;
+    color: var(--accent); text-transform: uppercase; flex-shrink: 0;
   }
-  .emp-info { flex: 1; min-width: 0; }
-  .emp-name { font-size: 13px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .emp-role { font-size: 11px; color: var(--text2); }
-  .emp-badge {
-    font-family: var(--mono);
-    font-size: 9px;
-    padding: 2px 6px;
-    border-radius: 4px;
-    background: rgba(0,229,160,0.12);
-    color: var(--accent);
-  }
-  .add-emp-btn {
-    width: 100%; padding: 9px;
-    border: 1px dashed var(--border);
-    border-radius: 8px;
-    background: transparent;
-    color: var(--text3);
-    font-size: 12px;
-    cursor: pointer;
-    transition: all 0.15s;
-    font-family: var(--sans);
-  }
-  .add-emp-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .entry-info { flex: 1; min-width: 0; }
+  .entry-name { font-family: var(--sans); font-weight: 600; font-size: 13px; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .entry-user { font-size: 11px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 2px; }
+  .entry-actions { display: flex; gap: 2px; flex-shrink: 0; }
 
-  /* LOGIC RULES */
-  .rules-list { display: flex; flex-direction: column; gap: 6px; }
-  .rule-item {
-    display: flex; align-items: center; gap: 8px;
-    padding: 8px 10px;
-    border-radius: 6px;
-    background: var(--surface2);
-    border: 1px solid var(--border);
-    font-size: 12px;
-    color: var(--text2);
+  .icon-btn {
+    background: none; border: none; color: var(--muted); cursor: pointer;
+    padding: 6px; border-radius: 4px; font-size: 13px;
+    transition: color 0.15s, background 0.15s; display: flex; align-items: center;
   }
-  .rule-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+  .icon-btn:hover        { color: var(--text); background: var(--border); }
+  .icon-btn.danger:hover { color: var(--danger); background: rgba(255,77,106,0.1); }
 
-  /* GENERATE BTN */
-  .generate-btn {
-    width: 100%;
-    padding: 13px;
-    border-radius: 10px;
-    background: var(--accent);
-    color: #000;
-    font-family: var(--mono);
-    font-size: 13px;
-    font-weight: 700;
-    border: none;
-    cursor: pointer;
-    letter-spacing: 0.5px;
-    transition: all 0.2s;
-    position: relative;
-    overflow: hidden;
-  }
-  .generate-btn::after {
-    content: '';
-    position: absolute; inset: 0;
-    background: linear-gradient(135deg, rgba(255,255,255,0.15), transparent);
-  }
-  .generate-btn:hover { transform: translateY(-1px); box-shadow: 0 8px 24px rgba(0,229,160,0.3); }
-  .generate-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+  .empty-state { text-align: center; padding: 44px 20px; color: var(--muted); }
+  .empty-state .e-icon { font-size: 28px; margin-bottom: 10px; opacity: 0.4; }
+  .empty-state p { font-size: 12px; line-height: 1.7; }
 
-  /* CONTENT HEADER */
-  .content-header {
-    display: flex; align-items: center; justify-content: space-between;
-    margin-bottom: 24px;
-  }
-  .content-title {
-    font-family: var(--mono);
-    font-size: 20px;
-    color: var(--text);
-  }
-  .week-nav { display: flex; align-items: center; gap: 12px; }
-  .week-nav button {
-    width: 30px; height: 30px;
-    border-radius: 6px;
-    border: 1px solid var(--border);
-    background: var(--surface);
-    color: var(--text2);
-    cursor: pointer;
-    font-size: 14px;
-    transition: all 0.15s;
-  }
-  .week-nav button:hover { border-color: var(--accent); color: var(--accent); }
-  .week-label { font-family: var(--mono); font-size: 12px; color: var(--text2); }
-
-  /* SCHEDULE GRID */
-  .schedule-grid {
-    display: grid;
-    grid-template-columns: 160px repeat(7, 1fr);
-    gap: 1px;
-    background: var(--border);
-    border-radius: 12px;
-    overflow: hidden;
-    border: 1px solid var(--border);
-  }
-  .grid-header {
-    background: var(--surface);
-    padding: 12px 10px;
-    text-align: center;
-  }
-  .grid-header.emp-col {
-    text-align: left;
-    padding-left: 16px;
-    font-family: var(--mono);
-    font-size: 10px;
-    letter-spacing: 1.5px;
-    color: var(--text3);
-    text-transform: uppercase;
-  }
-  .day-header {
-    font-family: var(--mono);
-    font-size: 11px;
-    color: var(--text2);
-    display: flex; flex-direction: column; align-items: center; gap: 2px;
-  }
-  .day-num { font-size: 18px; color: var(--text); font-weight: 700; }
-  .day-num.today { color: var(--accent); }
-
-  .grid-row-emp {
-    background: var(--surface);
-    display: flex; align-items: center; gap: 10px;
-    padding: 14px 16px;
-    border-top: 1px solid var(--border);
-  }
-  .grid-cell {
-    background: var(--surface);
-    padding: 8px;
-    border-top: 1px solid var(--border);
-    min-height: 72px;
-    position: relative;
-  }
-  .shift-block {
-    border-radius: 6px;
-    padding: 6px 8px;
-    font-size: 11px;
-    font-weight: 600;
-    height: 100%;
-    min-height: 56px;
-    display: flex; flex-direction: column; justify-content: center; gap: 2px;
-    cursor: pointer;
-    transition: all 0.15s;
-    position: relative;
-    overflow: hidden;
-  }
-  .shift-block::before {
-    content: '';
-    position: absolute; left: 0; top: 0; bottom: 0;
-    width: 3px;
-  }
-  .shift-block:hover { filter: brightness(1.15); transform: scale(1.02); }
-  .shift-time { font-family: var(--mono); font-size: 10px; opacity: 0.8; }
-  .shift-label { font-size: 12px; font-weight: 700; }
-  .shift-off {
-    background: transparent;
-    border: 1px dashed var(--border);
-    color: var(--text3);
-    font-family: var(--mono);
-    font-size: 10px;
-    text-align: center;
-    justify-content: center;
-    align-items: center;
-    cursor: default;
-  }
-  .shift-off:hover { filter: none; transform: none; }
-
-  /* SHIFT TYPES */
-  .shift-morning { background: rgba(255,196,64,0.12); color: #ffc440; }
-  .shift-morning::before { background: #ffc440; }
-  .shift-evening { background: rgba(79,124,255,0.12); color: #4f7cff; }
-  .shift-evening::before { background: #4f7cff; }
-  .shift-night { background: rgba(180,100,255,0.12); color: #b464ff; }
-  .shift-night::before { background: #b464ff; }
-
-  /* PANELS */
-  .panel { display: none; }
-  .panel.active { display: block; }
-
-  /* EMPLOYEES PANEL */
-  .emp-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; }
-  .emp-full-card {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 20px;
-    transition: border-color 0.15s;
-  }
-  .emp-full-card:hover { border-color: var(--accent2); }
-  .emp-full-header { display: flex; align-items: center; gap: 14px; margin-bottom: 16px; }
-  .emp-full-avatar { width: 48px; height: 48px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 18px; font-weight: 700; }
-  .emp-full-info h4 { font-size: 15px; font-weight: 600; }
-  .emp-full-info p { font-size: 12px; color: var(--text2); margin-top: 2px; }
-  .emp-meta { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-  .emp-meta-item { background: var(--surface2); border-radius: 8px; padding: 10px; }
-  .emp-meta-label { font-size: 10px; color: var(--text3); font-family: var(--mono); text-transform: uppercase; letter-spacing: 1px; }
-  .emp-meta-value { font-size: 13px; font-weight: 600; margin-top: 4px; }
-  .emp-avail { display: flex; gap: 4px; margin-top: 12px; flex-wrap: wrap; }
-  .day-chip {
-    padding: 3px 8px; border-radius: 4px; font-size: 11px;
-    font-family: var(--mono);
-    background: rgba(0,229,160,0.12); color: var(--accent);
-  }
-  .day-chip.off { background: var(--surface2); color: var(--text3); }
-  .emp-actions { display: flex; gap: 8px; margin-top: 14px; }
-  .btn-sm {
-    padding: 7px 14px; border-radius: 6px; font-size: 12px;
-    cursor: pointer; border: 1px solid var(--border);
-    background: transparent; color: var(--text2);
-    transition: all 0.15s; font-family: var(--sans); font-weight: 500;
-  }
-  .btn-sm:hover { border-color: var(--accent2); color: var(--accent2); }
-  .btn-sm.danger:hover { border-color: var(--warn); color: var(--warn); }
-
-  /* RULES PANEL */
-  .rules-full { display: flex; flex-direction: column; gap: 16px; }
-  .rule-card {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 20px;
-    display: flex; align-items: flex-start; gap: 16px;
-  }
-  .rule-icon {
-    width: 40px; height: 40px; border-radius: 8px;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 18px; flex-shrink: 0;
-  }
-  .rule-body { flex: 1; }
-  .rule-title { font-size: 14px; font-weight: 600; margin-bottom: 4px; }
-  .rule-desc { font-size: 12px; color: var(--text2); line-height: 1.6; }
-  .rule-control { margin-top: 12px; display: flex; align-items: center; gap: 12px; }
-  .rule-input {
-    padding: 7px 12px; border-radius: 6px;
-    border: 1px solid var(--border);
-    background: var(--surface2);
-    color: var(--text); font-family: var(--mono); font-size: 13px;
-    width: 80px;
-  }
-  .rule-input:focus { outline: none; border-color: var(--accent); }
-  .rule-select {
-    padding: 7px 12px; border-radius: 6px;
-    border: 1px solid var(--border);
-    background: var(--surface2);
-    color: var(--text); font-family: var(--sans); font-size: 13px;
-    cursor: pointer;
-  }
-  .rule-select:focus { outline: none; border-color: var(--accent); }
-  .toggle {
-    position: relative; width: 40px; height: 22px;
-    display: inline-block; cursor: pointer;
-  }
-  .toggle input { opacity: 0; width: 0; height: 0; }
-  .toggle-slider {
-    position: absolute; inset: 0;
-    background: var(--surface2);
-    border-radius: 11px;
-    transition: 0.2s;
-    border: 1px solid var(--border);
-  }
-  .toggle-slider::before {
-    content: '';
-    position: absolute; left: 3px; top: 3px;
-    width: 14px; height: 14px;
-    border-radius: 50%;
-    background: var(--text3);
-    transition: 0.2s;
-  }
-  .toggle input:checked + .toggle-slider { background: rgba(0,229,160,0.2); border-color: var(--accent); }
-  .toggle input:checked + .toggle-slider::before { transform: translateX(18px); background: var(--accent); }
+  .vault-footer { display: flex; align-items: center; justify-content: space-between; margin-top: 14px; }
+  .count-badge { font-size: 11px; color: var(--muted); }
 
   /* MODAL */
   .modal-overlay {
-    position: fixed; inset: 0;
-    background: rgba(0,0,0,0.75);
-    backdrop-filter: blur(4px);
-    z-index: 200;
-    display: flex; align-items: center; justify-content: center;
-    opacity: 0; pointer-events: none; transition: opacity 0.2s;
+    position: fixed; inset: 0; background: rgba(0,0,0,0.75); backdrop-filter: blur(8px);
+    z-index: 100; display: flex; align-items: center; justify-content: center;
+    padding: 20px; animation: fadeIn 0.15s ease;
   }
-  .modal-overlay.open { opacity: 1; pointer-events: all; }
+  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
   .modal {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 16px;
-    padding: 28px;
-    width: 480px;
-    max-width: 90vw;
-    transform: translateY(16px); transition: transform 0.2s;
+    background: var(--surface); border: 1px solid var(--border-hi);
+    border-radius: 12px; padding: 28px; width: 100%; max-width: 420px;
+    animation: scaleIn 0.18s ease;
   }
-  .modal-overlay.open .modal { transform: translateY(0); }
-  .modal h3 { font-family: var(--mono); font-size: 16px; margin-bottom: 20px; color: var(--accent); }
-  .form-group { margin-bottom: 16px; }
-  .form-label { font-size: 12px; color: var(--text2); margin-bottom: 6px; display: block; font-family: var(--mono); text-transform: uppercase; letter-spacing: 1px; }
-  .form-input {
-    width: 100%; padding: 10px 14px;
-    border-radius: 8px;
-    border: 1px solid var(--border);
-    background: var(--surface2);
-    color: var(--text); font-family: var(--sans); font-size: 14px;
+  @keyframes scaleIn {
+    from { transform: scale(0.95); opacity: 0; }
+    to   { transform: scale(1);    opacity: 1; }
   }
-  .form-input:focus { outline: none; border-color: var(--accent); }
-  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-  .day-picker { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 6px; }
-  .day-pick-btn {
-    width: 36px; height: 36px; border-radius: 50%;
-    border: 1px solid var(--border);
-    background: transparent;
-    color: var(--text2); font-size: 12px; font-family: var(--mono);
-    cursor: pointer; transition: all 0.15s;
+  .modal-title {
+    font-family: var(--sans); font-weight: 700; font-size: 18px;
+    margin-bottom: 22px; display: flex; align-items: center; justify-content: space-between;
   }
-  .day-pick-btn.selected { background: var(--accent); border-color: var(--accent); color: #000; font-weight: 700; }
-  .modal-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 24px; }
-  .btn-primary {
-    padding: 10px 24px; border-radius: 8px;
-    background: var(--accent); color: #000;
-    font-weight: 700; font-family: var(--mono); font-size: 13px;
-    border: none; cursor: pointer; transition: all 0.15s;
-  }
-  .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(0,229,160,0.3); }
-  .btn-cancel {
-    padding: 10px 20px; border-radius: 8px;
-    background: transparent; color: var(--text2);
-    font-family: var(--sans); font-size: 13px;
-    border: 1px solid var(--border); cursor: pointer;
-  }
-  .btn-cancel:hover { border-color: var(--warn); color: var(--warn); }
+  .modal-actions { display: flex; gap: 10px; margin-top: 8px; }
+  .modal-actions .btn { width: auto; flex: 1; margin-top: 0; }
 
-  /* STATS */
-  .stats-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 24px; }
-  .stat-card {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 16px;
+  .strength-bar { height: 3px; background: var(--border); border-radius: 2px; margin-top: 7px; overflow: hidden; }
+  .strength-fill { height: 100%; border-radius: 2px; transition: width 0.3s, background 0.3s; width: 0%; }
+
+  /* TOAST */
+  .toast {
+    position: fixed; bottom: 28px; left: 50%;
+    transform: translateX(-50%) translateY(12px);
+    background: var(--surface); border: 1px solid var(--border-hi);
+    border-radius: 8px; padding: 11px 20px; font-size: 12px; color: var(--text);
+    z-index: 999; opacity: 0; transition: all 0.25s ease;
+    white-space: nowrap; display: flex; align-items: center; gap: 8px;
+    pointer-events: none;
   }
-  .stat-label { font-size: 11px; color: var(--text3); font-family: var(--mono); text-transform: uppercase; letter-spacing: 1px; }
-  .stat-value { font-size: 26px; font-family: var(--mono); font-weight: 700; margin-top: 4px; color: var(--accent); }
-  .stat-sub { font-size: 11px; color: var(--text3); margin-top: 2px; }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+  .toast-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); flex-shrink: 0; }
 
-  /* AI LOG */
-  .ai-log {
-    background: var(--surface2);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 16px;
-    margin-top: 20px;
-    font-family: var(--mono);
-    font-size: 12px;
-    color: var(--text2);
-    line-height: 1.8;
-    max-height: 200px;
-    overflow-y: auto;
-    display: none;
+  /* SPINNER */
+  .spinner {
+    display: inline-block; width: 13px; height: 13px;
+    border: 2px solid rgba(10,10,11,0.3); border-top-color: #0a0a0b;
+    border-radius: 50%; animation: spin 0.6s linear infinite; vertical-align: middle; margin-right: 6px;
   }
-  .ai-log.visible { display: block; }
-  .log-line { display: flex; gap: 10px; }
-  .log-time { color: var(--text3); }
-  .log-msg.ok { color: var(--accent); }
-  .log-msg.info { color: var(--accent2); }
-  .log-msg.warn { color: var(--warn); }
+  @keyframes spin { to { transform: rotate(360deg); } }
 
-  /* TOOLTIP */
-  .tooltip { position: relative; }
-  .tooltip::after {
-    content: attr(data-tip);
-    position: absolute; bottom: calc(100% + 6px); left: 50%;
-    transform: translateX(-50%);
-    background: #000; color: var(--text);
-    font-size: 11px; padding: 5px 10px; border-radius: 5px;
-    white-space: nowrap; pointer-events: none;
-    opacity: 0; transition: opacity 0.15s;
-    font-family: var(--sans);
-  }
-  .tooltip:hover::after { opacity: 1; }
-
-  /* LOADING */
-  @keyframes pulse { 0%,100%{opacity:.3} 50%{opacity:1} }
-  .loading { animation: pulse 1.2s infinite; }
-
-  /* SCROLLBAR */
-  ::-webkit-scrollbar { width: 4px; }
-  ::-webkit-scrollbar-track { background: transparent; }
-  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
-
-  .empty-state {
-    text-align: center; padding: 60px 20px;
-    color: var(--text3); font-family: var(--mono); font-size: 13px;
-  }
-  .empty-state .icon { font-size: 40px; margin-bottom: 12px; }
+  @media (max-width: 520px) { .app { padding: 14px; } .screen-title { font-size: 23px; } }
 </style>
 </head>
 <body>
 <div class="app">
 
-  <!-- HEADER -->
-  <header>
-    <div class="logo">SHIFT<span>/</span>OS</div>
-    <div class="header-tabs">
-      <button class="tab active" onclick="showPanel('schedule')">Schedule</button>
-      <button class="tab" onclick="showPanel('employees')">Employees</button>
-      <button class="tab" onclick="showPanel('rules')">Logic Rules</button>
+  <!-- ══ REGISTER ══ -->
+  <div id="registerScreen" class="screen active">
+    <div class="logo"><span class="logo-dot"></span> VAULT</div>
+    <div class="screen-title">Create your<br>master vault.</div>
+    <p class="screen-sub">One password encrypts everything. Synced instantly across all your devices.</p>
+    <div class="notice">🔐 AES-256-GCM + PBKDF2 (310k rounds). Your master password never leaves this device — Firebase only ever stores unreadable ciphertext.</div>
+
+    <div class="field"><label>Username</label>
+      <input type="text" id="reg-username" placeholder="choose a username" autocomplete="off" spellcheck="false" />
     </div>
-  </header>
-
-  <div class="main">
-    <!-- SIDEBAR -->
-    <aside class="sidebar">
-      <div class="sidebar-section">
-        <h3>Team</h3>
-        <div class="emp-list" id="sidebarEmpList"></div>
-        <button class="add-emp-btn" style="margin-top:8px" onclick="openAddEmp()">+ Add Employee</button>
+    <div class="field"><label>Master Password</label>
+      <div class="input-wrap">
+        <input type="password" id="reg-password" placeholder="strong master password" autocomplete="new-password" oninput="checkStrength(this)" />
+        <button class="input-icon" onclick="toggleVis('reg-password')" tabindex="-1">👁</button>
       </div>
-
-      <div class="sidebar-section">
-        <h3>Active Rules</h3>
-        <div class="rules-list" id="sidebarRules"></div>
+      <div class="strength-bar"><div class="strength-fill" id="strengthFill"></div></div>
+    </div>
+    <div class="field"><label>Confirm Password</label>
+      <div class="input-wrap">
+        <input type="password" id="reg-confirm" placeholder="repeat master password" autocomplete="new-password"
+          onkeydown="if(event.key==='Enter') register()" />
+        <button class="input-icon" onclick="toggleVis('reg-confirm')" tabindex="-1">👁</button>
       </div>
+    </div>
 
-      <div style="margin-top:auto">
-        <button class="generate-btn" id="generateBtn" onclick="generateSchedule()">
-          ⚡ GENERATE SCHEDULE
-        </button>
-      </div>
-    </aside>
-
-    <!-- CONTENT -->
-    <main class="content">
-
-      <!-- SCHEDULE PANEL -->
-      <div class="panel active" id="panel-schedule">
-        <div class="stats-row" id="statsRow">
-          <div class="stat-card"><div class="stat-label">Total Shifts</div><div class="stat-value" id="statShifts">0</div><div class="stat-sub">this week</div></div>
-          <div class="stat-card"><div class="stat-label">Coverage</div><div class="stat-value" id="statCoverage">—</div><div class="stat-sub">avg per day</div></div>
-          <div class="stat-card"><div class="stat-label">Hours</div><div class="stat-value" id="statHours">0</div><div class="stat-sub">scheduled</div></div>
-          <div class="stat-card"><div class="stat-label">Conflicts</div><div class="stat-value" id="statConflicts" style="color:var(--warn)">0</div><div class="stat-sub">rule violations</div></div>
-        </div>
-
-        <div class="content-header">
-          <div class="content-title" id="weekTitle">Week Schedule</div>
-          <div class="week-nav">
-            <button onclick="changeWeek(-1)">‹</button>
-            <span class="week-label" id="weekRangeLabel"></span>
-            <button onclick="changeWeek(1)">›</button>
-          </div>
-        </div>
-
-        <div class="schedule-grid" id="scheduleGrid">
-          <div class="grid-header emp-col">EMPLOYEE</div>
-          <!-- Day headers injected by JS -->
-        </div>
-
-        <div class="ai-log" id="aiLog"></div>
-      </div>
-
-      <!-- EMPLOYEES PANEL -->
-      <div class="panel" id="panel-employees">
-        <div class="content-header">
-          <div class="content-title">Team Members</div>
-          <button class="btn-primary" onclick="openAddEmp()">+ Add Employee</button>
-        </div>
-        <div class="emp-grid" id="empGrid"></div>
-      </div>
-
-      <!-- RULES PANEL -->
-      <div class="panel" id="panel-rules">
-        <div class="content-header">
-          <div class="content-title">Scheduling Logic Rules</div>
-        </div>
-        <div class="rules-full" id="rulesGrid"></div>
-      </div>
-
-    </main>
+    <button class="btn btn-primary" id="regBtn" onclick="register()">Create Vault</button>
+    <button class="btn btn-ghost" onclick="showScreen('loginScreen')">Already have a vault → Login</button>
   </div>
+
+  <!-- ══ LOGIN ══ -->
+  <div id="loginScreen" class="screen">
+    <div class="logo"><span class="logo-dot"></span> VAULT</div>
+    <div class="screen-title">Welcome<br>back.</div>
+    <p class="screen-sub">Your encrypted vault lives in the cloud. Unlock it from any device.</p>
+
+    <div class="field"><label>Username</label>
+      <input type="text" id="login-username" placeholder="your username" autocomplete="off" spellcheck="false" />
+    </div>
+    <div class="field"><label>Master Password</label>
+      <div class="input-wrap">
+        <input type="password" id="login-password" placeholder="master password" autocomplete="current-password"
+          onkeydown="if(event.key==='Enter') login()" />
+        <button class="input-icon" onclick="toggleVis('login-password')" tabindex="-1">👁</button>
+      </div>
+    </div>
+
+    <button class="btn btn-primary" id="loginBtn" onclick="login()">Unlock Vault</button>
+    <button class="btn btn-ghost" onclick="showScreen('registerScreen')">Create new vault</button>
+  </div>
+
+  <!-- ══ VAULT ══ -->
+  <div id="vaultScreen" class="screen">
+    <div class="vault-header">
+      <div class="logo"><span class="logo-dot"></span> VAULT</div>
+      <div class="vault-right">
+        <div class="sync-pill">
+          <span class="sync-dot" id="syncDot"></span>
+          <span id="syncLabel">synced</span>
+        </div>
+        <span class="user-tag" id="vaultUser"></span>
+        <button class="icon-btn" onclick="logout()" title="Lock vault">🔒</button>
+      </div>
+    </div>
+
+    <div class="search-bar">
+      <span class="search-icon">🔍</span>
+      <input type="text" id="searchInput" placeholder="search entries…" oninput="renderEntries()" />
+    </div>
+
+    <div class="entries" id="entriesList"></div>
+
+    <div class="vault-footer">
+      <span class="count-badge" id="entryCount">0 entries</span>
+      <button class="btn btn-primary btn-sm" onclick="openAddModal()">+ Add Entry</button>
+    </div>
+  </div>
+
 </div>
 
-<!-- ADD EMPLOYEE MODAL -->
-<div class="modal-overlay" id="empModal">
+<!-- ══ ENTRY MODAL ══ -->
+<div id="entryModal" class="modal-overlay" style="display:none" onclick="if(event.target===this)closeModal()">
   <div class="modal">
-    <h3>// ADD_EMPLOYEE</h3>
-    <div class="form-row">
-      <div class="form-group">
-        <label class="form-label">First Name</label>
-        <input class="form-input" id="empFirstName" placeholder="Alex">
-      </div>
-      <div class="form-group">
-        <label class="form-label">Last Name</label>
-        <input class="form-input" id="empLastName" placeholder="Johnson">
+    <div class="modal-title">
+      <span id="modalTitle">New Entry</span>
+      <button class="icon-btn" onclick="closeModal()">✕</button>
+    </div>
+    <div class="field"><label>Site / App Name</label>
+      <input type="text" id="entry-name" placeholder="e.g. GitHub" autocomplete="off" />
+    </div>
+    <div class="field"><label>Username / Email</label>
+      <input type="text" id="entry-user" placeholder="your login" autocomplete="off" />
+    </div>
+    <div class="field"><label>Password</label>
+      <div class="input-wrap">
+        <input type="password" id="entry-pass" placeholder="password" autocomplete="new-password" />
+        <button class="input-icon" onclick="toggleVis('entry-pass')" tabindex="-1">👁</button>
       </div>
     </div>
-    <div class="form-group">
-      <label class="form-label">Role</label>
-      <input class="form-input" id="empRole" placeholder="e.g. Cashier, Manager, Cook">
+    <div class="field"><label>URL (optional)</label>
+      <input type="url" id="entry-url" placeholder="https://…" autocomplete="off" />
     </div>
-    <div class="form-row">
-      <div class="form-group">
-        <label class="form-label">Max Hours/Week</label>
-        <input class="form-input" id="empMaxHours" type="number" value="40" min="1" max="80">
-      </div>
-      <div class="form-group">
-        <label class="form-label">Preferred Shift</label>
-        <select class="form-input" id="empPrefShift">
-          <option value="any">Any</option>
-          <option value="morning">Morning</option>
-          <option value="evening">Evening</option>
-          <option value="night">Night</option>
-        </select>
-      </div>
-    </div>
-    <div class="form-group">
-      <label class="form-label">Available Days</label>
-      <div class="day-picker" id="dayPicker">
-        <button class="day-pick-btn selected" data-day="0">Mo</button>
-        <button class="day-pick-btn selected" data-day="1">Tu</button>
-        <button class="day-pick-btn selected" data-day="2">We</button>
-        <button class="day-pick-btn selected" data-day="3">Th</button>
-        <button class="day-pick-btn selected" data-day="4">Fr</button>
-        <button class="day-pick-btn" data-day="5">Sa</button>
-        <button class="day-pick-btn" data-day="6">Su</button>
-      </div>
-    </div>
+    <button class="btn btn-ghost btn-sm" style="width:100%;margin-bottom:14px" onclick="generatePassword()">
+      ⚡ Generate Strong Password
+    </button>
     <div class="modal-actions">
-      <button class="btn-cancel" onclick="closeModal('empModal')">Cancel</button>
-      <button class="btn-primary" onclick="saveEmployee()">Save Employee</button>
+      <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-primary" id="saveBtn" onclick="saveEntry()">Save Entry</button>
     </div>
   </div>
 </div>
 
-<script>
-// ─── STATE ───────────────────────────────────────────────────────────────────
-const DAYS = ['Mo','Tu','We','Th','Fr','Sa','Su'];
-const SHIFT_TYPES = {
-  morning: { label: 'Morning', time: '06:00–14:00', hours: 8, cls: 'shift-morning' },
-  evening: { label: 'Evening', time: '14:00–22:00', hours: 8, cls: 'shift-evening' },
-  night:   { label: 'Night',   time: '22:00–06:00', hours: 8, cls: 'shift-night' },
+<div class="toast" id="toast"><span class="toast-dot"></span><span id="toastMsg"></span></div>
+
+<script type="module">
+// ════════════════════════════════════════════════════════
+// FIREBASE — using your project (onekey-5067d)
+// ════════════════════════════════════════════════════════
+import { initializeApp }    from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
+import { getFirestore, doc, getDoc, setDoc, onSnapshot }
+  from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
+
+const firebaseConfig = {
+  apiKey:            "AIzaSyAF1nxXeZhz7LvWpQFTnFYNifuZII_R-mE",
+  authDomain:        "onekey-5067d.firebaseapp.com",
+  projectId:         "onekey-5067d",
+  storageBucket:     "onekey-5067d.firebasestorage.app",
+  messagingSenderId: "1098836590874",
+  appId:             "1:1098836590874:web:9c62490ce2670a4418aca3",
+  measurementId:     "G-15YVKJ8PXL"
 };
-const COLORS = [
-  ['#ff6b3d','#3d1a0f'],['#4f7cff','#0f1a3d'],['#00e5a0','#003d26'],
-  ['#ffc440','#3d2d0f'],['#b464ff','#2a0f3d'],['#ff4f8c','#3d0f1d'],
-  ['#40e0ff','#0f3038'],['#80ff4f','#1a3d0f'],
-];
 
-let employees = [
-  { id:1, firstName:'Jordan', lastName:'Lee', role:'Manager', maxHours:40, prefShift:'morning', avail:[0,1,2,3,4], color:0 },
-  { id:2, firstName:'Sam', lastName:'Rivera', role:'Cashier', maxHours:32, prefShift:'evening', avail:[0,1,2,3,4,5], color:1 },
-  { id:3, firstName:'Casey', lastName:'Park', role:'Cook', maxHours:40, prefShift:'any', avail:[1,2,3,4,5,6], color:2 },
-  { id:4, firstName:'Alex', lastName:'Morgan', role:'Cashier', maxHours:24, prefShift:'morning', avail:[0,2,4,5], color:3 },
-  { id:5, firstName:'Riley', lastName:'Kim', role:'Cook', maxHours:40, prefShift:'night', avail:[0,1,2,3,4,5,6], color:4 },
-];
-let nextEmpId = 6;
+const app = initializeApp(firebaseConfig);
+const db  = getFirestore(app);
 
-let rules = [
-  { id:'r1', title:'Min Rest Between Shifts', desc:'Enforce a minimum rest period between two consecutive shifts for any employee.', icon:'😴', color:'#4f7cff', enabled:true, type:'rest', value:8 },
-  { id:'r2', title:'Max Consecutive Days', desc:'Limit how many consecutive days an employee can work without a day off.', icon:'📅', color:'#ffc440', enabled:true, type:'consecutive', value:5 },
-  { id:'r3', title:'Prefer Employee Availability', desc:'Only assign shifts on days the employee marked as available.', icon:'✅', color:'#00e5a0', enabled:true, type:'availability', value:null },
-  { id:'r4', title:'Honor Preferred Shift Type', desc:'Try to assign employees their preferred shift type when possible.', icon:'⭐', color:'#b464ff', enabled:true, type:'preference', value:null },
-  { id:'r5', title:'Min Staff Per Shift', desc:'Ensure a minimum number of employees are scheduled per shift slot.', icon:'👥', color:'#ff6b3d', enabled:true, type:'minstaff', value:2 },
-  { id:'r6', title:'Max Hours Per Week', desc:'Respect each employee\'s maximum weekly hours limit.', icon:'⏱️', color:'#ff4f8c', enabled:true, type:'maxhours', value:null },
-];
+// ════════════════════════════════════════════════════════
+// CRYPTO — AES-256-GCM + PBKDF2
+// ════════════════════════════════════════════════════════
+const ENC = new TextEncoder(), DEC = new TextDecoder();
 
-let schedule = {}; // { empId: { dayIndex: 'morning'|'evening'|'night'|'off' } }
-let weekOffset = 0;
-let empIdCounter = nextEmpId;
-
-// ─── WEEK LOGIC ───────────────────────────────────────────────────────────────
-function getWeekDates() {
-  const today = new Date();
-  const dayOfWeek = today.getDay(); // 0=Sun
-  const monday = new Date(today);
-  monday.setDate(today.getDate() - ((dayOfWeek + 6) % 7) + weekOffset * 7);
-  return Array.from({length:7}, (_,i) => {
-    const d = new Date(monday);
-    d.setDate(monday.getDate() + i);
-    return d;
-  });
+async function deriveKey(password, salt) {
+  const raw = await crypto.subtle.importKey(
+    'raw', ENC.encode(password), { name: 'PBKDF2' }, false, ['deriveKey']
+  );
+  return crypto.subtle.deriveKey(
+    { name: 'PBKDF2', salt, iterations: 310000, hash: 'SHA-256' },
+    raw, { name: 'AES-GCM', length: 256 }, false, ['encrypt', 'decrypt']
+  );
 }
 
-function isToday(date) {
-  const t = new Date();
-  return date.getDate()===t.getDate() && date.getMonth()===t.getMonth() && date.getFullYear()===t.getFullYear();
+async function aesEncrypt(plain, key) {
+  const iv = crypto.getRandomValues(new Uint8Array(12));
+  const ct = await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, key, ENC.encode(plain));
+  const out = new Uint8Array(12 + ct.byteLength);
+  out.set(iv); out.set(new Uint8Array(ct), 12);
+  return btoa(String.fromCharCode(...out));
 }
 
-function changeWeek(dir) { weekOffset += dir; renderScheduleGrid(); }
-
-// ─── RENDER ───────────────────────────────────────────────────────────────────
-function render() {
-  renderSidebar();
-  renderScheduleGrid();
-  renderEmpGrid();
-  renderRulesGrid();
-  updateStats();
+async function aesDecrypt(b64, key) {
+  const buf = Uint8Array.from(atob(b64), c => c.charCodeAt(0));
+  const pt  = await crypto.subtle.decrypt(
+    { name: 'AES-GCM', iv: buf.slice(0, 12) }, key, buf.slice(12)
+  );
+  return DEC.decode(pt);
 }
 
-function renderSidebar() {
-  const list = document.getElementById('sidebarEmpList');
-  list.innerHTML = employees.map(e => {
-    const [fg, bg] = COLORS[e.color % COLORS.length];
-    return `<div class="emp-card" onclick="showPanel('employees')">
-      <div class="emp-avatar" style="background:${bg};color:${fg}">${e.firstName[0]}${e.lastName[0]}</div>
-      <div class="emp-info">
-        <div class="emp-name">${e.firstName} ${e.lastName}</div>
-        <div class="emp-role">${e.role}</div>
-      </div>
-      <div class="emp-badge">${e.maxHours}h</div>
-    </div>`;
-  }).join('');
+const toB64   = arr => btoa(String.fromCharCode(...arr));
+const fromB64 = str => Uint8Array.from(atob(str), c => c.charCodeAt(0));
 
-  const ruleList = document.getElementById('sidebarRules');
-  ruleList.innerHTML = rules.filter(r=>r.enabled).map(r =>
-    `<div class="rule-item"><div class="rule-dot" style="background:${r.color}"></div>${r.title}</div>`
-  ).join('');
+// ════════════════════════════════════════════════════════
+// STATE
+// ════════════════════════════════════════════════════════
+let currentUser = null;
+let sessionKey  = null;
+let editingId   = null;
+let unsubscribe = null;
+
+// ════════════════════════════════════════════════════════
+// FIRESTORE HELPERS
+// ════════════════════════════════════════════════════════
+async function fsGet(username) {
+  const snap = await getDoc(doc(db, 'vaults', username));
+  return snap.exists() ? snap.data() : null;
+}
+async function fsSet(username, data) {
+  await setDoc(doc(db, 'vaults', username), data, { merge: true });
 }
 
-function renderScheduleGrid() {
-  const dates = getWeekDates();
-  const grid = document.getElementById('scheduleGrid');
-  const start = dates[0].toLocaleDateString('en-US',{month:'short',day:'numeric'});
-  const end = dates[6].toLocaleDateString('en-US',{month:'short',day:'numeric'});
-  document.getElementById('weekRangeLabel').textContent = `${start} – ${end}`;
-
-  grid.innerHTML = `<div class="grid-header emp-col">EMPLOYEE</div>` +
-    dates.map((d,i) => {
-      const isT = isToday(d);
-      return `<div class="grid-header">
-        <div class="day-header">
-          <span>${DAYS[i]}</span>
-          <span class="day-num ${isT?'today':''}">${d.getDate()}</span>
-        </div>
-      </div>`;
-    }).join('');
-
-  if (employees.length === 0) {
-    grid.innerHTML += `<div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--text3);font-family:var(--mono);font-size:12px;">No employees added yet</div>`;
-    return;
-  }
-
-  employees.forEach(emp => {
-    const [fg,bg] = COLORS[emp.color % COLORS.length];
-    grid.innerHTML += `<div class="grid-row-emp">
-      <div class="emp-avatar" style="background:${bg};color:${fg};width:32px;height:32px;font-size:12px">${emp.firstName[0]}${emp.lastName[0]}</div>
-      <div>
-        <div style="font-size:12px;font-weight:600">${emp.firstName}</div>
-        <div style="font-size:10px;color:var(--text3)">${emp.role}</div>
-      </div>
-    </div>`;
-
-    dates.forEach((_,dayIdx) => {
-      const empSched = schedule[emp.id] || {};
-      const shift = empSched[dayIdx];
-      let cellContent = '';
-      if (shift && shift !== 'off') {
-        const s = SHIFT_TYPES[shift];
-        cellContent = `<div class="shift-block ${s.cls}" onclick="cycleShift(${emp.id},${dayIdx})" title="${s.label}">
-          <div class="shift-label">${s.label}</div>
-          <div class="shift-time">${s.time}</div>
-        </div>`;
-      } else {
-        cellContent = `<div class="shift-block shift-off" onclick="cycleShift(${emp.id},${dayIdx})">OFF</div>`;
-      }
-      grid.innerHTML += `<div class="grid-cell">${cellContent}</div>`;
-    });
-  });
+function setSyncStatus(state) {
+  const dot = $('syncDot'), lbl = $('syncLabel');
+  if (!dot) return;
+  dot.className = 'sync-dot' + (state !== 'synced' ? ' ' + state : '');
+  lbl.textContent = state;
 }
 
-function renderEmpGrid() {
-  const grid = document.getElementById('empGrid');
-  if (employees.length === 0) {
-    grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1"><div class="icon">👤</div>No employees yet. Add your first team member!</div>`;
-    return;
-  }
-  grid.innerHTML = employees.map(emp => {
-    const [fg,bg] = COLORS[emp.color % COLORS.length];
-    const dayChips = DAYS.map((d,i) =>
-      `<span class="day-chip ${emp.avail.includes(i)?'':'off'}">${d}</span>`
-    ).join('');
-    return `<div class="emp-full-card">
-      <div class="emp-full-header">
-        <div class="emp-full-avatar" style="background:${bg};color:${fg}">${emp.firstName[0]}${emp.lastName[0]}</div>
-        <div class="emp-full-info">
-          <h4>${emp.firstName} ${emp.lastName}</h4>
-          <p>${emp.role}</p>
-        </div>
-      </div>
-      <div class="emp-meta">
-        <div class="emp-meta-item">
-          <div class="emp-meta-label">Max Hours</div>
-          <div class="emp-meta-value">${emp.maxHours}h/wk</div>
-        </div>
-        <div class="emp-meta-item">
-          <div class="emp-meta-label">Pref. Shift</div>
-          <div class="emp-meta-value" style="text-transform:capitalize">${emp.prefShift}</div>
-        </div>
-      </div>
-      <div class="emp-avail">${dayChips}</div>
-      <div class="emp-actions">
-        <button class="btn-sm danger" onclick="deleteEmployee(${emp.id})">Remove</button>
-      </div>
-    </div>`;
-  }).join('');
-}
+// ════════════════════════════════════════════════════════
+// AUTH
+// ════════════════════════════════════════════════════════
+window.register = async () => {
+  const username = $('reg-username').value.trim().toLowerCase();
+  const password = $('reg-password').value;
+  const confirm  = $('reg-confirm').value;
 
-function renderRulesGrid() {
-  const grid = document.getElementById('rulesGrid');
-  grid.innerHTML = rules.map(r => {
-    let control = '';
-    if (r.type === 'rest') {
-      control = `<label style="font-size:12px;color:var(--text2)">Min hours:</label>
-        <input class="rule-input" type="number" value="${r.value}" min="1" max="24"
-          onchange="updateRule('${r.id}','value',+this.value)">`;
-    } else if (r.type === 'consecutive') {
-      control = `<label style="font-size:12px;color:var(--text2)">Max days:</label>
-        <input class="rule-input" type="number" value="${r.value}" min="1" max="7"
-          onchange="updateRule('${r.id}','value',+this.value)">`;
-    } else if (r.type === 'minstaff') {
-      control = `<label style="font-size:12px;color:var(--text2)">Min staff:</label>
-        <input class="rule-input" type="number" value="${r.value}" min="1" max="20"
-          onchange="updateRule('${r.id}','value',+this.value)">`;
-    }
-    return `<div class="rule-card">
-      <div class="rule-icon" style="background:${r.color}22">${r.icon}</div>
-      <div class="rule-body">
-        <div class="rule-title">${r.title}</div>
-        <div class="rule-desc">${r.desc}</div>
-        <div class="rule-control">
-          ${control}
-          <label class="toggle" style="margin-left:auto">
-            <input type="checkbox" ${r.enabled?'checked':''} onchange="updateRule('${r.id}','enabled',this.checked)">
-            <span class="toggle-slider"></span>
-          </label>
-          <span style="font-size:12px;color:var(--text3)">${r.enabled?'On':'Off'}</span>
-        </div>
-      </div>
-    </div>`;
-  }).join('');
-}
+  if (!username)            return toast('Choose a username');
+  if (!/^[a-z0-9_]{3,24}$/.test(username))
+                            return toast('Username: 3–24 chars, letters/numbers/_');
+  if (password.length < 8) return toast('Master password must be 8+ characters');
+  if (password !== confirm) return toast('Passwords do not match');
 
-function updateStats() {
-  let totalShifts = 0, totalHours = 0;
-  employees.forEach(emp => {
-    const empSched = schedule[emp.id] || {};
-    Object.values(empSched).forEach(s => {
-      if (s && s !== 'off') { totalShifts++; totalHours += 8; }
-    });
-  });
-  const coverage = employees.length > 0 ? (totalShifts / 7).toFixed(1) : '—';
-  document.getElementById('statShifts').textContent = totalShifts;
-  document.getElementById('statCoverage').textContent = coverage !== '—' ? coverage : '—';
-  document.getElementById('statHours').textContent = totalHours;
-  // conflicts: check min staff
-  let conflicts = checkConflicts();
-  document.getElementById('statConflicts').textContent = conflicts;
-}
-
-function checkConflicts() {
-  if (!rules.find(r=>r.id==='r5')?.enabled) return 0;
-  const minStaff = rules.find(r=>r.id==='r5').value;
-  let conflicts = 0;
-  for (let d = 0; d < 7; d++) {
-    const staffed = employees.filter(e => {
-      const s = (schedule[e.id]||{})[d];
-      return s && s !== 'off';
-    }).length;
-    if (employees.length > 0 && staffed < minStaff) conflicts++;
-  }
-  return conflicts;
-}
-
-// ─── SCHEDULE LOGIC ──────────────────────────────────────────────────────────
-function generateSchedule() {
-  if (employees.length === 0) return;
-  const btn = document.getElementById('generateBtn');
-  btn.disabled = true;
-  btn.textContent = '⚡ GENERATING...';
-  btn.classList.add('loading');
-
-  const log = document.getElementById('aiLog');
-  log.classList.add('visible');
-  log.innerHTML = '';
-
-  const logs = [];
-  function addLog(msg, type='info') {
-    const t = new Date().toLocaleTimeString('en-US',{hour12:false,hour:'2-digit',minute:'2-digit',second:'2-digit'});
-    logs.push({t,msg,type});
-    log.innerHTML = logs.map(l=>`<div class="log-line"><span class="log-time">[${l.t}]</span><span class="log-msg ${l.type}">${l.msg}</span></div>`).join('');
-    log.scrollTop = log.scrollHeight;
-  }
-
-  setTimeout(() => {
-    addLog('Initializing schedule engine...', 'info');
-    setTimeout(() => {
-      addLog(`Loaded ${employees.length} employees`, 'ok');
-      const activeRules = rules.filter(r=>r.enabled);
-      addLog(`Active rules: ${activeRules.map(r=>r.title).join(', ')}`, 'info');
-
-      setTimeout(() => {
-        addLog('Analyzing availability constraints...', 'info');
-        setTimeout(() => {
-          schedule = {};
-          employees.forEach(emp => {
-            schedule[emp.id] = {};
-            let hoursAssigned = 0;
-            let consecutiveDays = 0;
-            const maxConsec = rules.find(r=>r.id==='r2')?.enabled ? rules.find(r=>r.id==='r2').value : 7;
-            const honorAvail = rules.find(r=>r.id==='r3')?.enabled;
-            const honorPref = rules.find(r=>r.id==='r4')?.enabled;
-            const honorMax = rules.find(r=>r.id==='r6')?.enabled;
-
-            for (let d = 0; d < 7; d++) {
-              const maxH = honorMax ? emp.maxHours : 999;
-              if (hoursAssigned + 8 > maxH) { schedule[emp.id][d] = 'off'; continue; }
-              if (consecutiveDays >= maxConsec) { schedule[emp.id][d] = 'off'; consecutiveDays = 0; continue; }
-              const available = !honorAvail || emp.avail.includes(d);
-              if (!available) { schedule[emp.id][d] = 'off'; consecutiveDays = 0; continue; }
-
-              let shiftTypes = ['morning','evening','night'];
-              if (honorPref && emp.prefShift !== 'any') {
-                shiftTypes = [emp.prefShift, ...shiftTypes.filter(s=>s!==emp.prefShift)];
-              }
-              // randomly assign from preferred
-              const shiftPool = shiftTypes.slice(0, emp.prefShift === 'any' ? 3 : 2);
-              schedule[emp.id][d] = shiftPool[Math.floor(Math.random() * shiftPool.length)];
-              hoursAssigned += 8;
-              consecutiveDays++;
-            }
-            addLog(`Scheduled ${emp.firstName} ${emp.lastName}: ${hoursAssigned}h`, 'ok');
-          });
-
-          setTimeout(() => {
-            addLog('Optimizing min-staff coverage...', 'info');
-            // ensure min staff per day
-            const minStaff = rules.find(r=>r.id==='r5')?.value || 1;
-            if (rules.find(r=>r.id==='r5')?.enabled) {
-              for (let d = 0; d < 7; d++) {
-                const staffed = employees.filter(e => {
-                  const s = schedule[e.id]?.[d];
-                  return s && s !== 'off';
-                });
-                if (staffed.length < minStaff) {
-                  // try to add available off employees
-                  employees.forEach(emp => {
-                    if (!schedule[emp.id]) return;
-                    if (schedule[emp.id][d] === 'off') {
-                      const currentStaffed = employees.filter(e2 => schedule[e2.id]?.[d] && schedule[e2.id][d] !== 'off').length;
-                      if (currentStaffed < minStaff) {
-                        const honorAvail = rules.find(r=>r.id==='r3')?.enabled;
-                        if (!honorAvail || emp.avail.includes(d)) {
-                          schedule[emp.id][d] = emp.prefShift !== 'any' ? emp.prefShift : 'morning';
-                        }
-                      }
-                    }
-                  });
-                }
-              }
-            }
-
-            setTimeout(() => {
-              addLog('Schedule generation complete ✓', 'ok');
-              const conflicts = checkConflicts();
-              if (conflicts > 0) addLog(`${conflicts} day(s) below min staff — consider adding employees`, 'warn');
-              renderScheduleGrid();
-              updateStats();
-              btn.disabled = false;
-              btn.textContent = '⚡ GENERATE SCHEDULE';
-              btn.classList.remove('loading');
-            }, 400);
-          }, 500);
-        }, 600);
-      }, 400);
-    }, 300);
-  }, 100);
-}
-
-function cycleShift(empId, dayIdx) {
-  if (!schedule[empId]) schedule[empId] = {};
-  const curr = schedule[empId][dayIdx] || 'off';
-  const cycle = ['morning','evening','night','off'];
-  const next = cycle[(cycle.indexOf(curr)+1) % cycle.length];
-  schedule[empId][dayIdx] = next;
-  renderScheduleGrid();
-  updateStats();
-}
-
-// ─── EMPLOYEES ───────────────────────────────────────────────────────────────
-function openAddEmp() {
-  document.getElementById('empFirstName').value = '';
-  document.getElementById('empLastName').value = '';
-  document.getElementById('empRole').value = '';
-  document.getElementById('empMaxHours').value = 40;
-  document.getElementById('empPrefShift').value = 'any';
-  document.querySelectorAll('.day-pick-btn').forEach((b,i) => {
-    b.classList.toggle('selected', i < 5);
-  });
-  openModal('empModal');
-}
-
-function saveEmployee() {
-  const fn = document.getElementById('empFirstName').value.trim();
-  const ln = document.getElementById('empLastName').value.trim();
-  const role = document.getElementById('empRole').value.trim();
-  if (!fn || !ln) return;
-  const avail = [];
-  document.querySelectorAll('.day-pick-btn.selected').forEach(b => avail.push(+b.dataset.day));
-  employees.push({
-    id: empIdCounter++,
-    firstName: fn, lastName: ln,
-    role: role || 'Staff',
-    maxHours: +document.getElementById('empMaxHours').value,
-    prefShift: document.getElementById('empPrefShift').value,
-    avail,
-    color: employees.length % COLORS.length,
-  });
-  closeModal('empModal');
-  render();
-}
-
-function deleteEmployee(id) {
-  employees = employees.filter(e => e.id !== id);
-  delete schedule[id];
-  render();
-}
-
-// Day picker toggle
-document.querySelectorAll('.day-pick-btn').forEach(btn => {
-  btn.addEventListener('click', () => btn.classList.toggle('selected'));
-});
-
-// ─── RULES ───────────────────────────────────────────────────────────────────
-function updateRule(id, field, val) {
-  const rule = rules.find(r => r.id === id);
-  if (rule) { rule[field] = val; renderSidebar(); renderRulesGrid(); }
-}
-
-// ─── PANEL NAV ───────────────────────────────────────────────────────────────
-function showPanel(name) {
-  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
-  document.getElementById('panel-'+name).classList.add('active');
-  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-  const tabs = ['schedule','employees','rules'];
-  document.querySelectorAll('.tab')[tabs.indexOf(name)]?.classList.add('active');
-}
-
-// ─── MODALS ──────────────────────────────────────────────────────────────────
-function openModal(id) { document.getElementById(id).classList.add('open'); }
-function closeModal(id) { document.getElementById(id).classList.remove('open'); }
-document.querySelectorAll('.modal-overlay').forEach(m => {
-  m.addEventListener('click', e => { if (e.target === m) closeModal(m.id); });
-});
-
-// ─── INIT ────────────────────────────────────────────────────────────────────
-render();
-</script>
-<!-- Feedback Form Container -->
-<div id="feedback-container" style="max-width: 400px; margin: 20px auto; font-family: sans-serif;">
-  <h3>Send us feedback</h3>
-  <textarea id="feedback-text" placeholder="Tell us what you think..." rows="4" style="width: 100%; padding: 10px; border-radius: 5px; border: 1px solid #ccc;"></textarea>
-  <button onclick="submitFeedback()" id="submit-btn" style="margin-top: 10px; padding: 10px 20px; background: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer;">
-    Submit
-  </button>
-  <p id="response-msg" style="margin-top: 10px; display: none;"></p>
-</div>
-<script>
-async function submitFeedback() {
-  const btn = document.getElementById('submit-btn');
-  const msg = document.getElementById('response-msg');
-  const text = document.getElementById('feedback-text').value;
-
-  if (!text) {
-    alert("Please enter some feedback first!");
-    return;
-  }
-
-  // Update UI to show loading
-  btn.disabled = true;
-  btn.innerText = "Sending...";
-
+  setBtnLoading('regBtn', true, 'Creating…');
   try {
-    // REPLACE the URL below with your actual Worker URL from Step 4
-    const workerUrl = 'https://nir8-feedback.pages.dev/';
+    if (await fsGet(username)) return toast('Username already taken');
 
-    const response = await fetch(workerUrl, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ 
-        feedback: text,
-        page: window.location.href,
-        userAgent: navigator.userAgent 
-      })
+    const salt  = crypto.getRandomValues(new Uint8Array(16));
+    const key   = await deriveKey(password, salt);
+    const token = await aesEncrypt('VAULT_OK', key);
+
+    await fsSet(username, {
+      salt: toB64(salt), verifyToken: token,
+      entries: [], updatedAt: Date.now()
     });
 
-    if (response.ok) {
-      msg.innerText = "Feedback sent successfully! Thank you.";
-      msg.style.color = "green";
-      document.getElementById('feedback-text').value = ""; // Clear box
-    } else {
-      throw new Error();
-    }
-  } catch (error) {
-    msg.innerText = "Oops! Something went wrong. Try again.";
-    msg.style.color = "red";
+    toast('Vault created! Logging you in…');
+    $('login-username').value = username;
+    showScreen('loginScreen');
+  } catch (e) {
+    toast('Error: ' + e.message);
   } finally {
-    msg.style.display = "block";
-    btn.disabled = false;
-    btn.innerText = "Submit";
+    setBtnLoading('regBtn', false, 'Create Vault');
   }
-}
-</script>
+};
 
+window.login = async () => {
+  const username = $('login-username').value.trim().toLowerCase();
+  const password = $('login-password').value;
+  if (!username || !password) return toast('Fill in all fields');
+
+  setBtnLoading('loginBtn', true, 'Unlocking…');
+  try {
+    const data = await fsGet(username);
+    if (!data) return toast('No vault found for this username');
+
+    const key = await deriveKey(password, fromB64(data.salt));
+    try {
+      if (await aesDecrypt(data.verifyToken, key) !== 'VAULT_OK') throw 0;
+    } catch {
+      return toast('Wrong password');
+    }
+
+    currentUser = username;
+    sessionKey  = key;
+    $('vaultUser').textContent = username;
+    showScreen('vaultScreen');
+
+    // Real-time listener
+    if (unsubscribe) unsubscribe();
+    unsubscribe = onSnapshot(
+      doc(db, 'vaults', username),
+      async snap => {
+        if (snap.exists()) await renderEntries(snap.data().entries || []);
+        setSyncStatus('synced');
+      },
+      () => setSyncStatus('error')
+    );
+
+  } catch (e) {
+    toast('Error: ' + e.message);
+  } finally {
+    setBtnLoading('loginBtn', false, 'Unlock Vault');
+  }
+};
+
+window.logout = () => {
+  if (unsubscribe) { unsubscribe(); unsubscribe = null; }
+  currentUser = null; sessionKey = null;
+  $('login-password').value = '';
+  showScreen('loginScreen');
+  toast('Vault locked 🔒');
+};
+
+// ════════════════════════════════════════════════════════
+// ENTRIES
+// ════════════════════════════════════════════════════════
+window.renderEntries = async (rawOverride) => {
+  const q = ($('searchInput')?.value || '').toLowerCase();
+
+  let raw;
+  if (rawOverride !== undefined) {
+    raw = rawOverride;
+  } else {
+    const snap = await fsGet(currentUser);
+    raw = snap?.entries || [];
+  }
+
+  const items = (await Promise.all(
+    raw.map(async e => {
+      try {
+        return {
+          ...e,
+          _name: await aesDecrypt(e.name, sessionKey),
+          _user: await aesDecrypt(e.user, sessionKey)
+        };
+      } catch { return null; }
+    })
+  )).filter(Boolean)
+    .filter(e => !q || e._name.toLowerCase().includes(q) || e._user.toLowerCase().includes(q));
+
+  const list = $('entriesList');
+  if (!list) return;
+  $('entryCount').textContent = `${items.length} entr${items.length === 1 ? 'y' : 'ies'}`;
+
+  if (!items.length) {
+    list.innerHTML = `<div class="empty-state">
+      <div class="e-icon">🔑</div>
+      <p>${q ? 'No entries match your search.' : 'Your vault is empty.<br>Tap <strong style="color:var(--accent)">+ Add Entry</strong> to begin.'}</p>
+    </div>`;
+    return;
+  }
+
+  list.innerHTML = '';
+  for (const e of items) {
+    const el = document.createElement('div');
+    el.className = 'entry';
+    el.innerHTML = `
+      <div class="entry-icon">${esc(e._name.charAt(0))}</div>
+      <div class="entry-info">
+        <div class="entry-name">${esc(e._name)}</div>
+        <div class="entry-user">${esc(e._user)}</div>
+      </div>
+      <div class="entry-actions">
+        <button class="icon-btn" title="Copy password" onclick="copyPw('${e.id}')">📋</button>
+        <button class="icon-btn" title="Edit"          onclick="openEdit('${e.id}')">✏️</button>
+        <button class="icon-btn danger" title="Delete" onclick="deleteEntry('${e.id}')">🗑</button>
+      </div>`;
+    list.appendChild(el);
+  }
+};
+
+window.copyPw = async (id) => {
+  const data  = await fsGet(currentUser);
+  const entry = (data?.entries || []).find(e => e.id === id);
+  if (!entry) return;
+  try {
+    await navigator.clipboard.writeText(await aesDecrypt(entry.pass, sessionKey));
+    toast('Password copied to clipboard');
+  } catch { toast('Copy failed — try HTTPS'); }
+};
+
+window.openEdit = async (id) => {
+  const data  = await fsGet(currentUser);
+  const entry = (data?.entries || []).find(e => e.id === id);
+  if (!entry) return;
+  editingId = id;
+  $('modalTitle').textContent = 'Edit Entry';
+  $('entry-name').value = await aesDecrypt(entry.name, sessionKey);
+  $('entry-user').value = await aesDecrypt(entry.user, sessionKey);
+  $('entry-pass').value = await aesDecrypt(entry.pass, sessionKey);
+  $('entry-url').value  = entry.url ? await aesDecrypt(entry.url, sessionKey) : '';
+  $('entryModal').style.display = 'flex';
+};
+
+window.openAddModal = () => {
+  editingId = null;
+  $('modalTitle').textContent = 'New Entry';
+  ['entry-name','entry-user','entry-pass','entry-url'].forEach(k => $(k).value = '');
+  $('entryModal').style.display = 'flex';
+  setTimeout(() => $('entry-name').focus(), 100);
+};
+
+window.closeModal = () => $('entryModal').style.display = 'none';
+
+window.saveEntry = async () => {
+  const name = $('entry-name').value.trim();
+  const user = $('entry-user').value.trim();
+  const pass = $('entry-pass').value;
+  const url  = $('entry-url').value.trim();
+  if (!name || !user || !pass) return toast('Name, username and password are required');
+
+  setBtnLoading('saveBtn', true, 'Saving…');
+  setSyncStatus('syncing');
+  try {
+    const [eName, eUser, ePass] = await Promise.all([
+      aesEncrypt(name, sessionKey),
+      aesEncrypt(user, sessionKey),
+      aesEncrypt(pass, sessionKey)
+    ]);
+    const eUrl = url ? await aesEncrypt(url, sessionKey) : '';
+
+    const data    = await fsGet(currentUser);
+    let entries   = data?.entries || [];
+
+    if (editingId) {
+      const idx = entries.findIndex(e => e.id === editingId);
+      if (idx !== -1) entries[idx] = { ...entries[idx], name: eName, user: eUser, pass: ePass, url: eUrl };
+      toast('Entry updated');
+    } else {
+      entries.push({
+        id: crypto.randomUUID(),
+        name: eName, user: eUser, pass: ePass, url: eUrl,
+        created: Date.now()
+      });
+      toast('Saved & synced across devices');
+    }
+
+    await fsSet(currentUser, { entries, updatedAt: Date.now() });
+    closeModal();
+  } catch (e) {
+    setSyncStatus('error');
+    toast('Sync error: ' + e.message);
+  } finally {
+    setBtnLoading('saveBtn', false, 'Save Entry');
+  }
+};
+
+window.deleteEntry = async (id) => {
+  if (!confirm('Delete this entry?')) return;
+  setSyncStatus('syncing');
+  try {
+    const data    = await fsGet(currentUser);
+    const entries = (data?.entries || []).filter(e => e.id !== id);
+    await fsSet(currentUser, { entries, updatedAt: Date.now() });
+    toast('Entry deleted');
+  } catch (e) {
+    setSyncStatus('error');
+    toast('Error: ' + e.message);
+  }
+};
+
+// ════════════════════════════════════════════════════════
+// UTILS
+// ════════════════════════════════════════════════════════
+window.generatePassword = () => {
+  const chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()-_=+[]{}';
+  const arr   = new Uint32Array(24);
+  crypto.getRandomValues(arr);
+  const pw  = Array.from(arr, n => chars[n % chars.length]).join('');
+  const inp = $('entry-pass');
+  inp.value = pw; inp.type = 'text';
+  setTimeout(() => inp.type = 'password', 2500);
+  toast('24-char password generated');
+};
+
+window.checkStrength = inp => {
+  const v = inp.value; let s = 0;
+  if (v.length >= 8)  s++;
+  if (v.length >= 14) s++;
+  if (/[A-Z]/.test(v)) s++;
+  if (/[0-9]/.test(v)) s++;
+  if (/[^A-Za-z0-9]/.test(v)) s++;
+  const fill   = $('strengthFill');
+  const colors = ['#ff4d6a','#ff9f43','#ffd32a','#a3cb38','#c8fb4a'];
+  const widths  = ['20%','40%','60%','80%','100%'];
+  fill.style.width      = widths[s - 1]  || '0%';
+  fill.style.background = colors[s - 1]  || 'transparent';
+};
+
+window.toggleVis = k => {
+  const el = $(k);
+  el.type = el.type === 'password' ? 'text' : 'password';
+};
+
+window.showScreen = name => {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  $(name).classList.add('active');
+};
+
+function setBtnLoading(id, loading, label) {
+  const btn = $(id);
+  if (!btn) return;
+  btn.disabled = loading;
+  btn.innerHTML = loading
+    ? `<span class="spinner"></span>${label}`
+    : label;
+}
+
+let toastTimer;
+window.toast = msg => {
+  const el = $('toast');
+  $('toastMsg').textContent = msg;
+  el.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.classList.remove('show'), 2800);
+};
+
+const $ = k => document.getElementById(k);
+const esc = s => s
+  .replace(/&/g,'&amp;').replace(/</g,'&lt;')
+  .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+
+// Boot straight to login (config is baked in)
+showScreen('loginScreen');
+</script>
 </body>
 </html>
