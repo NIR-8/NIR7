@@ -298,10 +298,40 @@
 
     <div class="vault-footer">
       <span class="count-badge" id="entryCount">0 entries</span>
-      <button class="btn btn-primary btn-sm" onclick="openAddModal()">+ Add Entry</button>
+      <div style="display:flex;gap:8px;align-items:center;">
+        <button class="btn btn-sm" style="background:transparent;border:1px solid rgba(255,77,106,0.3);color:var(--danger);font-family:var(--sans);font-weight:600;font-size:11px;padding:8px 14px;border-radius:4px;cursor:pointer;" onclick="openDeleteAccount()" title="Delete account">🗑 Delete Account</button>
+        <button class="btn btn-primary btn-sm" onclick="openAddModal()">+ Add Entry</button>
+      </div>
     </div>
   </div>
 
+</div>
+
+<!-- ══ DELETE ACCOUNT MODAL ══ -->
+<div id="deleteAccountModal" class="modal-overlay" style="display:none" onclick="if(event.target===this)closeDeleteAccount()">
+  <div class="modal">
+    <div class="modal-title">
+      <span style="color:var(--danger)">Delete Account</span>
+      <button class="icon-btn" onclick="closeDeleteAccount()">✕</button>
+    </div>
+    <div class="notice" style="background:rgba(255,77,106,0.08);border-color:rgba(255,77,106,0.25);color:rgba(255,100,120,0.9);">
+      ☠️ This permanently deletes your vault and ALL saved passwords. This action <strong>cannot be undone</strong>.
+    </div>
+    <div class="field"><label>Confirm Master Password</label>
+      <div class="input-wrap">
+        <input type="password" id="del-password" placeholder="enter password to confirm" autocomplete="current-password"
+          onkeydown="if(event.key==='Enter') deleteAccount()" />
+        <button class="input-icon" onclick="toggleVis('del-password')" tabindex="-1">👁</button>
+      </div>
+    </div>
+    <div class="field"><label>Type DELETE to confirm</label>
+      <input type="text" id="del-confirm-text" placeholder='type DELETE' autocomplete="off" spellcheck="false" />
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeDeleteAccount()">Cancel</button>
+      <button class="btn btn-primary" id="delBtn" style="background:var(--danger);color:#fff;" onclick="deleteAccount()">Delete Forever</button>
+    </div>
+  </div>
 </div>
 
 <!-- ══ CHANGE VAULT PASSWORD MODAL ══ -->
@@ -378,7 +408,7 @@
 // FIREBASE — using your project (onekey-5067d)
 // ════════════════════════════════════════════════════════
 import { initializeApp }    from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
-import { getFirestore, doc, getDoc, setDoc, onSnapshot }
+import { getFirestore, doc, getDoc, setDoc, deleteDoc, onSnapshot, runTransaction }
   from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
 
 const firebaseConfig = {
@@ -471,22 +501,26 @@ window.register = async () => {
 
   setBtnLoading('regBtn', true, 'Creating…');
   try {
-    if (await fsGet(username)) return toast('Username already taken');
-
     const salt  = crypto.getRandomValues(new Uint8Array(16));
     const key   = await deriveKey(password, salt);
     const token = await aesEncrypt('VAULT_OK', key);
+    const vaultDoc = doc(db, 'vaults', username);
 
-    await fsSet(username, {
-      salt: toB64(salt), verifyToken: token,
-      entries: [], updatedAt: Date.now()
+    // Atomic check-and-create: prevents two users claiming the same username
+    await runTransaction(db, async (tx) => {
+      const snap = await tx.get(vaultDoc);
+      if (snap.exists()) throw new Error('Username already taken');
+      tx.set(vaultDoc, {
+        salt: toB64(salt), verifyToken: token,
+        entries: [], updatedAt: Date.now()
+      });
     });
 
     toast('Vault created! Logging you in…');
     $('login-username').value = username;
     showScreen('loginScreen');
   } catch (e) {
-    toast('Error: ' + e.message);
+    toast(e.message.includes('already taken') ? 'Username already taken' : 'Error: ' + e.message);
   } finally {
     setBtnLoading('regBtn', false, 'Create Vault');
   }
@@ -792,6 +826,57 @@ window.changeVaultPassword = async () => {
     toast('Error: ' + e.message);
   } finally {
     setBtnLoading('cvpBtn', false, 'Update Password');
+  }
+};
+
+// ════════════════════════════════════════════════════════
+// DELETE ACCOUNT
+// ════════════════════════════════════════════════════════
+window.openDeleteAccount = () => {
+  ['del-password','del-confirm-text'].forEach(k => $(k).value = '');
+  $('deleteAccountModal').style.display = 'flex';
+  setTimeout(() => $('del-password').focus(), 100);
+};
+
+window.closeDeleteAccount = () => {
+  $('deleteAccountModal').style.display = 'none';
+};
+
+window.deleteAccount = async () => {
+  const password    = $('del-password').value;
+  const confirmText = $('del-confirm-text').value.trim();
+
+  if (!password)                  return toast('Enter your master password');
+  if (confirmText !== 'DELETE')   return toast('Type DELETE in capital letters to confirm');
+
+  setBtnLoading('delBtn', true, 'Deleting…');
+  try {
+    // Verify master password before deletion
+    const vaultData = await fsGet(currentUser);
+    const key = await deriveKey(password, fromB64(vaultData.salt));
+    try {
+      if (await aesDecrypt(vaultData.verifyToken, key) !== 'VAULT_OK') throw 0;
+    } catch {
+      return toast('Password is incorrect — deletion cancelled');
+    }
+
+    // Stop real-time listener before deleting
+    if (unsubscribe) { unsubscribe(); unsubscribe = null; }
+
+    // Permanently delete the vault document from Firestore
+    await deleteDoc(doc(db, 'vaults', currentUser));
+
+    // Clear session
+    currentUser = null; sessionKey = null;
+    closeDeleteAccount();
+    $('login-password').value = '';
+    $('login-username').value = '';
+    showScreen('loginScreen');
+    toast('Account permanently deleted');
+  } catch (e) {
+    toast('Error: ' + e.message);
+  } finally {
+    setBtnLoading('delBtn', false, 'Delete Forever');
   }
 };
 
