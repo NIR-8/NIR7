@@ -146,6 +146,16 @@
   .entry-user { font-size: 11px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 2px; }
   .entry-actions { display: flex; gap: 2px; flex-shrink: 0; }
 
+  /* PASSWORD AGE */
+  .entry-pw-age { font-size: 10px; margin-top: 4px; display: flex; align-items: center; gap: 5px; }
+  .pw-age-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+  .pw-age-dot.safe     { background: var(--accent); }
+  .pw-age-dot.warn     { background: #ffd32a; }
+  .pw-age-dot.overdue  { background: var(--danger); animation: glowpulse 1.5s ease-in-out infinite; }
+  .pw-age-text.safe    { color: #7aad30; }
+  .pw-age-text.warn    { color: #ffd32a; }
+  .pw-age-text.overdue { color: var(--danger); }
+
   .icon-btn {
     background: none; border: none; color: var(--muted); cursor: pointer;
     padding: 6px; border-radius: 4px; font-size: 13px;
@@ -274,6 +284,7 @@
           <span id="syncLabel">synced</span>
         </div>
         <span class="user-tag" id="vaultUser"></span>
+        <button class="icon-btn" onclick="openChangeVaultPw()" title="Change vault password">🔑</button>
         <button class="icon-btn" onclick="logout()" title="Lock vault">🔒</button>
       </div>
     </div>
@@ -291,6 +302,41 @@
     </div>
   </div>
 
+</div>
+
+<!-- ══ CHANGE VAULT PASSWORD MODAL ══ -->
+<div id="changeVaultPwModal" class="modal-overlay" style="display:none" onclick="if(event.target===this)closeChangeVaultPw()">
+  <div class="modal">
+    <div class="modal-title">
+      <span>Change Vault Password</span>
+      <button class="icon-btn" onclick="closeChangeVaultPw()">✕</button>
+    </div>
+    <div class="notice">⚠️ All entries will be re-encrypted with your new master password. This cannot be undone.</div>
+    <div class="field"><label>Current Master Password</label>
+      <div class="input-wrap">
+        <input type="password" id="cvp-current" placeholder="current password" autocomplete="current-password" />
+        <button class="input-icon" onclick="toggleVis('cvp-current')" tabindex="-1">👁</button>
+      </div>
+    </div>
+    <div class="field"><label>New Master Password</label>
+      <div class="input-wrap">
+        <input type="password" id="cvp-new" placeholder="new strong password" autocomplete="new-password" oninput="checkStrengthEl(this,'cvpStrengthFill')" />
+        <button class="input-icon" onclick="toggleVis('cvp-new')" tabindex="-1">👁</button>
+      </div>
+      <div class="strength-bar"><div class="strength-fill" id="cvpStrengthFill"></div></div>
+    </div>
+    <div class="field"><label>Confirm New Password</label>
+      <div class="input-wrap">
+        <input type="password" id="cvp-confirm" placeholder="repeat new password" autocomplete="new-password"
+          onkeydown="if(event.key==='Enter') changeVaultPassword()" />
+        <button class="input-icon" onclick="toggleVis('cvp-confirm')" tabindex="-1">👁</button>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeChangeVaultPw()">Cancel</button>
+      <button class="btn btn-primary" id="cvpBtn" onclick="changeVaultPassword()">Update Password</button>
+    </div>
+  </div>
 </div>
 
 <!-- ══ ENTRY MODAL ══ -->
@@ -388,6 +434,7 @@ const fromB64 = str => Uint8Array.from(atob(str), c => c.charCodeAt(0));
 let currentUser = null;
 let sessionKey  = null;
 let editingId   = null;
+let editingOriginalPass = null;
 let unsubscribe = null;
 
 // ════════════════════════════════════════════════════════
@@ -536,11 +583,29 @@ window.renderEntries = async (rawOverride) => {
   for (const e of items) {
     const el = document.createElement('div');
     el.className = 'entry';
+
+    // Password age calculation
+    const pwUpdated = e.pwUpdated || e.created || null;
+    let ageHtml = '';
+    if (pwUpdated) {
+      const daysAgo = Math.floor((Date.now() - pwUpdated) / 86400000);
+      const daysLeft = 90 - daysAgo;
+      let level, ageLabel, countLabel;
+      if (daysLeft > 30)       { level = 'safe';    ageLabel = `${daysAgo}d ago`; countLabel = `${daysLeft}d left`; }
+      else if (daysLeft > 0)   { level = 'warn';    ageLabel = `${daysAgo}d ago`; countLabel = `${daysLeft}d left`; }
+      else                     { level = 'overdue'; ageLabel = `${daysAgo}d ago`; countLabel = `${Math.abs(daysLeft)}d overdue`; }
+      ageHtml = `<div class="entry-pw-age">
+        <span class="pw-age-dot ${level}"></span>
+        <span class="pw-age-text ${level}">pw: ${ageLabel} · ${countLabel}</span>
+      </div>`;
+    }
+
     el.innerHTML = `
       <div class="entry-icon">${esc(e._name.charAt(0))}</div>
       <div class="entry-info">
         <div class="entry-name">${esc(e._name)}</div>
         <div class="entry-user">${esc(e._user)}</div>
+        ${ageHtml}
       </div>
       <div class="entry-actions">
         <button class="icon-btn" title="Copy password" onclick="copyPw('${e.id}')">📋</button>
@@ -567,15 +632,18 @@ window.openEdit = async (id) => {
   if (!entry) return;
   editingId = id;
   $('modalTitle').textContent = 'Edit Entry';
+  const decryptedPass = await aesDecrypt(entry.pass, sessionKey);
+  editingOriginalPass = decryptedPass;
   $('entry-name').value = await aesDecrypt(entry.name, sessionKey);
   $('entry-user').value = await aesDecrypt(entry.user, sessionKey);
-  $('entry-pass').value = await aesDecrypt(entry.pass, sessionKey);
+  $('entry-pass').value = decryptedPass;
   $('entry-url').value  = entry.url ? await aesDecrypt(entry.url, sessionKey) : '';
   $('entryModal').style.display = 'flex';
 };
 
 window.openAddModal = () => {
   editingId = null;
+  editingOriginalPass = null;
   $('modalTitle').textContent = 'New Entry';
   ['entry-name','entry-user','entry-pass','entry-url'].forEach(k => $(k).value = '');
   $('entryModal').style.display = 'flex';
@@ -606,13 +674,20 @@ window.saveEntry = async () => {
 
     if (editingId) {
       const idx = entries.findIndex(e => e.id === editingId);
-      if (idx !== -1) entries[idx] = { ...entries[idx], name: eName, user: eUser, pass: ePass, url: eUrl };
+      if (idx !== -1) {
+        const pwChanged = pass !== editingOriginalPass;
+        entries[idx] = {
+          ...entries[idx],
+          name: eName, user: eUser, pass: ePass, url: eUrl,
+          ...(pwChanged ? { pwUpdated: Date.now() } : {})
+        };
+      }
       toast('Entry updated');
     } else {
       entries.push({
         id: crypto.randomUUID(),
         name: eName, user: eUser, pass: ePass, url: eUrl,
-        created: Date.now()
+        created: Date.now(), pwUpdated: Date.now()
       });
       toast('Saved & synced across devices');
     }
@@ -642,6 +717,85 @@ window.deleteEntry = async (id) => {
 };
 
 // ════════════════════════════════════════════════════════
+// CHANGE VAULT PASSWORD
+// ════════════════════════════════════════════════════════
+window.openChangeVaultPw = () => {
+  ['cvp-current','cvp-new','cvp-confirm'].forEach(k => $(k).value = '');
+  $('cvpStrengthFill').style.width = '0%';
+  $('changeVaultPwModal').style.display = 'flex';
+  setTimeout(() => $('cvp-current').focus(), 100);
+};
+
+window.closeChangeVaultPw = () => {
+  $('changeVaultPwModal').style.display = 'none';
+};
+
+window.changeVaultPassword = async () => {
+  const currentPw = $('cvp-current').value;
+  const newPw     = $('cvp-new').value;
+  const confirmPw = $('cvp-confirm').value;
+
+  if (!currentPw || !newPw || !confirmPw) return toast('All fields are required');
+  if (newPw.length < 8) return toast('New password must be 8+ characters');
+  if (newPw !== confirmPw) return toast('New passwords do not match');
+  if (currentPw === newPw) return toast('New password must differ from current');
+
+  setBtnLoading('cvpBtn', true, 'Re-encrypting…');
+  setSyncStatus('syncing');
+  try {
+    // Verify current password
+    const vaultData = await fsGet(currentUser);
+    const oldKey = await deriveKey(currentPw, fromB64(vaultData.salt));
+    try {
+      if (await aesDecrypt(vaultData.verifyToken, oldKey) !== 'VAULT_OK') throw 0;
+    } catch {
+      return toast('Current password is incorrect');
+    }
+
+    // Derive new key with fresh salt
+    const newSalt = crypto.getRandomValues(new Uint8Array(16));
+    const newKey  = await deriveKey(newPw, newSalt);
+    const newToken = await aesEncrypt('VAULT_OK', newKey);
+
+    // Re-encrypt all entries
+    const oldEntries = vaultData.entries || [];
+    const newEntries = await Promise.all(oldEntries.map(async e => {
+      try {
+        const [name, user, pass] = await Promise.all([
+          aesDecrypt(e.name, oldKey),
+          aesDecrypt(e.user, oldKey),
+          aesDecrypt(e.pass, oldKey)
+        ]);
+        const url = e.url ? await aesDecrypt(e.url, oldKey) : '';
+        const [eName, eUser, ePass] = await Promise.all([
+          aesEncrypt(name, newKey),
+          aesEncrypt(user, newKey),
+          aesEncrypt(pass, newKey)
+        ]);
+        const eUrl = url ? await aesEncrypt(url, newKey) : '';
+        return { ...e, name: eName, user: eUser, pass: ePass, url: eUrl };
+      } catch { return e; }
+    }));
+
+    await fsSet(currentUser, {
+      salt: toB64(newSalt), verifyToken: newToken,
+      entries: newEntries, updatedAt: Date.now()
+    });
+
+    // Update session key so the vault stays unlocked
+    sessionKey = newKey;
+    closeChangeVaultPw();
+    toast('Vault password updated successfully 🔐');
+    setSyncStatus('synced');
+  } catch (e) {
+    setSyncStatus('error');
+    toast('Error: ' + e.message);
+  } finally {
+    setBtnLoading('cvpBtn', false, 'Update Password');
+  }
+};
+
+// ════════════════════════════════════════════════════════
 // UTILS
 // ════════════════════════════════════════════════════════
 window.generatePassword = () => {
@@ -655,14 +809,17 @@ window.generatePassword = () => {
   toast('24-char password generated');
 };
 
-window.checkStrength = inp => {
+window.checkStrength = inp => checkStrengthEl(inp, 'strengthFill');
+
+window.checkStrengthEl = (inp, fillId) => {
   const v = inp.value; let s = 0;
   if (v.length >= 8)  s++;
   if (v.length >= 14) s++;
   if (/[A-Z]/.test(v)) s++;
   if (/[0-9]/.test(v)) s++;
   if (/[^A-Za-z0-9]/.test(v)) s++;
-  const fill   = $('strengthFill');
+  const fill   = $(fillId);
+  if (!fill) return;
   const colors = ['#ff4d6a','#ff9f43','#ffd32a','#a3cb38','#c8fb4a'];
   const widths  = ['20%','40%','60%','80%','100%'];
   fill.style.width      = widths[s - 1]  || '0%';
