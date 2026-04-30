@@ -13,10 +13,10 @@
     --danger: #ff4d6a; --mono: 'DM Mono', monospace; --sans: 'Syne', sans-serif;
   }
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; }
   body {
     background: var(--bg); color: var(--text); font-family: var(--mono);
-    min-height: 100vh; display: flex; align-items: center;
-    justify-content: center; overflow-x: hidden;
+    min-height: 100vh; overflow-x: hidden;
   }
   body::before {
     content: ''; position: fixed; inset: 0;
@@ -26,11 +26,120 @@
     background-size: 40px 40px; pointer-events: none; z-index: 0;
   }
   body::after {
-    content: ''; position: fixed; width: 600px; height: 600px;
+    content: ''; position: fixed; width: 800px; height: 800px;
     background: radial-gradient(circle, rgba(200,251,74,0.04) 0%, transparent 70%);
-    top: -200px; right: -200px; pointer-events: none; z-index: 0;
+    top: -300px; right: -300px; pointer-events: none; z-index: 0;
   }
-  .app { position: relative; z-index: 1; width: 100%; max-width: 480px; padding: 20px; }
+
+  /* ── AUTH WRAPPER (login / register) ── */
+  .auth-wrap {
+    min-height: 100vh; display: flex; align-items: center;
+    justify-content: center; padding: 24px; position: relative; z-index: 1;
+  }
+  .auth-card { width: 100%; max-width: 440px; }
+
+  /* ── VAULT SHELL (full screen) ── */
+  #vaultScreen {
+    display: none; position: relative; z-index: 1;
+    min-height: 100vh; flex-direction: column;
+  }
+  #vaultScreen.active { display: flex; }
+
+  /* Top bar */
+  .topbar {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 14px 28px; border-bottom: 1px solid var(--border);
+    background: rgba(10,10,11,0.85); backdrop-filter: blur(12px);
+    position: sticky; top: 0; z-index: 50; flex-shrink: 0;
+  }
+  .topbar-right { display: flex; align-items: center; gap: 12px; }
+
+  /* Two-column body */
+  .vault-body {
+    flex: 1; display: flex; overflow: hidden; height: calc(100vh - 57px);
+  }
+
+  /* ── SIDEBAR ── */
+  .sidebar {
+    width: 240px; flex-shrink: 0; border-right: 1px solid var(--border);
+    padding: 24px 16px; display: flex; flex-direction: column; gap: 6px;
+    overflow-y: auto; background: rgba(17,17,20,0.6);
+  }
+  .sidebar-section { font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase;
+    color: var(--muted); padding: 0 8px; margin: 14px 0 6px; }
+  .sidebar-section:first-child { margin-top: 0; }
+  .cat-tab {
+    width: 100%; text-align: left; padding: 9px 12px; border-radius: 8px;
+    font-size: 12px; font-family: var(--mono); cursor: pointer;
+    border: none; background: transparent; color: var(--muted);
+    transition: all 0.15s; display: flex; align-items: center; gap: 8px;
+  }
+  .cat-tab:hover { background: var(--border); color: var(--text); }
+  .cat-tab.active { background: var(--accent-dim); color: var(--accent); }
+  .cat-count {
+    margin-left: auto; font-size: 10px; background: var(--border);
+    padding: 1px 6px; border-radius: 10px; color: var(--muted);
+  }
+  .cat-tab.active .cat-count { background: rgba(200,251,74,0.15); color: var(--accent); }
+
+  /* Sidebar stats */
+  .sidebar-stats { margin-top: auto; padding-top: 16px; border-top: 1px solid var(--border); display: flex; flex-direction: column; gap: 8px; }
+  .stat-row { display: flex; justify-content: space-between; align-items: center; font-size: 11px; }
+  .stat-label { color: var(--muted); }
+  .stat-val { color: var(--text); font-weight: 500; }
+  .stat-val.danger { color: var(--danger); }
+  .stat-val.warn   { color: #ffd32a; }
+
+  /* ── MAIN PANEL ── */
+  .main-panel {
+    flex: 1; display: flex; flex-direction: column; overflow: hidden; min-width: 0;
+  }
+  .main-toolbar {
+    padding: 16px 24px 12px; border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; gap: 10px; flex-shrink: 0;
+    background: rgba(10,10,11,0.4);
+  }
+  .main-toolbar .search-bar { flex: 1; margin: 0; }
+  .main-toolbar .search-bar input { padding-left: 38px; }
+
+  .entries-wrap {
+    flex: 1; overflow-y: auto; padding: 16px 24px;
+  }
+  .entries-wrap::-webkit-scrollbar { width: 4px; }
+  .entries-wrap::-webkit-scrollbar-thumb { background: var(--border-hi); border-radius: 2px; }
+
+  /* ── ENTRIES GRID ── */
+  .entries {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 10px;
+    max-height: none;
+    overflow: visible;
+    padding: 0;
+  }
+
+  .entry {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 10px; padding: 14px 16px;
+    display: flex; align-items: flex-start; gap: 12px;
+    transition: border-color 0.15s, background 0.15s, box-shadow 0.15s;
+    flex-direction: column;
+  }
+  .entry:hover { border-color: var(--border-hi); background: #15151a; box-shadow: 0 4px 20px rgba(0,0,0,0.3); }
+  .entry-top { display: flex; align-items: center; gap: 12px; width: 100%; }
+  .entry-info { flex: 1; min-width: 0; }
+  .entry-actions {
+    display: flex; gap: 2px; flex-shrink: 0; flex-wrap: wrap; justify-content: flex-end;
+    width: 100%; padding-top: 8px; border-top: 1px solid var(--border);
+    margin-top: 2px;
+  }
+
+  /* Bottom bar */
+  .main-footer {
+    padding: 12px 24px; border-top: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: space-between;
+    flex-shrink: 0; background: rgba(10,10,11,0.4);
+  }
 
   .screen { display: none; animation: fadeUp 0.3s ease; }
   .screen.active { display: block; }
@@ -102,11 +211,10 @@
   .btn-ghost:hover { border-color: var(--border-hi); color: var(--text); }
   .btn-sm { padding: 8px 14px; font-size: 11px; width: auto; border-radius: 4px; margin-top: 0; }
 
-  /* VAULT HEADER */
-  .vault-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; }
-  .vault-header .logo { margin-bottom: 0; }
-  .vault-right { display: flex; align-items: center; gap: 10px; }
-  .user-tag { font-size: 11px; color: var(--muted); max-width: 110px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  /* SEARCH */
+  .search-bar { position: relative; }
+  .search-bar input { padding-left: 38px; padding-right: 16px; width: 100%; }
+  .search-icon { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--muted); font-size: 14px; pointer-events: none; }
 
   .sync-pill { display: flex; align-items: center; gap: 5px; font-size: 10px; color: var(--muted); }
   .sync-dot {
@@ -116,137 +224,39 @@
   }
   .sync-dot.syncing { background: #ffd32a; }
   .sync-dot.error   { background: var(--danger); animation: none; }
-
-  /* SEARCH */
-  .search-bar { position: relative; margin-bottom: 14px; }
-  .search-bar input { padding-left: 38px; padding-right: 16px; }
-  .search-icon { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--muted); font-size: 14px; pointer-events: none; }
-
-  /* ENTRIES */
-  .entries { display: flex; flex-direction: column; gap: 6px; max-height: 370px; overflow-y: auto; padding-right: 2px; }
-  .entries::-webkit-scrollbar { width: 3px; }
-  .entries::-webkit-scrollbar-thumb { background: var(--border-hi); border-radius: 2px; }
-
-  .entry {
-    background: var(--surface); border: 1px solid var(--border);
-    border-radius: 8px; padding: 12px 14px;
-    display: flex; align-items: center; gap: 12px;
-    transition: border-color 0.15s, background 0.15s;
-  }
-  .entry:hover { border-color: var(--border-hi); background: #15151a; }
+  .user-tag { font-size: 11px; color: var(--muted); max-width: 130px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
   .entry-icon {
-    width: 36px; height: 36px; border-radius: 8px; background: var(--accent-dim);
+    width: 38px; height: 38px; border-radius: 10px; background: var(--accent-dim);
     display: flex; align-items: center; justify-content: center;
-    font-family: var(--sans); font-weight: 800; font-size: 14px;
+    font-family: var(--sans); font-weight: 800; font-size: 15px;
     color: var(--accent); text-transform: uppercase; flex-shrink: 0;
   }
   .entry-info { flex: 1; min-width: 0; }
   .entry-name { font-family: var(--sans); font-weight: 600; font-size: 13px; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .entry-user { font-size: 11px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 2px; }
-  .entry-actions { display: flex; gap: 2px; flex-shrink: 0; }
 
-  /* PASSWORD AGE */
-  .entry-pw-age { font-size: 10px; margin-top: 4px; display: flex; align-items: center; gap: 5px; }
-  .pw-age-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
-  .pw-age-dot.safe     { background: var(--accent); }
-  .pw-age-dot.warn     { background: #ffd32a; }
-  .pw-age-dot.overdue  { background: var(--danger); animation: glowpulse 1.5s ease-in-out infinite; }
-  .pw-age-text.safe    { color: #7aad30; }
-  .pw-age-text.warn    { color: #ffd32a; }
-  .pw-age-text.overdue { color: var(--danger); }
+  .empty-state { text-align: center; padding: 80px 20px; color: var(--muted); grid-column: 1/-1; }
+  .empty-state .e-icon { font-size: 36px; margin-bottom: 12px; opacity: 0.4; }
+  .empty-state p { font-size: 13px; line-height: 1.7; }
 
-  .icon-btn {
-    background: none; border: none; color: var(--muted); cursor: pointer;
-    padding: 6px; border-radius: 4px; font-size: 13px;
-    transition: color 0.15s, background 0.15s; display: flex; align-items: center;
-  }
-  .icon-btn:hover        { color: var(--text); background: var(--border); }
-  .icon-btn.danger:hover { color: var(--danger); background: rgba(255,77,106,0.1); }
-
-  .empty-state { text-align: center; padding: 44px 20px; color: var(--muted); }
-  .empty-state .e-icon { font-size: 28px; margin-bottom: 10px; opacity: 0.4; }
-  .empty-state p { font-size: 12px; line-height: 1.7; }
-
-  .vault-footer { display: flex; align-items: center; justify-content: space-between; margin-top: 14px; }
   .count-badge { font-size: 11px; color: var(--muted); }
 
-  /* MODAL */
-  .modal-overlay {
-    position: fixed; inset: 0; background: rgba(0,0,0,0.75); backdrop-filter: blur(8px);
-    z-index: 100; display: flex; align-items: center; justify-content: center;
-    padding: 20px; animation: fadeIn 0.15s ease;
-  }
-  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-  .modal {
-    background: var(--surface); border: 1px solid var(--border-hi);
-    border-radius: 12px; padding: 28px; width: 100%; max-width: 420px;
-    animation: scaleIn 0.18s ease;
-  }
-  @keyframes scaleIn {
-    from { transform: scale(0.95); opacity: 0; }
-    to   { transform: scale(1);    opacity: 1; }
-  }
-  .modal-title {
-    font-family: var(--sans); font-weight: 700; font-size: 18px;
-    margin-bottom: 22px; display: flex; align-items: center; justify-content: space-between;
-  }
-  .modal-actions { display: flex; gap: 10px; margin-top: 8px; }
-  .modal-actions .btn { width: auto; flex: 1; margin-top: 0; }
-
-  .strength-bar { height: 3px; background: var(--border); border-radius: 2px; margin-top: 7px; overflow: hidden; }
-  .strength-fill { height: 100%; border-radius: 2px; transition: width 0.3s, background 0.3s; width: 0%; }
-
-  /* TOAST */
-  .toast {
-    position: fixed; bottom: 28px; left: 50%;
-    transform: translateX(-50%) translateY(12px);
-    background: var(--surface); border: 1px solid var(--border-hi);
-    border-radius: 8px; padding: 11px 20px; font-size: 12px; color: var(--text);
-    z-index: 999; opacity: 0; transition: all 0.25s ease;
-    white-space: nowrap; display: flex; align-items: center; gap: 8px;
-    pointer-events: none;
-  }
-  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
-  .toast-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); flex-shrink: 0; }
-
-  /* SPINNER */
-  .spinner {
-    display: inline-block; width: 13px; height: 13px;
-    border: 2px solid rgba(10,10,11,0.3); border-top-color: #0a0a0b;
-    border-radius: 50%; animation: spin 0.6s linear infinite; vertical-align: middle; margin-right: 6px;
-  }
-  @keyframes spin { to { transform: rotate(360deg); } }
-
-  @media (max-width: 520px) { .app { padding: 14px; } .screen-title { font-size: 23px; } }
-
-  /* TOOLBAR ROW */
-  .toolbar { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+  /* TOOLBAR */
   .sort-select {
     background: var(--surface); border: 1px solid var(--border); border-radius: 6px;
     color: var(--muted); font-family: var(--mono); font-size: 11px;
-    padding: 7px 10px; cursor: pointer; outline: none; flex-shrink: 0;
+    padding: 8px 12px; cursor: pointer; outline: none; flex-shrink: 0;
     transition: border-color 0.2s;
   }
   .sort-select:focus { border-color: var(--accent); }
   .export-btn {
     background: var(--surface); border: 1px solid var(--border); border-radius: 6px;
     color: var(--muted); font-family: var(--mono); font-size: 11px;
-    padding: 7px 10px; cursor: pointer; white-space: nowrap; flex-shrink: 0;
+    padding: 8px 12px; cursor: pointer; white-space: nowrap; flex-shrink: 0;
     transition: border-color 0.2s, color 0.2s;
   }
   .export-btn:hover { border-color: var(--border-hi); color: var(--text); }
-
-  /* CATEGORY TABS */
-  .cat-tabs { display: flex; gap: 6px; margin-bottom: 12px; overflow-x: auto; padding-bottom: 2px; }
-  .cat-tabs::-webkit-scrollbar { display: none; }
-  .cat-tab {
-    flex-shrink: 0; padding: 5px 12px; border-radius: 20px; font-size: 11px;
-    font-family: var(--mono); cursor: pointer; border: 1px solid var(--border);
-    background: transparent; color: var(--muted); transition: all 0.15s;
-  }
-  .cat-tab:hover { border-color: var(--border-hi); color: var(--text); }
-  .cat-tab.active { background: var(--accent-dim); border-color: var(--accent); color: var(--accent); }
 
   /* CATEGORY BADGE ON ENTRY */
   .entry-cat { font-size: 9px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.1em; margin-top: 2px; }
@@ -261,7 +271,7 @@
   /* AUTO-LOCK BADGE */
   .lock-timer {
     font-size: 10px; color: var(--muted); display: flex; align-items: center; gap: 4px;
-    padding: 4px 8px; border: 1px solid var(--border); border-radius: 20px;
+    padding: 4px 10px; border: 1px solid var(--border); border-radius: 20px;
     white-space: nowrap; transition: color 0.3s, border-color 0.3s;
   }
   .lock-timer.warn { color: #ffd32a; border-color: rgba(255,211,42,0.3); }
@@ -308,114 +318,200 @@
   /* DUPLICATE WARNING */
   .dup-warning { font-size: 11px; color: #ffd32a; margin-top: 6px; display: none; }
   .dup-warning.show { display: block; }
+
+  /* RESPONSIVE — collapse sidebar on small screens */
+  @media (max-width: 768px) {
+    .sidebar { display: none; }
+    .entries { grid-template-columns: 1fr; }
+    .topbar { padding: 12px 16px; }
+    .main-toolbar, .entries-wrap, .main-footer { padding-left: 16px; padding-right: 16px; }
+  }
+
+  /* MODAL */
+    position: fixed; inset: 0; background: rgba(0,0,0,0.75); backdrop-filter: blur(8px);
+    z-index: 100; display: flex; align-items: center; justify-content: center;
+    padding: 20px; animation: fadeIn 0.15s ease;
+  }
+  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+  .modal {
+    background: var(--surface); border: 1px solid var(--border-hi);
+    border-radius: 12px; padding: 28px; width: 100%; max-width: 420px;
+    animation: scaleIn 0.18s ease;
+  }
+  @keyframes scaleIn {
+    from { transform: scale(0.95); opacity: 0; }
+    to   { transform: scale(1);    opacity: 1; }
+  }
+  .modal-title {
+    font-family: var(--sans); font-weight: 700; font-size: 18px;
+    margin-bottom: 22px; display: flex; align-items: center; justify-content: space-between;
+  }
+  .modal-actions { display: flex; gap: 10px; margin-top: 8px; }
+  .modal-actions .btn { width: auto; flex: 1; margin-top: 0; }
+
+  .strength-bar { height: 3px; background: var(--border); border-radius: 2px; margin-top: 7px; overflow: hidden; }
+  .strength-fill { height: 100%; border-radius: 2px; transition: width 0.3s, background 0.3s; width: 0%; }
+
+  /* TOAST */
+  .toast {
+    position: fixed; bottom: 28px; left: 50%;
+    transform: translateX(-50%) translateY(12px);
+    background: var(--surface); border: 1px solid var(--border-hi);
+    border-radius: 8px; padding: 11px 20px; font-size: 12px; color: var(--text);
+    z-index: 999; opacity: 0; transition: all 0.25s ease;
+    white-space: nowrap; display: flex; align-items: center; gap: 8px;
+    pointer-events: none;
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+  .toast-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); flex-shrink: 0; }
+
+  /* SPINNER */
+  .spinner {
+    display: inline-block; width: 13px; height: 13px;
+    border: 2px solid rgba(10,10,11,0.3); border-top-color: #0a0a0b;
+    border-radius: 50%; animation: spin 0.6s linear infinite; vertical-align: middle; margin-right: 6px;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  @media (max-width: 520px) { .screen-title { font-size: 23px; } }
+
 </style>
 </head>
 <body>
-<div class="app">
 
-  <!-- ══ REGISTER ══ -->
-  <div id="registerScreen" class="screen active">
-    <div class="logo"><span class="logo-dot"></span> VAULT</div>
-    <div class="screen-title">Create your<br>master vault.</div>
-    <p class="screen-sub">One password encrypts everything. Synced instantly across all your devices.</p>
-    <div class="notice">🔐 AES-256-GCM + PBKDF2 (310k rounds). Your master password never leaves this device — Firebase only ever stores unreadable ciphertext.</div>
+<!-- ══ AUTH ══ -->
+<div class="auth-wrap" id="authWrap">
+  <div class="auth-card">
 
-    <div class="field"><label>Username</label>
-      <input type="text" id="reg-username" placeholder="choose a username" autocomplete="off" spellcheck="false" />
-    </div>
-    <div class="field"><label>Master Password</label>
-      <div class="input-wrap">
-        <input type="password" id="reg-password" placeholder="strong master password" autocomplete="new-password" oninput="checkStrength(this)" />
-        <button class="input-icon" onclick="toggleVis('reg-password')" tabindex="-1">👁</button>
-      </div>
-      <div class="strength-bar"><div class="strength-fill" id="strengthFill"></div></div>
-    </div>
-    <div class="field"><label>Confirm Password</label>
-      <div class="input-wrap">
-        <input type="password" id="reg-confirm" placeholder="repeat master password" autocomplete="new-password"
-          onkeydown="if(event.key==='Enter') register()" />
-        <button class="input-icon" onclick="toggleVis('reg-confirm')" tabindex="-1">👁</button>
-      </div>
-    </div>
-
-    <button class="btn btn-primary" id="regBtn" onclick="register()">Create Vault</button>
-    <button class="btn btn-ghost" onclick="showScreen('loginScreen')">Already have a vault → Login</button>
-  </div>
-
-  <!-- ══ LOGIN ══ -->
-  <div id="loginScreen" class="screen">
-    <div class="logo"><span class="logo-dot"></span> VAULT</div>
-    <div class="screen-title">Welcome<br>back.</div>
-    <p class="screen-sub">Your encrypted vault lives in the cloud. Unlock it from any device.</p>
-
-    <div class="field"><label>Username</label>
-      <input type="text" id="login-username" placeholder="your username" autocomplete="off" spellcheck="false" />
-    </div>
-    <div class="field"><label>Master Password</label>
-      <div class="input-wrap">
-        <input type="password" id="login-password" placeholder="master password" autocomplete="current-password"
-          onkeydown="if(event.key==='Enter') login()" />
-        <button class="input-icon" onclick="toggleVis('login-password')" tabindex="-1">👁</button>
-      </div>
-    </div>
-
-    <button class="btn btn-primary" id="loginBtn" onclick="login()">Unlock Vault</button>
-    <button class="btn btn-ghost" onclick="showScreen('registerScreen')">Create new vault</button>
-  </div>
-
-  <!-- ══ VAULT ══ -->
-  <div id="vaultScreen" class="screen">
-    <div class="vault-header">
+    <!-- REGISTER -->
+    <div id="registerScreen" class="screen active">
       <div class="logo"><span class="logo-dot"></span> VAULT</div>
-      <div class="vault-right">
-        <div class="sync-pill">
-          <span class="sync-dot" id="syncDot"></span>
-          <span id="syncLabel">synced</span>
+      <div class="screen-title">Create your<br>master vault.</div>
+      <p class="screen-sub">One password encrypts everything. Synced instantly across all your devices.</p>
+      <div class="notice">🔐 AES-256-GCM + PBKDF2 (310k rounds). Your master password never leaves this device — Firebase only ever stores unreadable ciphertext.</div>
+      <div class="field"><label>Username</label>
+        <input type="text" id="reg-username" placeholder="choose a username" autocomplete="off" spellcheck="false" />
+      </div>
+      <div class="field"><label>Master Password</label>
+        <div class="input-wrap">
+          <input type="password" id="reg-password" placeholder="strong master password" autocomplete="new-password" oninput="checkStrength(this)" />
+          <button class="input-icon" onclick="toggleVis('reg-password')" tabindex="-1">👁</button>
         </div>
-        <div class="lock-timer" id="lockTimer">🔒 5:00</div>
-        <span class="user-tag" id="vaultUser"></span>
-        <button class="icon-btn" onclick="openChangeVaultPw()" title="Change vault password">🔑</button>
-        <button class="icon-btn" onclick="logout()" title="Lock vault">🔒</button>
+        <div class="strength-bar"><div class="strength-fill" id="strengthFill"></div></div>
       </div>
-    </div>
-
-    <div class="search-bar">
-      <span class="search-icon">🔍</span>
-      <input type="text" id="searchInput" placeholder="search entries…" oninput="renderEntries()" />
-    </div>
-
-    <div class="toolbar">
-      <select class="sort-select" id="sortSelect" onchange="renderEntries()">
-        <option value="az">A → Z</option>
-        <option value="za">Z → A</option>
-        <option value="newest">Newest</option>
-        <option value="oldest">Oldest</option>
-        <option value="fav">⭐ Favorites first</option>
-      </select>
-      <button class="export-btn" onclick="exportVault()">⬇ Export</button>
-    </div>
-
-    <div class="cat-tabs" id="catTabs">
-      <button class="cat-tab active" data-cat="all" onclick="setCategory('all')">All</button>
-      <button class="cat-tab" data-cat="work"     onclick="setCategory('work')">💼 Work</button>
-      <button class="cat-tab" data-cat="finance"  onclick="setCategory('finance')">💳 Finance</button>
-      <button class="cat-tab" data-cat="social"   onclick="setCategory('social')">💬 Social</button>
-      <button class="cat-tab" data-cat="personal" onclick="setCategory('personal')">👤 Personal</button>
-      <button class="cat-tab" data-cat="other"    onclick="setCategory('other')">📦 Other</button>
-    </div>
-
-    <div class="entries" id="entriesList"></div>
-
-    <div class="vault-footer">
-      <span class="count-badge" id="entryCount">0 entries</span>
-      <div style="display:flex;gap:8px;align-items:center;">
-        <button class="btn btn-sm" style="background:transparent;border:1px solid rgba(255,77,106,0.3);color:var(--danger);font-family:var(--sans);font-weight:600;font-size:11px;padding:8px 14px;border-radius:4px;cursor:pointer;" onclick="openDeleteAccount()" title="Delete account">🗑 Delete Account</button>
-        <button class="btn btn-primary btn-sm" onclick="openAddModal()">+ Add Entry</button>
+      <div class="field"><label>Confirm Password</label>
+        <div class="input-wrap">
+          <input type="password" id="reg-confirm" placeholder="repeat master password" autocomplete="new-password"
+            onkeydown="if(event.key==='Enter') register()" />
+          <button class="input-icon" onclick="toggleVis('reg-confirm')" tabindex="-1">👁</button>
+        </div>
       </div>
+      <button class="btn btn-primary" id="regBtn" onclick="register()">Create Vault</button>
+      <button class="btn btn-ghost" onclick="showScreen('loginScreen')">Already have a vault → Login</button>
+    </div>
+
+    <!-- LOGIN -->
+    <div id="loginScreen" class="screen">
+      <div class="logo"><span class="logo-dot"></span> VAULT</div>
+      <div class="screen-title">Welcome<br>back.</div>
+      <p class="screen-sub">Your encrypted vault lives in the cloud. Unlock it from any device.</p>
+      <div class="field"><label>Username</label>
+        <input type="text" id="login-username" placeholder="your username" autocomplete="off" spellcheck="false" />
+      </div>
+      <div class="field"><label>Master Password</label>
+        <div class="input-wrap">
+          <input type="password" id="login-password" placeholder="master password" autocomplete="current-password"
+            onkeydown="if(event.key==='Enter') login()" />
+          <button class="input-icon" onclick="toggleVis('login-password')" tabindex="-1">👁</button>
+        </div>
+      </div>
+      <button class="btn btn-primary" id="loginBtn" onclick="login()">Unlock Vault</button>
+      <button class="btn btn-ghost" onclick="showScreen('registerScreen')">Create new vault</button>
+    </div>
+
+  </div>
+</div>
+
+<!-- ══ VAULT — full-screen, outside auth-wrap ══ -->
+<div id="vaultScreen">
+
+  <!-- TOP BAR -->
+  <div class="topbar">
+    <div class="logo" style="margin-bottom:0"><span class="logo-dot"></span> VAULT</div>
+    <div class="topbar-right">
+      <div class="sync-pill">
+        <span class="sync-dot" id="syncDot"></span>
+        <span id="syncLabel">synced</span>
+      </div>
+      <div class="lock-timer" id="lockTimer">🔒 5:00</div>
+      <span class="user-tag" id="vaultUser"></span>
+      <button class="icon-btn" onclick="openChangeVaultPw()" title="Change vault password">🔑</button>
+      <button class="icon-btn" onclick="logout()" title="Lock vault">🔒</button>
     </div>
   </div>
 
-</div>
+  <!-- BODY: sidebar + main -->
+  <div class="vault-body">
+
+    <!-- SIDEBAR -->
+    <div class="sidebar">
+      <div class="sidebar-section">Categories</div>
+      <button class="cat-tab active" data-cat="all"      onclick="setCategory('all')">🗂 All <span class="cat-count" id="cnt-all">0</span></button>
+      <button class="cat-tab" data-cat="work"            onclick="setCategory('work')">💼 Work <span class="cat-count" id="cnt-work">0</span></button>
+      <button class="cat-tab" data-cat="finance"         onclick="setCategory('finance')">💳 Finance <span class="cat-count" id="cnt-finance">0</span></button>
+      <button class="cat-tab" data-cat="social"          onclick="setCategory('social')">💬 Social <span class="cat-count" id="cnt-social">0</span></button>
+      <button class="cat-tab" data-cat="personal"        onclick="setCategory('personal')">👤 Personal <span class="cat-count" id="cnt-personal">0</span></button>
+      <button class="cat-tab" data-cat="other"           onclick="setCategory('other')">📦 Other <span class="cat-count" id="cnt-other">0</span></button>
+      <button class="cat-tab" data-cat="fav"             onclick="setCategory('fav')">⭐ Favorites <span class="cat-count" id="cnt-fav">0</span></button>
+
+      <div class="sidebar-section">Security</div>
+      <button class="cat-tab" data-cat="overdue"         onclick="setCategory('overdue')">🔴 Overdue <span class="cat-count" id="cnt-overdue">0</span></button>
+      <button class="cat-tab" data-cat="warn"            onclick="setCategory('warn')">🟡 Due Soon <span class="cat-count" id="cnt-warn">0</span></button>
+
+      <div class="sidebar-stats" id="sidebarStats">
+        <div class="stat-row"><span class="stat-label">Total entries</span><span class="stat-val" id="stat-total">0</span></div>
+        <div class="stat-row"><span class="stat-label">Overdue passwords</span><span class="stat-val danger" id="stat-overdue">0</span></div>
+        <div class="stat-row"><span class="stat-label">Due within 30d</span><span class="stat-val warn" id="stat-warn">0</span></div>
+        <div class="stat-row"><span class="stat-label">Favorites</span><span class="stat-val" id="stat-fav">0</span></div>
+      </div>
+    </div>
+
+    <!-- MAIN PANEL -->
+    <div class="main-panel">
+
+      <!-- TOOLBAR -->
+      <div class="main-toolbar">
+        <div class="search-bar" style="flex:1;margin:0;position:relative;">
+          <span class="search-icon">🔍</span>
+          <input type="text" id="searchInput" placeholder="search entries…" oninput="renderEntries()" />
+        </div>
+        <select class="sort-select" id="sortSelect" onchange="renderEntries()">
+          <option value="az">A → Z</option>
+          <option value="za">Z → A</option>
+          <option value="newest">Newest</option>
+          <option value="oldest">Oldest</option>
+          <option value="fav">⭐ Favorites first</option>
+        </select>
+        <button class="export-btn" onclick="exportVault()">⬇ Export</button>
+      </div>
+
+      <!-- ENTRIES GRID -->
+      <div class="entries-wrap">
+        <div class="entries" id="entriesList"></div>
+      </div>
+
+      <!-- FOOTER -->
+      <div class="main-footer">
+        <span class="count-badge" id="entryCount">0 entries</span>
+        <div style="display:flex;gap:8px;align-items:center;">
+          <button class="btn btn-sm" style="background:transparent;border:1px solid rgba(255,77,106,0.3);color:var(--danger);font-family:var(--sans);font-weight:600;font-size:11px;padding:8px 14px;border-radius:4px;cursor:pointer;" onclick="openDeleteAccount()">🗑 Delete Account</button>
+          <button class="btn btn-primary btn-sm" onclick="openAddModal()">+ Add Entry</button>
+        </div>
+      </div>
+
+    </div><!-- /main-panel -->
+  </div><!-- /vault-body -->
+</div><!-- /vaultScreen -->
 
 <!-- ══ DELETE ACCOUNT MODAL ══ -->
 <div id="deleteAccountModal" class="modal-overlay" style="display:none" onclick="if(event.target===this)closeDeleteAccount()">
@@ -1285,8 +1381,13 @@ window.toggleVis = k => {
 };
 
 window.showScreen = name => {
-  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-  $(name).classList.add('active');
+  const isVault = name === 'vaultScreen';
+  $('authWrap').style.display    = isVault ? 'none' : 'flex';
+  $('vaultScreen').style.display = isVault ? 'flex' : 'none';
+  if (!isVault) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    $(name).classList.add('active');
+  }
 };
 
 function setBtnLoading(id, loading, label) {
@@ -1312,7 +1413,8 @@ const esc = s => s
   .replace(/&/g,'&amp;').replace(/</g,'&lt;')
   .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 
-// Boot straight to login (config is baked in)
+// Boot
+$('vaultScreen').style.display = 'none';
 showScreen('loginScreen');
 </script>
 </body>
