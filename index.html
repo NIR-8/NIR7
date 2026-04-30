@@ -219,6 +219,95 @@
   @keyframes spin { to { transform: rotate(360deg); } }
 
   @media (max-width: 520px) { .app { padding: 14px; } .screen-title { font-size: 23px; } }
+
+  /* TOOLBAR ROW */
+  .toolbar { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+  .sort-select {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 6px;
+    color: var(--muted); font-family: var(--mono); font-size: 11px;
+    padding: 7px 10px; cursor: pointer; outline: none; flex-shrink: 0;
+    transition: border-color 0.2s;
+  }
+  .sort-select:focus { border-color: var(--accent); }
+  .export-btn {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 6px;
+    color: var(--muted); font-family: var(--mono); font-size: 11px;
+    padding: 7px 10px; cursor: pointer; white-space: nowrap; flex-shrink: 0;
+    transition: border-color 0.2s, color 0.2s;
+  }
+  .export-btn:hover { border-color: var(--border-hi); color: var(--text); }
+
+  /* CATEGORY TABS */
+  .cat-tabs { display: flex; gap: 6px; margin-bottom: 12px; overflow-x: auto; padding-bottom: 2px; }
+  .cat-tabs::-webkit-scrollbar { display: none; }
+  .cat-tab {
+    flex-shrink: 0; padding: 5px 12px; border-radius: 20px; font-size: 11px;
+    font-family: var(--mono); cursor: pointer; border: 1px solid var(--border);
+    background: transparent; color: var(--muted); transition: all 0.15s;
+  }
+  .cat-tab:hover { border-color: var(--border-hi); color: var(--text); }
+  .cat-tab.active { background: var(--accent-dim); border-color: var(--accent); color: var(--accent); }
+
+  /* CATEGORY BADGE ON ENTRY */
+  .entry-cat { font-size: 9px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.1em; margin-top: 2px; }
+
+  /* STAR / FAVORITE */
+  .icon-btn.star { color: var(--muted); }
+  .icon-btn.star.on { color: #ffd32a; }
+
+  /* PEEK PASSWORD INLINE */
+  .entry-peek { font-size: 10px; color: var(--muted); margin-top: 3px; font-family: var(--mono); letter-spacing: 0.05em; word-break: break-all; }
+
+  /* AUTO-LOCK BADGE */
+  .lock-timer {
+    font-size: 10px; color: var(--muted); display: flex; align-items: center; gap: 4px;
+    padding: 4px 8px; border: 1px solid var(--border); border-radius: 20px;
+    white-space: nowrap; transition: color 0.3s, border-color 0.3s;
+  }
+  .lock-timer.warn { color: #ffd32a; border-color: rgba(255,211,42,0.3); }
+
+  /* NOTES FIELD */
+  textarea.entry-notes {
+    width: 100%; background: var(--surface); border: 1px solid var(--border);
+    border-radius: 6px; padding: 12px 16px; font-family: var(--mono);
+    font-size: 12px; color: var(--text); outline: none; resize: vertical;
+    min-height: 70px; transition: border-color 0.2s, box-shadow 0.2s;
+    line-height: 1.5;
+  }
+  textarea.entry-notes:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-dim); }
+  textarea.entry-notes::placeholder { color: var(--muted); }
+
+  /* CATEGORY SELECT IN MODAL */
+  select.cat-select {
+    width: 100%; background: var(--surface); border: 1px solid var(--border);
+    border-radius: 6px; padding: 12px 16px; font-family: var(--mono);
+    font-size: 13px; color: var(--text); outline: none; cursor: pointer;
+    transition: border-color 0.2s, box-shadow 0.2s; appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23555566'/%3E%3C/svg%3E");
+    background-repeat: no-repeat; background-position: right 14px center;
+  }
+  select.cat-select:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-dim); }
+  select.cat-select option { background: #111114; }
+
+  /* PASSWORD HISTORY */
+  .pw-history { margin-top: 10px; }
+  .pw-history-title { font-size: 10px; letter-spacing: 0.15em; text-transform: uppercase; color: var(--muted); margin-bottom: 8px; }
+  .pw-history-item {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 8px 12px; background: var(--bg); border: 1px solid var(--border);
+    border-radius: 6px; margin-bottom: 5px; font-size: 11px; gap: 8px;
+  }
+  .pw-history-pass { font-family: var(--mono); color: var(--muted); flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; filter: blur(4px); transition: filter 0.2s; cursor: pointer; }
+  .pw-history-pass:hover { filter: blur(0); }
+  .pw-history-date { font-size: 10px; color: var(--muted); flex-shrink: 0; }
+
+  /* CONFIRM DELETE MODAL */
+  .confirm-modal-msg { font-size: 13px; color: var(--text); line-height: 1.6; margin-bottom: 22px; }
+  .confirm-modal-msg strong { color: var(--danger); }
+
+  /* DUPLICATE WARNING */
+  .dup-warning { font-size: 11px; color: #ffd32a; margin-top: 6px; display: none; }
+  .dup-warning.show { display: block; }
 </style>
 </head>
 <body>
@@ -283,6 +372,7 @@
           <span class="sync-dot" id="syncDot"></span>
           <span id="syncLabel">synced</span>
         </div>
+        <div class="lock-timer" id="lockTimer">🔒 5:00</div>
         <span class="user-tag" id="vaultUser"></span>
         <button class="icon-btn" onclick="openChangeVaultPw()" title="Change vault password">🔑</button>
         <button class="icon-btn" onclick="logout()" title="Lock vault">🔒</button>
@@ -292,6 +382,26 @@
     <div class="search-bar">
       <span class="search-icon">🔍</span>
       <input type="text" id="searchInput" placeholder="search entries…" oninput="renderEntries()" />
+    </div>
+
+    <div class="toolbar">
+      <select class="sort-select" id="sortSelect" onchange="renderEntries()">
+        <option value="az">A → Z</option>
+        <option value="za">Z → A</option>
+        <option value="newest">Newest</option>
+        <option value="oldest">Oldest</option>
+        <option value="fav">⭐ Favorites first</option>
+      </select>
+      <button class="export-btn" onclick="exportVault()">⬇ Export</button>
+    </div>
+
+    <div class="cat-tabs" id="catTabs">
+      <button class="cat-tab active" data-cat="all" onclick="setCategory('all')">All</button>
+      <button class="cat-tab" data-cat="work"     onclick="setCategory('work')">💼 Work</button>
+      <button class="cat-tab" data-cat="finance"  onclick="setCategory('finance')">💳 Finance</button>
+      <button class="cat-tab" data-cat="social"   onclick="setCategory('social')">💬 Social</button>
+      <button class="cat-tab" data-cat="personal" onclick="setCategory('personal')">👤 Personal</button>
+      <button class="cat-tab" data-cat="other"    onclick="setCategory('other')">📦 Other</button>
     </div>
 
     <div class="entries" id="entriesList"></div>
@@ -371,7 +481,7 @@
 
 <!-- ══ ENTRY MODAL ══ -->
 <div id="entryModal" class="modal-overlay" style="display:none" onclick="if(event.target===this)closeModal()">
-  <div class="modal">
+  <div class="modal" style="max-height:90vh;overflow-y:auto;">
     <div class="modal-title">
       <span id="modalTitle">New Entry</span>
       <button class="icon-btn" onclick="closeModal()">✕</button>
@@ -384,19 +494,52 @@
     </div>
     <div class="field"><label>Password</label>
       <div class="input-wrap">
-        <input type="password" id="entry-pass" placeholder="password" autocomplete="new-password" />
+        <input type="password" id="entry-pass" placeholder="password" autocomplete="new-password" oninput="checkDuplicate(this.value)" />
         <button class="input-icon" onclick="toggleVis('entry-pass')" tabindex="-1">👁</button>
       </div>
+      <div class="dup-warning" id="dupWarning">⚠️ This password is already used by another entry!</div>
     </div>
     <div class="field"><label>URL (optional)</label>
       <input type="url" id="entry-url" placeholder="https://…" autocomplete="off" />
     </div>
+    <div class="field"><label>Category</label>
+      <select class="cat-select" id="entry-cat">
+        <option value="">— None —</option>
+        <option value="work">💼 Work</option>
+        <option value="finance">💳 Finance</option>
+        <option value="social">💬 Social</option>
+        <option value="personal">👤 Personal</option>
+        <option value="other">📦 Other</option>
+      </select>
+    </div>
+    <div class="field"><label>Notes (optional)</label>
+      <textarea class="entry-notes" id="entry-notes" placeholder="security questions, PIN, recovery codes…"></textarea>
+    </div>
     <button class="btn btn-ghost btn-sm" style="width:100%;margin-bottom:14px" onclick="generatePassword()">
       ⚡ Generate Strong Password
     </button>
+    <div id="pwHistorySection" class="pw-history" style="display:none">
+      <div class="pw-history-title">Password History (hover to reveal)</div>
+      <div id="pwHistoryList"></div>
+    </div>
     <div class="modal-actions">
       <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
       <button class="btn btn-primary" id="saveBtn" onclick="saveEntry()">Save Entry</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ CONFIRM DELETE ENTRY MODAL ══ -->
+<div id="confirmDeleteModal" class="modal-overlay" style="display:none" onclick="if(event.target===this)closeConfirmDelete()">
+  <div class="modal">
+    <div class="modal-title">
+      <span style="color:var(--danger)">Delete Entry</span>
+      <button class="icon-btn" onclick="closeConfirmDelete()">✕</button>
+    </div>
+    <p class="confirm-modal-msg">Are you sure you want to delete <strong id="confirmDeleteName">"this entry"</strong>? This cannot be undone.</p>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeConfirmDelete()">Cancel</button>
+      <button class="btn btn-primary" style="background:var(--danger);color:#fff;" onclick="confirmDeleteEntry()">Delete</button>
     </div>
   </div>
 </div>
@@ -466,6 +609,44 @@ let sessionKey  = null;
 let editingId   = null;
 let editingOriginalPass = null;
 let unsubscribe = null;
+let activeCategory = 'all';
+let pendingDeleteId = null;
+let pendingDeleteName = '';
+let cachedEntries = [];        // raw encrypted entries from last snapshot
+
+// AUTO-LOCK
+const LOCK_MINUTES = 5;
+let lockSecondsLeft = LOCK_MINUTES * 60;
+let lockInterval = null;
+
+function resetIdleTimer() {
+  lockSecondsLeft = LOCK_MINUTES * 60;
+}
+function startLockTimer() {
+  stopLockTimer();
+  lockSecondsLeft = LOCK_MINUTES * 60;
+  lockInterval = setInterval(() => {
+    lockSecondsLeft--;
+    const m = Math.floor(lockSecondsLeft / 60);
+    const s = String(lockSecondsLeft % 60).padStart(2, '0');
+    const el = $('lockTimer');
+    if (el) {
+      el.textContent = `🔒 ${m}:${s}`;
+      el.className = 'lock-timer' + (lockSecondsLeft <= 60 ? ' warn' : '');
+    }
+    if (lockSecondsLeft <= 0) {
+      stopLockTimer();
+      logout();
+      toast('Vault auto-locked due to inactivity 🔒');
+    }
+  }, 1000);
+}
+function stopLockTimer() {
+  if (lockInterval) { clearInterval(lockInterval); lockInterval = null; }
+}
+['mousemove','keydown','click','touchstart','scroll'].forEach(ev =>
+  document.addEventListener(ev, resetIdleTimer, { passive: true })
+);
 
 // ════════════════════════════════════════════════════════
 // FIRESTORE HELPERS
@@ -547,13 +728,17 @@ window.login = async () => {
     sessionKey  = key;
     $('vaultUser').textContent = username;
     showScreen('vaultScreen');
+    startLockTimer();
 
     // Real-time listener
     if (unsubscribe) unsubscribe();
     unsubscribe = onSnapshot(
       doc(db, 'vaults', username),
       async snap => {
-        if (snap.exists()) await renderEntries(snap.data().entries || []);
+        if (snap.exists()) {
+          cachedEntries = snap.data().entries || [];
+          await renderEntries(cachedEntries);
+        }
         setSyncStatus('synced');
       },
       () => setSyncStatus('error')
@@ -568,7 +753,8 @@ window.login = async () => {
 
 window.logout = () => {
   if (unsubscribe) { unsubscribe(); unsubscribe = null; }
-  currentUser = null; sessionKey = null;
+  stopLockTimer();
+  currentUser = null; sessionKey = null; cachedEntries = [];
   $('login-password').value = '';
   showScreen('loginScreen');
   toast('Vault locked 🔒');
@@ -577,18 +763,29 @@ window.logout = () => {
 // ════════════════════════════════════════════════════════
 // ENTRIES
 // ════════════════════════════════════════════════════════
+window.setCategory = (cat) => {
+  activeCategory = cat;
+  document.querySelectorAll('.cat-tab').forEach(t =>
+    t.classList.toggle('active', t.dataset.cat === cat)
+  );
+  renderEntries();
+};
+
 window.renderEntries = async (rawOverride) => {
   const q = ($('searchInput')?.value || '').toLowerCase();
+  const sort = $('sortSelect')?.value || 'az';
 
   let raw;
   if (rawOverride !== undefined) {
+    cachedEntries = rawOverride;
     raw = rawOverride;
   } else {
-    const snap = await fsGet(currentUser);
-    raw = snap?.entries || [];
+    raw = cachedEntries;
   }
 
-  const items = (await Promise.all(
+  const totalCount = raw.length;
+
+  let items = (await Promise.all(
     raw.map(async e => {
       try {
         return {
@@ -598,17 +795,37 @@ window.renderEntries = async (rawOverride) => {
         };
       } catch { return null; }
     })
-  )).filter(Boolean)
-    .filter(e => !q || e._name.toLowerCase().includes(q) || e._user.toLowerCase().includes(q));
+  )).filter(Boolean);
+
+  // Category filter
+  if (activeCategory !== 'all') items = items.filter(e => e.category === activeCategory);
+
+  // Search filter
+  if (q) items = items.filter(e =>
+    e._name.toLowerCase().includes(q) || e._user.toLowerCase().includes(q)
+  );
+
+  // Sort
+  if (sort === 'az')     items.sort((a,b) => a._name.localeCompare(b._name));
+  if (sort === 'za')     items.sort((a,b) => b._name.localeCompare(a._name));
+  if (sort === 'newest') items.sort((a,b) => (b.created||0) - (a.created||0));
+  if (sort === 'oldest') items.sort((a,b) => (a.created||0) - (b.created||0));
+  if (sort === 'fav')    items.sort((a,b) => (b.favorite?1:0) - (a.favorite?1:0));
 
   const list = $('entriesList');
   if (!list) return;
-  $('entryCount').textContent = `${items.length} entr${items.length === 1 ? 'y' : 'ies'}`;
+
+  // Entry count: X of Y when filtered, else just X
+  const showing = items.length;
+  const isFiltered = q || activeCategory !== 'all';
+  $('entryCount').textContent = isFiltered
+    ? `${showing} of ${totalCount} entr${totalCount === 1 ? 'y' : 'ies'}`
+    : `${showing} entr${showing === 1 ? 'y' : 'ies'}`;
 
   if (!items.length) {
     list.innerHTML = `<div class="empty-state">
       <div class="e-icon">🔑</div>
-      <p>${q ? 'No entries match your search.' : 'Your vault is empty.<br>Tap <strong style="color:var(--accent)">+ Add Entry</strong> to begin.'}</p>
+      <p>${q || activeCategory !== 'all' ? 'No entries match your filter.' : 'Your vault is empty.<br>Tap <strong style="color:var(--accent)">+ Add Entry</strong> to begin.'}</p>
     </div>`;
     return;
   }
@@ -618,46 +835,109 @@ window.renderEntries = async (rawOverride) => {
     const el = document.createElement('div');
     el.className = 'entry';
 
-    // Password age calculation
+    // Password age
     const pwUpdated = e.pwUpdated || e.created || null;
     let ageHtml = '';
     if (pwUpdated) {
       const daysAgo = Math.floor((Date.now() - pwUpdated) / 86400000);
       const daysLeft = 90 - daysAgo;
       let level, ageLabel, countLabel;
-      if (daysLeft > 30)       { level = 'safe';    ageLabel = `${daysAgo}d ago`; countLabel = `${daysLeft}d left`; }
-      else if (daysLeft > 0)   { level = 'warn';    ageLabel = `${daysAgo}d ago`; countLabel = `${daysLeft}d left`; }
-      else                     { level = 'overdue'; ageLabel = `${daysAgo}d ago`; countLabel = `${Math.abs(daysLeft)}d overdue`; }
+      if (daysLeft > 30)     { level='safe';    ageLabel=`${daysAgo}d ago`; countLabel=`${daysLeft}d left`; }
+      else if (daysLeft > 0) { level='warn';    ageLabel=`${daysAgo}d ago`; countLabel=`${daysLeft}d left`; }
+      else                   { level='overdue'; ageLabel=`${daysAgo}d ago`; countLabel=`${Math.abs(daysLeft)}d overdue`; }
       ageHtml = `<div class="entry-pw-age">
         <span class="pw-age-dot ${level}"></span>
         <span class="pw-age-text ${level}">pw: ${ageLabel} · ${countLabel}</span>
       </div>`;
     }
 
+    // Category badge
+    const catLabels = {work:'💼 Work',finance:'💳 Finance',social:'💬 Social',personal:'👤 Personal',other:'📦 Other'};
+    const catHtml = e.category ? `<div class="entry-cat">${catLabels[e.category]||e.category}</div>` : '';
+
+    // URL button
+    const urlBtn = e.url
+      ? `<button class="icon-btn" title="Open site" onclick="openUrl('${e.id}')">🔗</button>`
+      : '';
+
+    // Favorite star
+    const starClass = e.favorite ? 'icon-btn star on' : 'icon-btn star';
+    const starTitle  = e.favorite ? 'Unfavorite' : 'Favorite';
+
     el.innerHTML = `
       <div class="entry-icon">${esc(e._name.charAt(0))}</div>
       <div class="entry-info">
         <div class="entry-name">${esc(e._name)}</div>
         <div class="entry-user">${esc(e._user)}</div>
-        ${ageHtml}
+        ${catHtml}${ageHtml}
+        <div class="entry-peek" id="peek-${e.id}" style="display:none"></div>
       </div>
       <div class="entry-actions">
+        <button class="${starClass}" title="${starTitle}" onclick="toggleFavorite('${e.id}')">★</button>
+        <button class="icon-btn" title="Peek password" onclick="peekPassword('${e.id}')">👁</button>
         <button class="icon-btn" title="Copy password" onclick="copyPw('${e.id}')">📋</button>
-        <button class="icon-btn" title="Edit"          onclick="openEdit('${e.id}')">✏️</button>
-        <button class="icon-btn danger" title="Delete" onclick="deleteEntry('${e.id}')">🗑</button>
+        ${urlBtn}
+        <button class="icon-btn" title="Edit" onclick="openEdit('${e.id}')">✏️</button>
+        <button class="icon-btn danger" title="Delete" onclick="deleteEntry('${e.id}','${esc(e._name)}')">🗑</button>
       </div>`;
     list.appendChild(el);
   }
 };
 
 window.copyPw = async (id) => {
-  const data  = await fsGet(currentUser);
-  const entry = (data?.entries || []).find(e => e.id === id);
+  const entry = cachedEntries.find(e => e.id === id);
   if (!entry) return;
   try {
     await navigator.clipboard.writeText(await aesDecrypt(entry.pass, sessionKey));
     toast('Password copied to clipboard');
   } catch { toast('Copy failed — try HTTPS'); }
+};
+
+window.peekPassword = async (id) => {
+  const peekEl = $('peek-' + id);
+  if (!peekEl) return;
+  if (peekEl.style.display !== 'none') { peekEl.style.display = 'none'; return; }
+  const entry = cachedEntries.find(e => e.id === id);
+  if (!entry) return;
+  try {
+    const pw = await aesDecrypt(entry.pass, sessionKey);
+    peekEl.textContent = pw;
+    peekEl.style.display = 'block';
+    setTimeout(() => { peekEl.style.display = 'none'; }, 8000);
+  } catch { toast('Could not decrypt'); }
+};
+
+window.openUrl = async (id) => {
+  const entry = cachedEntries.find(e => e.id === id);
+  if (!entry || !entry.url) return;
+  try {
+    const url = await aesDecrypt(entry.url, sessionKey);
+    window.open(url, '_blank', 'noopener,noreferrer');
+  } catch { toast('Could not open URL'); }
+};
+
+window.toggleFavorite = async (id) => {
+  const data    = await fsGet(currentUser);
+  const entries = data?.entries || [];
+  const idx     = entries.findIndex(e => e.id === id);
+  if (idx === -1) return;
+  entries[idx].favorite = !entries[idx].favorite;
+  await fsSet(currentUser, { entries, updatedAt: Date.now() });
+  toast(entries[idx].favorite ? '⭐ Added to favorites' : 'Removed from favorites');
+};
+
+// Duplicate password detection
+window.checkDuplicate = async (val) => {
+  const w = $('dupWarning');
+  if (!w || !val || !sessionKey) { if(w) w.classList.remove('show'); return; }
+  const others = cachedEntries.filter(e => e.id !== editingId);
+  for (const e of others) {
+    try {
+      const p = await aesDecrypt(e.pass, sessionKey);
+      if (p === val) { w.classList.add('show'); return; }
+    } catch {}
+  }
+  w.classList.remove('show');
 };
 
 window.openEdit = async (id) => {
@@ -668,10 +948,36 @@ window.openEdit = async (id) => {
   $('modalTitle').textContent = 'Edit Entry';
   const decryptedPass = await aesDecrypt(entry.pass, sessionKey);
   editingOriginalPass = decryptedPass;
-  $('entry-name').value = await aesDecrypt(entry.name, sessionKey);
-  $('entry-user').value = await aesDecrypt(entry.user, sessionKey);
-  $('entry-pass').value = decryptedPass;
-  $('entry-url').value  = entry.url ? await aesDecrypt(entry.url, sessionKey) : '';
+  $('entry-name').value  = await aesDecrypt(entry.name, sessionKey);
+  $('entry-user').value  = await aesDecrypt(entry.user, sessionKey);
+  $('entry-pass').value  = decryptedPass;
+  $('entry-url').value   = entry.url   ? await aesDecrypt(entry.url,   sessionKey) : '';
+  $('entry-notes').value = entry.notes ? await aesDecrypt(entry.notes, sessionKey) : '';
+  $('entry-cat').value   = entry.category || '';
+  $('dupWarning').classList.remove('show');
+
+  // Password history
+  const hist = entry.pwHistory || [];
+  const histSection = $('pwHistorySection');
+  const histList    = $('pwHistoryList');
+  if (hist.length > 0) {
+    histSection.style.display = 'block';
+    histList.innerHTML = '';
+    for (const h of [...hist].reverse()) {
+      try {
+        const oldPw = await aesDecrypt(h.pass, sessionKey);
+        const date  = new Date(h.at).toLocaleDateString();
+        const item  = document.createElement('div');
+        item.className = 'pw-history-item';
+        item.innerHTML = `<span class="pw-history-pass" title="hover to reveal">${esc(oldPw)}</span>
+          <span class="pw-history-date">${date}</span>`;
+        histList.appendChild(item);
+      } catch {}
+    }
+  } else {
+    histSection.style.display = 'none';
+  }
+
   $('entryModal').style.display = 'flex';
 };
 
@@ -679,7 +985,10 @@ window.openAddModal = () => {
   editingId = null;
   editingOriginalPass = null;
   $('modalTitle').textContent = 'New Entry';
-  ['entry-name','entry-user','entry-pass','entry-url'].forEach(k => $(k).value = '');
+  ['entry-name','entry-user','entry-pass','entry-url','entry-notes'].forEach(k => $(k).value = '');
+  $('entry-cat').value = '';
+  $('dupWarning').classList.remove('show');
+  $('pwHistorySection').style.display = 'none';
   $('entryModal').style.display = 'flex';
   setTimeout(() => $('entry-name').focus(), 100);
 };
@@ -687,10 +996,12 @@ window.openAddModal = () => {
 window.closeModal = () => $('entryModal').style.display = 'none';
 
 window.saveEntry = async () => {
-  const name = $('entry-name').value.trim();
-  const user = $('entry-user').value.trim();
-  const pass = $('entry-pass').value;
-  const url  = $('entry-url').value.trim();
+  const name  = $('entry-name').value.trim();
+  const user  = $('entry-user').value.trim();
+  const pass  = $('entry-pass').value;
+  const url   = $('entry-url').value.trim();
+  const notes = $('entry-notes').value.trim();
+  const cat   = $('entry-cat').value;
   if (!name || !user || !pass) return toast('Name, username and password are required');
 
   setBtnLoading('saveBtn', true, 'Saving…');
@@ -701,7 +1012,8 @@ window.saveEntry = async () => {
       aesEncrypt(user, sessionKey),
       aesEncrypt(pass, sessionKey)
     ]);
-    const eUrl = url ? await aesEncrypt(url, sessionKey) : '';
+    const eUrl   = url   ? await aesEncrypt(url,   sessionKey) : '';
+    const eNotes = notes ? await aesEncrypt(notes, sessionKey) : '';
 
     const data    = await fsGet(currentUser);
     let entries   = data?.entries || [];
@@ -710,9 +1022,17 @@ window.saveEntry = async () => {
       const idx = entries.findIndex(e => e.id === editingId);
       if (idx !== -1) {
         const pwChanged = pass !== editingOriginalPass;
+        // Keep last 5 passwords in history
+        let pwHistory = entries[idx].pwHistory || [];
+        if (pwChanged && editingOriginalPass) {
+          const oldEncPass = await aesEncrypt(editingOriginalPass, sessionKey);
+          pwHistory = [{ pass: oldEncPass, at: Date.now() }, ...pwHistory].slice(0, 5);
+        }
         entries[idx] = {
           ...entries[idx],
-          name: eName, user: eUser, pass: ePass, url: eUrl,
+          name: eName, user: eUser, pass: ePass, url: eUrl, notes: eNotes,
+          category: cat || null,
+          pwHistory,
           ...(pwChanged ? { pwUpdated: Date.now() } : {})
         };
       }
@@ -720,8 +1040,9 @@ window.saveEntry = async () => {
     } else {
       entries.push({
         id: crypto.randomUUID(),
-        name: eName, user: eUser, pass: ePass, url: eUrl,
-        created: Date.now(), pwUpdated: Date.now()
+        name: eName, user: eUser, pass: ePass, url: eUrl, notes: eNotes,
+        category: cat || null,
+        created: Date.now(), pwUpdated: Date.now(), pwHistory: []
       });
       toast('Saved & synced across devices');
     }
@@ -736,8 +1057,22 @@ window.saveEntry = async () => {
   }
 };
 
-window.deleteEntry = async (id) => {
-  if (!confirm('Delete this entry?')) return;
+window.deleteEntry = (id, name) => {
+  pendingDeleteId   = id;
+  pendingDeleteName = name;
+  $('confirmDeleteName').textContent = `"${name}"`;
+  $('confirmDeleteModal').style.display = 'flex';
+};
+
+window.closeConfirmDelete = () => {
+  $('confirmDeleteModal').style.display = 'none';
+  pendingDeleteId = null;
+};
+
+window.confirmDeleteEntry = async () => {
+  if (!pendingDeleteId) return;
+  const id = pendingDeleteId;
+  closeConfirmDelete();
   setSyncStatus('syncing');
   try {
     const data    = await fsGet(currentUser);
@@ -791,7 +1126,7 @@ window.changeVaultPassword = async () => {
     const newKey  = await deriveKey(newPw, newSalt);
     const newToken = await aesEncrypt('VAULT_OK', newKey);
 
-    // Re-encrypt all entries
+    // Re-encrypt all entries (including notes and pwHistory)
     const oldEntries = vaultData.entries || [];
     const newEntries = await Promise.all(oldEntries.map(async e => {
       try {
@@ -800,14 +1135,21 @@ window.changeVaultPassword = async () => {
           aesDecrypt(e.user, oldKey),
           aesDecrypt(e.pass, oldKey)
         ]);
-        const url = e.url ? await aesDecrypt(e.url, oldKey) : '';
+        const url   = e.url   ? await aesDecrypt(e.url,   oldKey) : '';
+        const notes = e.notes ? await aesDecrypt(e.notes, oldKey) : '';
         const [eName, eUser, ePass] = await Promise.all([
           aesEncrypt(name, newKey),
           aesEncrypt(user, newKey),
           aesEncrypt(pass, newKey)
         ]);
-        const eUrl = url ? await aesEncrypt(url, newKey) : '';
-        return { ...e, name: eName, user: eUser, pass: ePass, url: eUrl };
+        const eUrl   = url   ? await aesEncrypt(url,   newKey) : '';
+        const eNotes = notes ? await aesEncrypt(notes, newKey) : '';
+        // Re-encrypt password history
+        const pwHistory = await Promise.all((e.pwHistory||[]).map(async h => {
+          try { return { pass: await aesEncrypt(await aesDecrypt(h.pass,oldKey),newKey), at: h.at }; }
+          catch { return null; }
+        })).then(a => a.filter(Boolean));
+        return { ...e, name: eName, user: eUser, pass: ePass, url: eUrl, notes: eNotes, pwHistory };
       } catch { return e; }
     }));
 
@@ -827,6 +1169,31 @@ window.changeVaultPassword = async () => {
   } finally {
     setBtnLoading('cvpBtn', false, 'Update Password');
   }
+};
+
+// ════════════════════════════════════════════════════════
+// EXPORT / BACKUP
+// ════════════════════════════════════════════════════════
+window.exportVault = async () => {
+  try {
+    const data = await fsGet(currentUser);
+    if (!data) return toast('No vault data to export');
+    // Export the raw encrypted blob — safe to store/share since it needs master password to decrypt
+    const exportObj = {
+      exportedAt: new Date().toISOString(),
+      vault: currentUser,
+      note: 'OneKey encrypted backup — import by replacing your vault doc in Firestore',
+      data
+    };
+    const blob = new Blob([JSON.stringify(exportObj, null, 2)], { type: 'application/json' });
+    const url  = URL.createObjectURL(blob);
+    const a    = document.createElement('a');
+    a.href = url;
+    a.download = `onekey-backup-${currentUser}-${Date.now()}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+    toast('Encrypted backup downloaded ⬇');
+  } catch (e) { toast('Export failed: ' + e.message); }
 };
 
 // ════════════════════════════════════════════════════════
@@ -860,8 +1227,9 @@ window.deleteAccount = async () => {
       return toast('Password is incorrect — deletion cancelled');
     }
 
-    // Stop real-time listener before deleting
+    // Stop real-time listener and timer before deleting
     if (unsubscribe) { unsubscribe(); unsubscribe = null; }
+    stopLockTimer();
 
     // Permanently delete the vault document from Firestore
     await deleteDoc(doc(db, 'vaults', currentUser));
