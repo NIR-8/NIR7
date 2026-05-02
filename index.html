@@ -1,3 +1,4 @@
+ 
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -348,16 +349,14 @@
 </head>
 <body>
 
-<!-- ══ AUTH ══ -->
 <div class="auth-wrap" id="authWrap">
   <div class="auth-card">
 
-    <!-- REGISTER -->
     <div id="registerScreen" class="screen active">
       <div class="logo"><span class="logo-dot"></span> VAULT</div>
       <div class="screen-title">Create your<br>master vault.</div>
       <p class="screen-sub">One password encrypts everything. Synced instantly across all your devices.</p>
-      <div class="notice">🔐 AES-256-GCM + PBKDF2 (310k rounds). Your master password never leaves this device — Firebase only ever stores unreadable ciphertext.</div>
+      <div class="notice">🔐 AES-256-GCM + PBKDF2 (310k rounds). Your master password never leaves this device.</div>
       <div class="field"><label>Username</label>
         <input type="text" id="reg-username" placeholder="choose a username" autocomplete="off" spellcheck="false" />
       </div>
@@ -379,7 +378,6 @@
       <button class="btn btn-ghost" onclick="showScreen('loginScreen')">Already have a vault → Login</button>
     </div>
 
-    <!-- LOGIN -->
     <div id="loginScreen" class="screen">
       <div class="logo"><span class="logo-dot"></span> VAULT</div>
       <div class="screen-title">Welcome<br>back.</div>
@@ -401,10 +399,7 @@
   </div>
 </div>
 
-<!-- ══ VAULT — full-screen, outside auth-wrap ══ -->
 <div id="vaultScreen">
-
-  <!-- TOP BAR -->
   <div class="topbar">
     <div class="topbar-logo"><span class="logo-dot"></span> VAULT</div>
     <div class="topbar-right">
@@ -419,23 +414,20 @@
     </div>
   </div>
 
-  <!-- BODY: sidebar + main -->
   <div class="vault-body">
-
-    <!-- SIDEBAR -->
     <div class="sidebar">
       <div class="sidebar-section">Categories</div>
-      <button class="cat-tab active" data-cat="all"      onclick="setCategory('all')">🗂 All <span class="cat-count" id="cnt-all">0</span></button>
-      <button class="cat-tab" data-cat="work"            onclick="setCategory('work')">💼 Work <span class="cat-count" id="cnt-work">0</span></button>
-      <button class="cat-tab" data-cat="finance"         onclick="setCategory('finance')">💳 Finance <span class="cat-count" id="cnt-finance">0</span></button>
-      <button class="cat-tab" data-cat="social"          onclick="setCategory('social')">💬 Social <span class="cat-count" id="cnt-social">0</span></button>
-      <button class="cat-tab" data-cat="personal"        onclick="setCategory('personal')">👤 Personal <span class="cat-count" id="cnt-personal">0</span></button>
-      <button class="cat-tab" data-cat="other"           onclick="setCategory('other')">📦 Other <span class="cat-count" id="cnt-other">0</span></button>
-      <button class="cat-tab" data-cat="fav"             onclick="setCategory('fav')">⭐ Favorites <span class="cat-count" id="cnt-fav">0</span></button>
+      <button class="cat-tab active" data-cat="all" onclick="setCategory('all')">🗂 All <span class="cat-count" id="cnt-all">0</span></button>
+      <button class="cat-tab" data-cat="work" onclick="setCategory('work')">💼 Work <span class="cat-count" id="cnt-work">0</span></button>
+      <button class="cat-tab" data-cat="finance" onclick="setCategory('finance')">💳 Finance <span class="cat-count" id="cnt-finance">0</span></button>
+      <button class="cat-tab" data-cat="social" onclick="setCategory('social')">💬 Social <span class="cat-count" id="cnt-social">0</span></button>
+      <button class="cat-tab" data-cat="personal" onclick="setCategory('personal')">👤 Personal <span class="cat-count" id="cnt-personal">0</span></button>
+      <button class="cat-tab" data-cat="other" onclick="setCategory('other')">📦 Other <span class="cat-count" id="cnt-other">0</span></button>
+      <button class="cat-tab" data-cat="fav" onclick="setCategory('fav')">⭐ Favorites <span class="cat-count" id="cnt-fav">0</span></button>
 
       <div class="sidebar-section">Security</div>
-      <button class="cat-tab" data-cat="overdue"         onclick="setCategory('overdue')">🔴 Overdue <span class="cat-count" id="cnt-overdue">0</span></button>
-      <button class="cat-tab" data-cat="warn"            onclick="setCategory('warn')">🟡 Due Soon <span class="cat-count" id="cnt-warn">0</span></button>
+      <button class="cat-tab" data-cat="overdue" onclick="setCategory('overdue')">🔴 Overdue <span class="cat-count" id="cnt-overdue">0</span></button>
+      <button class="cat-tab" data-cat="warn" onclick="setCategory('warn')">🟡 Due Soon <span class="cat-count" id="cnt-warn">0</span></button>
 
       <div class="sidebar-stats" id="sidebarStats">
         <div class="stat-row"><span class="stat-label">Total entries</span><span class="stat-val" id="stat-total">0</span></div>
@@ -445,12 +437,9 @@
       </div>
     </div>
 
-    <!-- MAIN PANEL -->
     <div class="main-panel">
-
-      <!-- TOOLBAR -->
       <div class="main-toolbar">
-        <div class="search-bar" style="flex:1;margin:0;position:relative;">
+        <div class="search-bar">
           <span class="search-icon">🔍</span>
           <input type="text" id="searchInput" placeholder="search entries…" oninput="renderEntries()" />
         </div>
@@ -464,12 +453,10 @@
         <button class="export-btn" onclick="exportVault()">⬇ Export</button>
       </div>
 
-      <!-- ENTRIES GRID -->
       <div class="entries-wrap">
         <div class="entries" id="entriesList"></div>
       </div>
 
-      <!-- FOOTER -->
       <div class="main-footer">
         <span class="count-badge" id="entryCount">0 entries</span>
         <div style="display:flex;gap:8px;align-items:center;">
@@ -477,12 +464,10 @@
           <button class="btn btn-primary btn-sm" onclick="openAddModal()">+ Add Entry</button>
         </div>
       </div>
+    </div>
+  </div>
+</div>
 
-    </div><!-- /main-panel -->
-  </div><!-- /vault-body -->
-</div><!-- /vaultScreen -->
-
-<!-- ══ DELETE ACCOUNT MODAL ══ -->
 <div id="deleteAccountModal" class="modal-overlay" style="display:none" onclick="if(event.target===this)closeDeleteAccount()">
   <div class="modal">
     <div class="modal-title">
@@ -490,17 +475,16 @@
       <button class="icon-btn" onclick="closeDeleteAccount()">✕</button>
     </div>
     <div class="notice" style="background:rgba(255,77,106,0.08);border-color:rgba(255,77,106,0.25);color:rgba(255,100,120,0.9);">
-      ☠️ This permanently deletes your vault and ALL saved passwords. This action <strong>cannot be undone</strong>.
+      ☠️ This permanently deletes your vault. This action <strong>cannot be undone</strong>.
     </div>
     <div class="field"><label>Confirm Master Password</label>
       <div class="input-wrap">
-        <input type="password" id="del-password" placeholder="enter password to confirm" autocomplete="current-password"
-          onkeydown="if(event.key==='Enter') deleteAccount()" />
+        <input type="password" id="del-password" placeholder="enter password to confirm" />
         <button class="input-icon" onclick="toggleVis('del-password')" tabindex="-1">👁</button>
       </div>
     </div>
     <div class="field"><label>Type DELETE to confirm</label>
-      <input type="text" id="del-confirm-text" placeholder='type DELETE' autocomplete="off" spellcheck="false" />
+      <input type="text" id="del-confirm-text" placeholder='type DELETE' />
     </div>
     <div class="modal-actions">
       <button class="btn btn-ghost" onclick="closeDeleteAccount()">Cancel</button>
@@ -509,34 +493,13 @@
   </div>
 </div>
 
-<!-- ══ CHANGE VAULT PASSWORD MODAL ══ -->
 <div id="changeVaultPwModal" class="modal-overlay" style="display:none" onclick="if(event.target===this)closeChangeVaultPw()">
   <div class="modal">
-    <div class="modal-title">
-      <span>Change Vault Password</span>
-      <button class="icon-btn" onclick="closeChangeVaultPw()">✕</button>
-    </div>
-    <div class="notice">⚠️ All entries will be re-encrypted with your new master password. This cannot be undone.</div>
-    <div class="field"><label>Current Master Password</label>
-      <div class="input-wrap">
-        <input type="password" id="cvp-current" placeholder="current password" autocomplete="current-password" />
-        <button class="input-icon" onclick="toggleVis('cvp-current')" tabindex="-1">👁</button>
-      </div>
-    </div>
-    <div class="field"><label>New Master Password</label>
-      <div class="input-wrap">
-        <input type="password" id="cvp-new" placeholder="new strong password" autocomplete="new-password" oninput="checkStrengthEl(this,'cvpStrengthFill')" />
-        <button class="input-icon" onclick="toggleVis('cvp-new')" tabindex="-1">👁</button>
-      </div>
-      <div class="strength-bar"><div class="strength-fill" id="cvpStrengthFill"></div></div>
-    </div>
-    <div class="field"><label>Confirm New Password</label>
-      <div class="input-wrap">
-        <input type="password" id="cvp-confirm" placeholder="repeat new password" autocomplete="new-password"
-          onkeydown="if(event.key==='Enter') changeVaultPassword()" />
-        <button class="input-icon" onclick="toggleVis('cvp-confirm')" tabindex="-1">👁</button>
-      </div>
-    </div>
+    <div class="modal-title"><span>Change Vault Password</span><button class="icon-btn" onclick="closeChangeVaultPw()">✕</button></div>
+    <div class="notice">⚠️ All entries will be re-encrypted. This cannot be undone.</div>
+    <div class="field"><label>Current Master Password</label><input type="password" id="cvp-current" /></div>
+    <div class="field"><label>New Master Password</label><input type="password" id="cvp-new" oninput="checkStrengthEl(this,'cvpStrengthFill')" /><div class="strength-bar"><div class="strength-fill" id="cvpStrengthFill"></div></div></div>
+    <div class="field"><label>Confirm New Password</label><input type="password" id="cvp-confirm" /></div>
     <div class="modal-actions">
       <button class="btn btn-ghost" onclick="closeChangeVaultPw()">Cancel</button>
       <button class="btn btn-primary" id="cvpBtn" onclick="changeVaultPassword()">Update Password</button>
@@ -544,29 +507,16 @@
   </div>
 </div>
 
-<!-- ══ ENTRY MODAL ══ -->
 <div id="entryModal" class="modal-overlay" style="display:none" onclick="if(event.target===this)closeModal()">
-  <div class="modal" style="max-height:90vh;overflow-y:auto;">
-    <div class="modal-title">
-      <span id="modalTitle">New Entry</span>
-      <button class="icon-btn" onclick="closeModal()">✕</button>
-    </div>
-    <div class="field"><label>Site / App Name</label>
-      <input type="text" id="entry-name" placeholder="e.g. GitHub" autocomplete="off" />
-    </div>
-    <div class="field"><label>Username / Email</label>
-      <input type="text" id="entry-user" placeholder="your login" autocomplete="off" />
-    </div>
+  <div class="modal">
+    <div class="modal-title"><span id="modalTitle">New Entry</span><button class="icon-btn" onclick="closeModal()">✕</button></div>
+    <div class="field"><label>Site / App Name</label><input type="text" id="entry-name" /></div>
+    <div class="field"><label>Username / Email</label><input type="text" id="entry-user" /></div>
     <div class="field"><label>Password</label>
-      <div class="input-wrap">
-        <input type="password" id="entry-pass" placeholder="password" autocomplete="new-password" oninput="checkDuplicate(this.value)" />
-        <button class="input-icon" onclick="toggleVis('entry-pass')" tabindex="-1">👁</button>
-      </div>
+      <div class="input-wrap"><input type="password" id="entry-pass" oninput="checkDuplicate(this.value)" /><button class="input-icon" onclick="toggleVis('entry-pass')" tabindex="-1">👁</button></div>
       <div class="dup-warning" id="dupWarning">⚠️ This password is already used by another entry!</div>
     </div>
-    <div class="field"><label>URL (optional)</label>
-      <input type="url" id="entry-url" placeholder="https://…" autocomplete="off" />
-    </div>
+    <div class="field"><label>URL (optional)</label><input type="url" id="entry-url" /></div>
     <div class="field"><label>Category</label>
       <select class="cat-select" id="entry-cat">
         <option value="">— None —</option>
@@ -577,16 +527,9 @@
         <option value="other">📦 Other</option>
       </select>
     </div>
-    <div class="field"><label>Notes (optional)</label>
-      <textarea class="entry-notes" id="entry-notes" placeholder="security questions, PIN, recovery codes…"></textarea>
-    </div>
-    <button class="btn btn-ghost btn-sm" style="width:100%;margin-bottom:14px" onclick="generatePassword()">
-      ⚡ Generate Strong Password
-    </button>
-    <div id="pwHistorySection" class="pw-history" style="display:none">
-      <div class="pw-history-title">Password History (hover to reveal)</div>
-      <div id="pwHistoryList"></div>
-    </div>
+    <div class="field"><label>Notes (optional)</label><textarea class="entry-notes" id="entry-notes"></textarea></div>
+    <button class="btn btn-ghost btn-sm" style="width:100%;margin-bottom:14px" onclick="generatePassword()">⚡ Generate Strong Password</button>
+    <div id="pwHistorySection" class="pw-history" style="display:none"><div class="pw-history-title">Password History</div><div id="pwHistoryList"></div></div>
     <div class="modal-actions">
       <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
       <button class="btn btn-primary" id="saveBtn" onclick="saveEntry()">Save Entry</button>
@@ -594,14 +537,10 @@
   </div>
 </div>
 
-<!-- ══ CONFIRM DELETE ENTRY MODAL ══ -->
 <div id="confirmDeleteModal" class="modal-overlay" style="display:none" onclick="if(event.target===this)closeConfirmDelete()">
   <div class="modal">
-    <div class="modal-title">
-      <span style="color:var(--danger)">Delete Entry</span>
-      <button class="icon-btn" onclick="closeConfirmDelete()">✕</button>
-    </div>
-    <p class="confirm-modal-msg">Are you sure you want to delete <strong id="confirmDeleteName">"this entry"</strong>? This cannot be undone.</p>
+    <div class="modal-title"><span style="color:var(--danger)">Delete Entry</span><button class="icon-btn" onclick="closeConfirmDelete()">✕</button></div>
+    <p class="confirm-modal-msg">Delete <strong id="confirmDeleteName">"this entry"</strong>? This cannot be undone.</p>
     <div class="modal-actions">
       <button class="btn btn-ghost" onclick="closeConfirmDelete()">Cancel</button>
       <button class="btn btn-primary" style="background:var(--danger);color:#fff;" onclick="confirmDeleteEntry()">Delete</button>
@@ -613,38 +552,33 @@
 
 <script type="module">
 // ════════════════════════════════════════════════════════
-// FIREBASE — using your project (onekey-5067d)
+// FIREBASE & CONFIG
 // ════════════════════════════════════════════════════════
-import { initializeApp }    from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
-import { getFirestore, doc, getDoc, setDoc, deleteDoc, onSnapshot, runTransaction }
-  from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
+import { getFirestore, doc, getDoc, setDoc, deleteDoc, onSnapshot, runTransaction } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
 
 const firebaseConfig = {
-  apiKey:            "AIzaSyAF1nxXeZhz7LvWpQFTnFYNifuZII_R-mE",
-  authDomain:        "onekey-5067d.firebaseapp.com",
-  projectId:         "onekey-5067d",
-  storageBucket:     "onekey-5067d.firebasestorage.app",
+  apiKey: "AIzaSyAF1nxXeZhz7LvWpQFTnFYNifuZII_R-mE",
+  authDomain: "onekey-5067d.firebaseapp.com",
+  projectId: "onekey-5067d",
+  storageBucket: "onekey-5067d.firebasestorage.app",
   messagingSenderId: "1098836590874",
-  appId:             "1:1098836590874:web:9c62490ce2670a4418aca3",
-  measurementId:     "G-15YVKJ8PXL"
+  appId: "1:1098836590874:web:9c62490ce2670a4418aca3"
 };
 
 const app = initializeApp(firebaseConfig);
-const db  = getFirestore(app);
+const db = getFirestore(app);
 
 // ════════════════════════════════════════════════════════
-// CRYPTO — AES-256-GCM + PBKDF2
+// CRYPTO HELPERS
 // ════════════════════════════════════════════════════════
 const ENC = new TextEncoder(), DEC = new TextDecoder();
+const toB64 = arr => btoa(String.fromCharCode(...arr));
+const fromB64 = str => Uint8Array.from(atob(str), c => c.charCodeAt(0));
 
 async function deriveKey(password, salt) {
-  const raw = await crypto.subtle.importKey(
-    'raw', ENC.encode(password), { name: 'PBKDF2' }, false, ['deriveKey']
-  );
-  return crypto.subtle.deriveKey(
-    { name: 'PBKDF2', salt, iterations: 310000, hash: 'SHA-256' },
-    raw, { name: 'AES-GCM', length: 256 }, false, ['encrypt', 'decrypt']
-  );
+  const raw = await crypto.subtle.importKey('raw', ENC.encode(password), { name: 'PBKDF2' }, false, ['deriveKey']);
+  return crypto.subtle.deriveKey({ name: 'PBKDF2', salt, iterations: 310000, hash: 'SHA-256' }, raw, { name: 'AES-GCM', length: 256 }, false, ['encrypt', 'decrypt']);
 }
 
 async function aesEncrypt(plain, key) {
@@ -657,756 +591,153 @@ async function aesEncrypt(plain, key) {
 
 async function aesDecrypt(b64, key) {
   const buf = Uint8Array.from(atob(b64), c => c.charCodeAt(0));
-  const pt  = await crypto.subtle.decrypt(
-    { name: 'AES-GCM', iv: buf.slice(0, 12) }, key, buf.slice(12)
-  );
+  const pt = await crypto.subtle.decrypt({ name: 'AES-GCM', iv: buf.slice(0, 12) }, key, buf.slice(12));
   return DEC.decode(pt);
 }
 
-const toB64   = arr => btoa(String.fromCharCode(...arr));
-const fromB64 = str => Uint8Array.from(atob(str), c => c.charCodeAt(0));
-
 // ════════════════════════════════════════════════════════
-// STATE
+// APP STATE
 // ════════════════════════════════════════════════════════
-let currentUser = null;
-let sessionKey  = null;
-let editingId   = null;
-let editingOriginalPass = null;
-let unsubscribe = null;
-let activeCategory = 'all';
-let pendingDeleteId = null;
-let pendingDeleteName = '';
-let cachedEntries = [];        // raw encrypted entries from last snapshot
+let currentUser = null, sessionKey = null, editingId = null, editingOriginalPass = null;
+let unsubscribe = null, activeCategory = 'all', pendingDeleteId = null, cachedEntries = [];
+let debounceTimer;
 
-// AUTO-LOCK
 const LOCK_MINUTES = 5;
 let lockSecondsLeft = LOCK_MINUTES * 60;
 let lockInterval = null;
 
-function resetIdleTimer() {
-  lockSecondsLeft = LOCK_MINUTES * 60;
-}
-function startLockTimer() {
-  stopLockTimer();
-  lockSecondsLeft = LOCK_MINUTES * 60;
-  lockInterval = setInterval(() => {
-    lockSecondsLeft--;
-    const m = Math.floor(lockSecondsLeft / 60);
-    const s = String(lockSecondsLeft % 60).padStart(2, '0');
-    const el = $('lockTimer');
-    if (el) {
-      el.textContent = `🔒 ${m}:${s}`;
-      el.className = 'lock-timer' + (lockSecondsLeft <= 60 ? ' warn' : '');
-    }
-    if (lockSecondsLeft <= 0) {
-      stopLockTimer();
-      logout();
-      toast('Vault auto-locked due to inactivity 🔒');
-    }
-  }, 1000);
-}
-function stopLockTimer() {
-  if (lockInterval) { clearInterval(lockInterval); lockInterval = null; }
-}
-['mousemove','keydown','click','touchstart','scroll'].forEach(ev =>
-  document.addEventListener(ev, resetIdleTimer, { passive: true })
-);
-
 // ════════════════════════════════════════════════════════
-// FIRESTORE HELPERS
-// ════════════════════════════════════════════════════════
-async function fsGet(username) {
-  const snap = await getDoc(doc(db, 'vaults', username));
-  return snap.exists() ? snap.data() : null;
-}
-async function fsSet(username, data) {
-  await setDoc(doc(db, 'vaults', username), data, { merge: true });
-}
-
-function setSyncStatus(state) {
-  const dot = $('syncDot'), lbl = $('syncLabel');
-  if (!dot) return;
-  dot.className = 'sync-dot' + (state !== 'synced' ? ' ' + state : '');
-  lbl.textContent = state;
-}
-
-// ════════════════════════════════════════════════════════
-// AUTH
+// CORE LOGIC
 // ════════════════════════════════════════════════════════
 window.register = async () => {
-  const username = $('reg-username').value.trim().toLowerCase();
-  const password = $('reg-password').value;
-  const confirm  = $('reg-confirm').value;
-
-  if (!username)            return toast('Choose a username');
-  if (!/^[a-z0-9_]{3,24}$/.test(username))
-                            return toast('Username: 3–24 chars, letters/numbers/_');
-  if (password.length < 8) return toast('Master password must be 8+ characters');
-  if (password !== confirm) return toast('Passwords do not match');
+  const user = $('reg-username').value.trim().toLowerCase();
+  const pass = $('reg-password').value, conf = $('reg-confirm').value;
+  if (!user || pass.length < 8 || pass !== conf) return toast('Invalid details or mismatch');
 
   setBtnLoading('regBtn', true, 'Creating…');
   try {
-    const salt  = crypto.getRandomValues(new Uint8Array(16));
-    const key   = await deriveKey(password, salt);
+    const salt = crypto.getRandomValues(new Uint8Array(16));
+    const key = await deriveKey(pass, salt);
     const token = await aesEncrypt('VAULT_OK', key);
-    const vaultDoc = doc(db, 'vaults', username);
-
-    // Atomic check-and-create: prevents two users claiming the same username
-    await runTransaction(db, async (tx) => {
-      const snap = await tx.get(vaultDoc);
-      if (snap.exists()) throw new Error('Username already taken');
-      tx.set(vaultDoc, {
-        salt: toB64(salt), verifyToken: token,
-        entries: [], updatedAt: Date.now()
-      });
+    await runTransaction(db, async tx => {
+      const snap = await tx.get(doc(db, 'vaults', user));
+      if (snap.exists()) throw new Error('Taken');
+      tx.set(doc(db, 'vaults', user), { salt: toB64(salt), verifyToken: token, entries: [], updatedAt: Date.now() });
     });
-
-    toast('Vault created! Logging you in…');
-    $('login-username').value = username;
     showScreen('loginScreen');
-  } catch (e) {
-    toast(e.message.includes('already taken') ? 'Username already taken' : 'Error: ' + e.message);
-  } finally {
-    setBtnLoading('regBtn', false, 'Create Vault');
-  }
+    toast('Vault created! Please login.');
+  } catch (e) { toast(e.message === 'Taken' ? 'Username taken' : 'Error'); }
+  finally { setBtnLoading('regBtn', false, 'Create Vault'); }
 };
 
 window.login = async () => {
-  const username = $('login-username').value.trim().toLowerCase();
-  const password = $('login-password').value;
-  if (!username || !password) return toast('Fill in all fields');
-
+  const user = $('login-username').value.trim().toLowerCase();
+  const pass = $('login-password').value;
   setBtnLoading('loginBtn', true, 'Unlocking…');
   try {
-    const data = await fsGet(username);
-    if (!data) return toast('No vault found for this username');
-
-    const key = await deriveKey(password, fromB64(data.salt));
-    try {
-      if (await aesDecrypt(data.verifyToken, key) !== 'VAULT_OK') throw 0;
-    } catch {
-      return toast('Wrong password');
-    }
-
-    currentUser = username;
-    sessionKey  = key;
-    $('vaultUser').textContent = username;
+    const snap = await getDoc(doc(db, 'vaults', user));
+    if (!snap.exists()) throw new Error('Not found');
+    const data = snap.data();
+    const key = await deriveKey(pass, fromB64(data.salt));
+    if (await aesDecrypt(data.verifyToken, key) !== 'VAULT_OK') throw new Error('Wrong');
+    
+    currentUser = user; sessionKey = key;
+    $('vaultUser').textContent = user;
     showScreen('vaultScreen');
     startLockTimer();
-
-    // Real-time listener
+    
     if (unsubscribe) unsubscribe();
-    unsubscribe = onSnapshot(
-      doc(db, 'vaults', username),
-      async snap => {
-        if (snap.exists()) {
-          cachedEntries = snap.data().entries || [];
-          await renderEntries(cachedEntries);
-        }
-        setSyncStatus('synced');
-      },
-      () => setSyncStatus('error')
-    );
-
-  } catch (e) {
-    toast('Error: ' + e.message);
-  } finally {
-    setBtnLoading('loginBtn', false, 'Unlock Vault');
-  }
-};
-
-window.logout = () => {
-  if (unsubscribe) { unsubscribe(); unsubscribe = null; }
-  stopLockTimer();
-  currentUser = null; sessionKey = null; cachedEntries = [];
-  $('login-password').value = '';
-  showScreen('loginScreen');
-  toast('Vault locked 🔒');
-};
-
-// ════════════════════════════════════════════════════════
-// ENTRIES
-// ════════════════════════════════════════════════════════
-window.setCategory = (cat) => {
-  activeCategory = cat;
-  document.querySelectorAll('.cat-tab').forEach(t =>
-    t.classList.toggle('active', t.dataset.cat === cat)
-  );
-  renderEntries();
-};
-
-window.renderEntries = async (rawOverride) => {
-  const q = ($('searchInput')?.value || '').toLowerCase();
-  const sort = $('sortSelect')?.value || 'az';
-
-  let raw;
-  if (rawOverride !== undefined) {
-    cachedEntries = rawOverride;
-    raw = rawOverride;
-  } else {
-    raw = cachedEntries;
-  }
-
-  const totalCount = raw.length;
-
-  let allItems = (await Promise.all(
-    raw.map(async e => {
-      try {
-        return {
-          ...e,
-          _name: await aesDecrypt(e.name, sessionKey),
-          _user: await aesDecrypt(e.user, sessionKey)
-        };
-      } catch { return null; }
-    })
-  )).filter(Boolean);
-
-  // Update sidebar counts
-  const cats = ['work','finance','social','personal','other'];
-  const cntAll = $('cnt-all'); if(cntAll) cntAll.textContent = allItems.length;
-  cats.forEach(c => { const el=$('cnt-'+c); if(el) el.textContent=allItems.filter(e=>e.category===c).length; });
-  const favCount = allItems.filter(e=>e.favorite).length;
-  const cntFav=$('cnt-fav'); if(cntFav) cntFav.textContent=favCount;
-  const overdueItems = allItems.filter(e=>{ const d=e.pwUpdated||e.created; return d && Math.floor((Date.now()-d)/86400000)>90; });
-  const warnItems    = allItems.filter(e=>{ const d=e.pwUpdated||e.created; if(!d) return false; const left=90-Math.floor((Date.now()-d)/86400000); return left>0&&left<=30; });
-  const cntOv=$('cnt-overdue'); if(cntOv) cntOv.textContent=overdueItems.length;
-  const cntWn=$('cnt-warn'); if(cntWn) cntWn.textContent=warnItems.length;
-  const stTotal=$('stat-total'); if(stTotal) stTotal.textContent=allItems.length;
-  const stOv=$('stat-overdue'); if(stOv) stOv.textContent=overdueItems.length;
-  const stWn=$('stat-warn'); if(stWn) stWn.textContent=warnItems.length;
-  const stFav=$('stat-fav'); if(stFav) stFav.textContent=favCount;
-
-  let items = allItems;
-
-  // Category filter
-  if (activeCategory === 'fav')     items = items.filter(e => e.favorite);
-  else if (activeCategory === 'overdue') items = overdueItems;
-  else if (activeCategory === 'warn')    items = warnItems;
-  else if (activeCategory !== 'all')     items = items.filter(e => e.category === activeCategory);
-
-  // Search filter
-  if (q) items = items.filter(e =>
-    e._name.toLowerCase().includes(q) || e._user.toLowerCase().includes(q)
-  );
-
-  // Sort
-  if (sort === 'az')     items.sort((a,b) => a._name.localeCompare(b._name));
-  if (sort === 'za')     items.sort((a,b) => b._name.localeCompare(a._name));
-  if (sort === 'newest') items.sort((a,b) => (b.created||0) - (a.created||0));
-  if (sort === 'oldest') items.sort((a,b) => (a.created||0) - (b.created||0));
-  if (sort === 'fav')    items.sort((a,b) => (b.favorite?1:0) - (a.favorite?1:0));
-
-  const list = $('entriesList');
-  if (!list) return;
-
-  // Entry count: X of Y when filtered, else just X
-  const showing = items.length;
-  const totalCount = allItems.length;
-  const isFiltered = q || activeCategory !== 'all';
-  $('entryCount').textContent = isFiltered
-    ? `${showing} of ${totalCount} entr${totalCount === 1 ? 'y' : 'ies'}`
-    : `${showing} entr${showing === 1 ? 'y' : 'ies'}`;
-
-  if (!items.length) {
-    list.innerHTML = `<div class="empty-state">
-      <div class="e-icon">🔑</div>
-      <p>${q || activeCategory !== 'all' ? 'No entries match your filter.' : 'Your vault is empty.<br>Tap <strong style="color:var(--accent)">+ Add Entry</strong> to begin.'}</p>
-    </div>`;
-    return;
-  }
-
-  list.innerHTML = '';
-  for (const e of items) {
-    const el = document.createElement('div');
-    el.className = 'entry';
-
-    // Password age
-    const pwUpdated = e.pwUpdated || e.created || null;
-    let ageHtml = '';
-    if (pwUpdated) {
-      const daysAgo = Math.floor((Date.now() - pwUpdated) / 86400000);
-      const daysLeft = 90 - daysAgo;
-      let level, ageLabel, countLabel;
-      if (daysLeft > 30)     { level='safe';    ageLabel=`${daysAgo}d ago`; countLabel=`${daysLeft}d left`; }
-      else if (daysLeft > 0) { level='warn';    ageLabel=`${daysAgo}d ago`; countLabel=`${daysLeft}d left`; }
-      else                   { level='overdue'; ageLabel=`${daysAgo}d ago`; countLabel=`${Math.abs(daysLeft)}d overdue`; }
-      ageHtml = `<div class="entry-pw-age">
-        <span class="pw-age-dot ${level}"></span>
-        <span class="pw-age-text ${level}">pw: ${ageLabel} · ${countLabel}</span>
-      </div>`;
-    }
-
-    // Category badge
-    const catLabels = {work:'💼 Work',finance:'💳 Finance',social:'💬 Social',personal:'👤 Personal',other:'📦 Other'};
-    const catHtml = e.category ? `<div class="entry-cat">${catLabels[e.category]||e.category}</div>` : '';
-
-    // URL button
-    const urlBtn = e.url
-      ? `<button class="icon-btn" title="Open site" onclick="openUrl('${e.id}')">🔗</button>`
-      : '';
-
-    // Favorite star
-    const starClass = e.favorite ? 'icon-btn star on' : 'icon-btn star';
-    const starTitle  = e.favorite ? 'Unfavorite' : 'Favorite';
-
-    el.innerHTML = `
-      <div class="entry-top">
-        <div class="entry-icon">${esc(e._name.charAt(0))}</div>
-        <div class="entry-info">
-          <div class="entry-name">${esc(e._name)}</div>
-          <div class="entry-user">${esc(e._user)}</div>
-          ${catHtml}${ageHtml}
-          <div class="entry-peek" id="peek-${e.id}"></div>
-        </div>
-        <button class="${starClass}" title="${starTitle}" onclick="toggleFavorite('${e.id}')">★</button>
-      </div>
-      <div class="entry-actions">
-        <button class="icon-btn" title="Peek password" onclick="peekPassword('${e.id}')">👁</button>
-        <button class="icon-btn" title="Copy password" onclick="copyPw('${e.id}')">📋</button>
-        ${urlBtn}
-        <button class="icon-btn" title="Edit" onclick="openEdit('${e.id}')">✏️</button>
-        <button class="icon-btn danger" title="Delete" onclick="deleteEntry('${e.id}','${esc(e._name)}')">🗑</button>
-      </div>`;
-    list.appendChild(el);
-  }
+    unsubscribe = onSnapshot(doc(db, 'vaults', user), snap => {
+      if (snap.exists()) { cachedEntries = snap.data().entries || []; renderEntries(); }
+    });
+  } catch (e) { toast('Invalid credentials'); }
+  finally { setBtnLoading('loginBtn', false, 'Unlock Vault'); }
 };
 
 window.copyPw = async (id) => {
-  const entry = cachedEntries.find(e => e.id === id);
-  if (!entry) return;
+  const e = cachedEntries.find(i => i.id === id);
+  if (!e) return;
+  const pw = await aesDecrypt(e.pass, sessionKey);
   try {
-    await navigator.clipboard.writeText(await aesDecrypt(entry.pass, sessionKey));
-    toast('Password copied to clipboard');
-  } catch { toast('Copy failed — try HTTPS'); }
+    await navigator.clipboard.writeText(pw);
+    toast('Copied! Clears in 60s.');
+    setTimeout(() => navigator.clipboard.writeText(''), 60000); // SECURITY: Clear clipboard
+  } catch { toast('Copy failed'); }
 };
 
-window.peekPassword = async (id) => {
-  const peekEl = $('peek-' + id);
-  if (!peekEl) return;
-  if (peekEl.style.display === 'block') { peekEl.style.display = 'none'; peekEl.textContent = ''; return; }
-  const entry = cachedEntries.find(e => e.id === id);
-  if (!entry) return;
-  try {
-    const pw = await aesDecrypt(entry.pass, sessionKey);
-    peekEl.textContent = pw;
-    peekEl.style.display = 'block';
-    setTimeout(() => { peekEl.style.display = 'none'; peekEl.textContent = ''; }, 8000);
-  } catch { toast('Could not decrypt'); }
-};
-
-window.openUrl = async (id) => {
-  const entry = cachedEntries.find(e => e.id === id);
-  if (!entry || !entry.url) return;
-  try {
-    const url = await aesDecrypt(entry.url, sessionKey);
-    window.open(url, '_blank', 'noopener,noreferrer');
-  } catch { toast('Could not open URL'); }
-};
-
-window.toggleFavorite = async (id) => {
-  const data    = await fsGet(currentUser);
-  const entries = data?.entries || [];
-  const idx     = entries.findIndex(e => e.id === id);
-  if (idx === -1) return;
-  entries[idx].favorite = !entries[idx].favorite;
-  await fsSet(currentUser, { entries, updatedAt: Date.now() });
-  toast(entries[idx].favorite ? '⭐ Added to favorites' : 'Removed from favorites');
-};
-
-// Duplicate password detection
-window.checkDuplicate = async (val) => {
-  const w = $('dupWarning');
-  if (!w || !val || !sessionKey) { if(w) w.classList.remove('show'); return; }
-  const others = cachedEntries.filter(e => e.id !== editingId);
-  for (const e of others) {
-    try {
-      const p = await aesDecrypt(e.pass, sessionKey);
-      if (p === val) { w.classList.add('show'); return; }
-    } catch {}
-  }
-  w.classList.remove('show');
-};
-
-window.openEdit = async (id) => {
-  const data  = await fsGet(currentUser);
-  const entry = (data?.entries || []).find(e => e.id === id);
-  if (!entry) return;
-  editingId = id;
-  $('modalTitle').textContent = 'Edit Entry';
-  const decryptedPass = await aesDecrypt(entry.pass, sessionKey);
-  editingOriginalPass = decryptedPass;
-  $('entry-name').value  = await aesDecrypt(entry.name, sessionKey);
-  $('entry-user').value  = await aesDecrypt(entry.user, sessionKey);
-  $('entry-pass').value  = decryptedPass;
-  $('entry-url').value   = entry.url   ? await aesDecrypt(entry.url,   sessionKey) : '';
-  $('entry-notes').value = entry.notes ? await aesDecrypt(entry.notes, sessionKey) : '';
-  $('entry-cat').value   = entry.category || '';
-  $('dupWarning').classList.remove('show');
-
-  // Password history
-  const hist = entry.pwHistory || [];
-  const histSection = $('pwHistorySection');
-  const histList    = $('pwHistoryList');
-  if (hist.length > 0) {
-    histSection.style.display = 'block';
-    histList.innerHTML = '';
-    for (const h of [...hist].reverse()) {
-      try {
-        const oldPw = await aesDecrypt(h.pass, sessionKey);
-        const date  = new Date(h.at).toLocaleDateString();
-        const item  = document.createElement('div');
-        item.className = 'pw-history-item';
-        item.innerHTML = `<span class="pw-history-pass" title="hover to reveal">${esc(oldPw)}</span>
-          <span class="pw-history-date">${date}</span>`;
-        histList.appendChild(item);
-      } catch {}
+window.checkDuplicate = (val) => {
+  clearTimeout(debounceTimer);
+  debounceTimer = setTimeout(async () => { // PERFORMANCE: Debounce decryption
+    const w = $('dupWarning');
+    if (!val || !sessionKey) return w.classList.remove('show');
+    for (let e of cachedEntries.filter(i => i.id !== editingId)) {
+      if (await aesDecrypt(e.pass, sessionKey) === val) return w.classList.add('show');
     }
-  } else {
-    histSection.style.display = 'none';
-  }
-
-  $('entryModal').style.display = 'flex';
-};
-
-window.openAddModal = () => {
-  editingId = null;
-  editingOriginalPass = null;
-  $('modalTitle').textContent = 'New Entry';
-  ['entry-name','entry-user','entry-pass','entry-url','entry-notes'].forEach(k => $(k).value = '');
-  $('entry-cat').value = '';
-  $('dupWarning').classList.remove('show');
-  $('pwHistorySection').style.display = 'none';
-  $('entryModal').style.display = 'flex';
-  setTimeout(() => $('entry-name').focus(), 100);
-};
-
-window.closeModal = () => $('entryModal').style.display = 'none';
-
-window.saveEntry = async () => {
-  const name  = $('entry-name').value.trim();
-  const user  = $('entry-user').value.trim();
-  const pass  = $('entry-pass').value;
-  const url   = $('entry-url').value.trim();
-  const notes = $('entry-notes').value.trim();
-  const cat   = $('entry-cat').value;
-  if (!name || !user || !pass) return toast('Name, username and password are required');
-
-  setBtnLoading('saveBtn', true, 'Saving…');
-  setSyncStatus('syncing');
-  try {
-    const [eName, eUser, ePass] = await Promise.all([
-      aesEncrypt(name, sessionKey),
-      aesEncrypt(user, sessionKey),
-      aesEncrypt(pass, sessionKey)
-    ]);
-    const eUrl   = url   ? await aesEncrypt(url,   sessionKey) : '';
-    const eNotes = notes ? await aesEncrypt(notes, sessionKey) : '';
-
-    const data    = await fsGet(currentUser);
-    let entries   = data?.entries || [];
-
-    if (editingId) {
-      const idx = entries.findIndex(e => e.id === editingId);
-      if (idx !== -1) {
-        const pwChanged = pass !== editingOriginalPass;
-        // Keep last 5 passwords in history
-        let pwHistory = entries[idx].pwHistory || [];
-        if (pwChanged && editingOriginalPass) {
-          const oldEncPass = await aesEncrypt(editingOriginalPass, sessionKey);
-          pwHistory = [{ pass: oldEncPass, at: Date.now() }, ...pwHistory].slice(0, 5);
-        }
-        entries[idx] = {
-          ...entries[idx],
-          name: eName, user: eUser, pass: ePass, url: eUrl, notes: eNotes,
-          category: cat || null,
-          pwHistory,
-          ...(pwChanged ? { pwUpdated: Date.now() } : {})
-        };
-      }
-      toast('Entry updated');
-    } else {
-      entries.push({
-        id: crypto.randomUUID(),
-        name: eName, user: eUser, pass: ePass, url: eUrl, notes: eNotes,
-        category: cat || null,
-        created: Date.now(), pwUpdated: Date.now(), pwHistory: []
-      });
-      toast('Saved & synced across devices');
-    }
-
-    await fsSet(currentUser, { entries, updatedAt: Date.now() });
-    closeModal();
-  } catch (e) {
-    setSyncStatus('error');
-    toast('Sync error: ' + e.message);
-  } finally {
-    setBtnLoading('saveBtn', false, 'Save Entry');
-  }
-};
-
-window.deleteEntry = (id, name) => {
-  pendingDeleteId   = id;
-  pendingDeleteName = name;
-  $('confirmDeleteName').textContent = `"${name}"`;
-  $('confirmDeleteModal').style.display = 'flex';
-};
-
-window.closeConfirmDelete = () => {
-  $('confirmDeleteModal').style.display = 'none';
-  pendingDeleteId = null;
-};
-
-window.confirmDeleteEntry = async () => {
-  if (!pendingDeleteId) return;
-  const id = pendingDeleteId;
-  closeConfirmDelete();
-  setSyncStatus('syncing');
-  try {
-    const data    = await fsGet(currentUser);
-    const entries = (data?.entries || []).filter(e => e.id !== id);
-    await fsSet(currentUser, { entries, updatedAt: Date.now() });
-    toast('Entry deleted');
-  } catch (e) {
-    setSyncStatus('error');
-    toast('Error: ' + e.message);
-  }
-};
-
-// ════════════════════════════════════════════════════════
-// CHANGE VAULT PASSWORD
-// ════════════════════════════════════════════════════════
-window.openChangeVaultPw = () => {
-  ['cvp-current','cvp-new','cvp-confirm'].forEach(k => $(k).value = '');
-  $('cvpStrengthFill').style.width = '0%';
-  $('changeVaultPwModal').style.display = 'flex';
-  setTimeout(() => $('cvp-current').focus(), 100);
-};
-
-window.closeChangeVaultPw = () => {
-  $('changeVaultPwModal').style.display = 'none';
-};
-
-window.changeVaultPassword = async () => {
-  const currentPw = $('cvp-current').value;
-  const newPw     = $('cvp-new').value;
-  const confirmPw = $('cvp-confirm').value;
-
-  if (!currentPw || !newPw || !confirmPw) return toast('All fields are required');
-  if (newPw.length < 8) return toast('New password must be 8+ characters');
-  if (newPw !== confirmPw) return toast('New passwords do not match');
-  if (currentPw === newPw) return toast('New password must differ from current');
-
-  setBtnLoading('cvpBtn', true, 'Re-encrypting…');
-  setSyncStatus('syncing');
-  try {
-    // Verify current password
-    const vaultData = await fsGet(currentUser);
-    const oldKey = await deriveKey(currentPw, fromB64(vaultData.salt));
-    try {
-      if (await aesDecrypt(vaultData.verifyToken, oldKey) !== 'VAULT_OK') throw 0;
-    } catch {
-      return toast('Current password is incorrect');
-    }
-
-    // Derive new key with fresh salt
-    const newSalt = crypto.getRandomValues(new Uint8Array(16));
-    const newKey  = await deriveKey(newPw, newSalt);
-    const newToken = await aesEncrypt('VAULT_OK', newKey);
-
-    // Re-encrypt all entries (including notes and pwHistory)
-    const oldEntries = vaultData.entries || [];
-    const newEntries = await Promise.all(oldEntries.map(async e => {
-      try {
-        const [name, user, pass] = await Promise.all([
-          aesDecrypt(e.name, oldKey),
-          aesDecrypt(e.user, oldKey),
-          aesDecrypt(e.pass, oldKey)
-        ]);
-        const url   = e.url   ? await aesDecrypt(e.url,   oldKey) : '';
-        const notes = e.notes ? await aesDecrypt(e.notes, oldKey) : '';
-        const [eName, eUser, ePass] = await Promise.all([
-          aesEncrypt(name, newKey),
-          aesEncrypt(user, newKey),
-          aesEncrypt(pass, newKey)
-        ]);
-        const eUrl   = url   ? await aesEncrypt(url,   newKey) : '';
-        const eNotes = notes ? await aesEncrypt(notes, newKey) : '';
-        // Re-encrypt password history
-        const pwHistory = await Promise.all((e.pwHistory||[]).map(async h => {
-          try { return { pass: await aesEncrypt(await aesDecrypt(h.pass,oldKey),newKey), at: h.at }; }
-          catch { return null; }
-        })).then(a => a.filter(Boolean));
-        return { ...e, name: eName, user: eUser, pass: ePass, url: eUrl, notes: eNotes, pwHistory };
-      } catch { return e; }
-    }));
-
-    await fsSet(currentUser, {
-      salt: toB64(newSalt), verifyToken: newToken,
-      entries: newEntries, updatedAt: Date.now()
-    });
-
-    // Update session key so the vault stays unlocked
-    sessionKey = newKey;
-    closeChangeVaultPw();
-    toast('Vault password updated successfully 🔐');
-    setSyncStatus('synced');
-  } catch (e) {
-    setSyncStatus('error');
-    toast('Error: ' + e.message);
-  } finally {
-    setBtnLoading('cvpBtn', false, 'Update Password');
-  }
-};
-
-// ════════════════════════════════════════════════════════
-// EXPORT / BACKUP
-// ════════════════════════════════════════════════════════
-window.exportVault = async () => {
-  try {
-    const data = await fsGet(currentUser);
-    if (!data) return toast('No vault data to export');
-    // Export the raw encrypted blob — safe to store/share since it needs master password to decrypt
-    const exportObj = {
-      exportedAt: new Date().toISOString(),
-      vault: currentUser,
-      note: 'OneKey encrypted backup — import by replacing your vault doc in Firestore',
-      data
-    };
-    const blob = new Blob([JSON.stringify(exportObj, null, 2)], { type: 'application/json' });
-    const url  = URL.createObjectURL(blob);
-    const a    = document.createElement('a');
-    a.href = url;
-    a.download = `onekey-backup-${currentUser}-${Date.now()}.json`;
-    a.click();
-    URL.revokeObjectURL(url);
-    toast('Encrypted backup downloaded ⬇');
-  } catch (e) { toast('Export failed: ' + e.message); }
-};
-
-// ════════════════════════════════════════════════════════
-// DELETE ACCOUNT
-// ════════════════════════════════════════════════════════
-window.openDeleteAccount = () => {
-  ['del-password','del-confirm-text'].forEach(k => $(k).value = '');
-  $('deleteAccountModal').style.display = 'flex';
-  setTimeout(() => $('del-password').focus(), 100);
-};
-
-window.closeDeleteAccount = () => {
-  $('deleteAccountModal').style.display = 'none';
+    w.classList.remove('show');
+  }, 400);
 };
 
 window.deleteAccount = async () => {
-  const password    = $('del-password').value;
-  const confirmText = $('del-confirm-text').value.trim();
-
-  if (!password)                  return toast('Enter your master password');
-  if (confirmText !== 'DELETE')   return toast('Type DELETE in capital letters to confirm');
-
+  const pass = $('del-password').value, conf = $('del-confirm-text').value;
+  if (conf !== 'DELETE') return toast('Type DELETE to confirm');
   setBtnLoading('delBtn', true, 'Deleting…');
   try {
-    // Verify master password before deletion
-    const vaultData = await fsGet(currentUser);
-    const key = await deriveKey(password, fromB64(vaultData.salt));
-    try {
-      if (await aesDecrypt(vaultData.verifyToken, key) !== 'VAULT_OK') throw 0;
-    } catch {
-      return toast('Password is incorrect — deletion cancelled');
-    }
-
-    // Stop real-time listener and timer before deleting
-    if (unsubscribe) { unsubscribe(); unsubscribe = null; }
-    stopLockTimer();
-
-    // Permanently delete the vault document from Firestore
+    const snap = await getDoc(doc(db, 'vaults', currentUser));
+    const key = await deriveKey(pass, fromB64(snap.data().salt));
+    await aesDecrypt(snap.data().verifyToken, key);
     await deleteDoc(doc(db, 'vaults', currentUser));
-
-    // Clear session
-    currentUser = null; sessionKey = null;
-    closeDeleteAccount();
-    $('login-password').value = '';
-    $('login-username').value = '';
-    showScreen('loginScreen');
-    toast('Account permanently deleted');
-  } catch (e) {
-    toast('Error: ' + e.message);
-  } finally {
-    setBtnLoading('delBtn', false, 'Delete Forever');
-  }
+    logout();
+    toast('Account deleted.');
+  } catch { toast('Verification failed.'); }
+  finally { setBtnLoading('delBtn', false, 'Delete Forever'); }
 };
 
 // ════════════════════════════════════════════════════════
-// UTILS
+// UI HELPERS (TIMER, SCREEN, LOADING)
 // ════════════════════════════════════════════════════════
-window.generatePassword = () => {
-  const chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()-_=+[]{}';
-  const arr   = new Uint32Array(24);
-  crypto.getRandomValues(arr);
-  const pw  = Array.from(arr, n => chars[n % chars.length]).join('');
-  const inp = $('entry-pass');
-  inp.value = pw; inp.type = 'text';
-  setTimeout(() => inp.type = 'password', 2500);
-  toast('24-char password generated');
-};
-
-window.checkStrength = inp => checkStrengthEl(inp, 'strengthFill');
-
-window.checkStrengthEl = (inp, fillId) => {
-  const v = inp.value; let s = 0;
-  if (v.length >= 8)  s++;
-  if (v.length >= 14) s++;
-  if (/[A-Z]/.test(v)) s++;
-  if (/[0-9]/.test(v)) s++;
-  if (/[^A-Za-z0-9]/.test(v)) s++;
-  const fill   = $(fillId);
-  if (!fill) return;
-  const colors = ['#ff4d6a','#ff9f43','#ffd32a','#a3cb38','#c8fb4a'];
-  const widths  = ['20%','40%','60%','80%','100%'];
-  fill.style.width      = widths[s - 1]  || '0%';
-  fill.style.background = colors[s - 1]  || 'transparent';
-};
-
-window.toggleVis = k => {
-  const el = $(k);
-  el.type = el.type === 'password' ? 'text' : 'password';
-};
-
-window.showScreen = name => {
-  const isVault = name === 'vaultScreen';
-  $('authWrap').style.display    = isVault ? 'none' : 'flex';
-  $('vaultScreen').style.display = isVault ? 'flex' : 'none';
-  if (!isVault) {
-    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-    $(name).classList.add('active');
-  }
-};
-
-function setBtnLoading(id, loading, label) {
-  const btn = $(id);
-  if (!btn) return;
-  btn.disabled = loading;
-  btn.innerHTML = loading
-    ? `<span class="spinner"></span>${label}`
-    : label;
+function startLockTimer() {
+  if (lockInterval) clearInterval(lockInterval);
+  lockInterval = setInterval(() => {
+    lockSecondsLeft--;
+    const m = Math.floor(lockSecondsLeft/60), s = String(lockSecondsLeft%60).padStart(2,'0');
+    $('lockTimer').textContent = `🔒 ${m}:${s}`;
+    if (lockSecondsLeft <= 0) logout();
+  }, 1000);
 }
-
-let toastTimer;
-window.toast = msg => {
-  const el = $('toast');
-  $('toastMsg').textContent = msg;
-  el.classList.add('show');
-  clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => el.classList.remove('show'), 2800);
+window.logout = () => {
+  if (unsubscribe) unsubscribe();
+  clearInterval(lockInterval);
+  currentUser = null; sessionKey = null;
+  showScreen('loginScreen');
 };
-
+window.showScreen = n => {
+  $('authWrap').style.display = n === 'vaultScreen' ? 'none' : 'flex';
+  $('vaultScreen').style.display = n === 'vaultScreen' ? 'flex' : 'none';
+  if (n !== 'vaultScreen') {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    $(n).classList.add('active');
+  }
+};
+function setBtnLoading(id, l, txt) {
+  const b = $(id); b.disabled = l;
+  b.innerHTML = l ? `<span class="spinner"></span>` + txt : txt;
+}
+window.toast = m => {
+  const t = $('toast'); $('toastMsg').textContent = m;
+  t.classList.add('show'); setTimeout(() => t.classList.remove('show'), 3000);
+};
 const $ = k => document.getElementById(k);
-const esc = s => s
-  .replace(/&/g,'&amp;').replace(/</g,'&lt;')
-  .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+['mousemove','keydown'].forEach(e => document.addEventListener(e, () => lockSecondsLeft = LOCK_MINUTES*60));
 
-// Boot
-$('vaultScreen').style.display = 'none';
+// Global accessible functions for the UI
+window.setCategory = c => { activeCategory = c; renderEntries(); };
+window.openAddModal = () => { editingId = null; $('entryModal').style.display = 'flex'; };
+window.closeModal = () => $('entryModal').style.display = 'none';
+window.closeDeleteAccount = () => $('deleteAccountModal').style.display = 'none';
+window.openDeleteAccount = () => $('deleteAccountModal').style.display = 'flex';
+window.toggleVis = k => { const i = $(k); i.type = i.type === 'password' ? 'text' : 'password'; };
+
+// Initial boot
 showScreen('loginScreen');
 </script>
 </body>
