@@ -1,524 +1,361 @@
- 
 <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>VAULT — OneKey</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
 <style>
-  /* ── TOKENS ── */
-  :root {
-    --bg:#0a0a0b; --surface:#111114; --surface2:#16161b;
-    --border:#1e1e24; --border-hi:#2e2e38;
-    --text:#e8e8f0; --muted:#555566; --muted2:#3a3a4a;
-    --accent:#c8fb4a; --accent-dim:rgba(200,251,74,0.08);
-    --accent-glow:rgba(200,251,74,0.25); --danger:#ff4d6a;
-    --warn:#ffd32a;
-    --mono:'DM Mono',monospace; --sans:'Syne',sans-serif;
-    --r:10px; --r-sm:6px;
-  }
+:root{
+  --bg:#07070f;--glass:rgba(10,10,20,0.6);--glass-hi:rgba(16,16,30,0.75);
+  --glass-card:rgba(14,14,26,0.55);--border:rgba(255,255,255,0.07);
+  --border-hi:rgba(255,255,255,0.13);--text:#e8e8f2;--muted:#5a5a72;
+  --muted2:#28283c;--accent:#c8fb4a;--accent-dim:rgba(200,251,74,0.08);
+  --accent-glow:rgba(200,251,74,0.3);--danger:#ff4d6a;--warn:#ffd32a;
+  --blur:saturate(180%) blur(22px);
+  --mono:'DM Mono',monospace;--sans:'Syne',sans-serif;--r:12px;--r-sm:7px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow:hidden}
+body{background:var(--bg);color:var(--text);font-family:var(--mono)}
 
-  /* ── RESET ── */
-  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-  html,body{height:100%}
-  body{background:var(--bg);color:var(--text);font-family:var(--mono);min-height:100vh;overflow-x:hidden}
+/* ambient bg */
+#bg{position:fixed;inset:0;z-index:0;pointer-events:none;
+  background:
+    radial-gradient(ellipse 80% 60% at 10% 20%,rgba(200,251,74,0.07) 0%,transparent 60%),
+    radial-gradient(ellipse 60% 50% at 90% 80%,rgba(100,80,255,0.07) 0%,transparent 60%),
+    linear-gradient(rgba(200,251,74,0.02) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(200,251,74,0.02) 1px,transparent 1px);
+  background-size:auto,auto,44px 44px,44px 44px;
+}
 
-  /* subtle grid bg */
-  body::before{
-    content:'';position:fixed;inset:0;
-    background-image:linear-gradient(rgba(200,251,74,0.025) 1px,transparent 1px),
-      linear-gradient(90deg,rgba(200,251,74,0.025) 1px,transparent 1px);
-    background-size:48px 48px;pointer-events:none;z-index:0;
-  }
+@keyframes glow{0%,100%{box-shadow:0 0 6px var(--accent)}50%{box-shadow:0 0 22px var(--accent),0 0 44px var(--accent-glow)}}
+@keyframes fadeUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+@keyframes scaleIn{from{transform:scale(.94) translateY(8px);opacity:0}to{transform:scale(1) translateY(0);opacity:1}}
+@keyframes spin{to{transform:rotate(360deg)}}
 
-  /* ── ANIMATIONS ── */
-  @keyframes glowpulse{0%,100%{box-shadow:0 0 6px var(--accent)}50%{box-shadow:0 0 20px var(--accent),0 0 40px var(--accent-glow)}}
-  @keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
-  @keyframes fadeIn{from{opacity:0}to{opacity:1}}
-  @keyframes scaleIn{from{transform:scale(0.96);opacity:0}to{transform:scale(1);opacity:1}}
-  @keyframes spin{to{transform:rotate(360deg)}}
+/* ── AUTH ── */
+.auth-wrap{position:relative;z-index:1;height:100vh;display:flex;align-items:center;justify-content:center;padding:24px}
+.auth-card{width:100%;max-width:420px;background:var(--glass-hi);border:1px solid var(--border-hi);border-radius:20px;padding:40px 36px;backdrop-filter:var(--blur);-webkit-backdrop-filter:var(--blur);box-shadow:0 24px 80px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,255,255,.06);animation:scaleIn .3s ease}
+.screen{display:none;animation:fadeUp .24s ease}
+.screen.active{display:block}
+.logo{font-family:var(--sans);font-weight:800;font-size:11px;letter-spacing:.32em;color:var(--accent);text-transform:uppercase;margin-bottom:36px;display:flex;align-items:center;gap:10px}
+.logo-dot{width:8px;height:8px;background:var(--accent);border-radius:50%;box-shadow:0 0 12px var(--accent);animation:glow 2.2s ease-in-out infinite}
+.screen-title{font-family:var(--sans);font-weight:800;font-size:30px;line-height:1.1;margin-bottom:8px}
+.screen-sub{font-size:11px;color:var(--muted);margin-bottom:28px;line-height:1.75}
+.notice{background:var(--accent-dim);border:1px solid rgba(200,251,74,.14);border-radius:var(--r-sm);padding:11px 14px;font-size:11px;color:rgba(200,251,74,.8);line-height:1.65;margin-bottom:20px}
 
-  /* ══════════════════════════════════════════
-     AUTH SCREENS
-  ══════════════════════════════════════════ */
-  .auth-wrap{
-    min-height:100vh;display:flex;align-items:center;
-    justify-content:center;padding:24px;position:relative;z-index:1;
-  }
-  .auth-card{width:100%;max-width:420px}
+/* ── FORMS ── */
+.field{margin-bottom:13px}
+.field label{display:block;font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);margin-bottom:6px}
+.input-wrap{position:relative}
+input[type=text],input[type=password],input[type=url]{width:100%;background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:var(--r-sm);padding:10px 40px 10px 13px;font-family:var(--mono);font-size:13px;color:var(--text);outline:none;transition:border-color .18s,box-shadow .18s}
+input:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-dim)}
+input::placeholder{color:var(--muted2)}
+textarea.notes-field{width:100%;background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:var(--r-sm);padding:10px 13px;font-family:var(--mono);font-size:12px;color:var(--text);outline:none;resize:vertical;min-height:64px;line-height:1.55;transition:border-color .18s}
+textarea.notes-field:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-dim)}
+textarea.notes-field::placeholder{color:var(--muted2)}
+select.cat-select{width:100%;background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:var(--r-sm);padding:10px 34px 10px 13px;font-family:var(--mono);font-size:13px;color:var(--text);outline:none;cursor:pointer;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%235a5a72'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;transition:border-color .18s}
+select.cat-select:focus{border-color:var(--accent)}
+select.cat-select option{background:#0e0e18}
+.eye{position:absolute;right:11px;top:50%;transform:translateY(-50%);cursor:pointer;color:var(--muted);background:none;border:none;padding:4px;font-size:14px;line-height:1;transition:color .15s}
+.eye:hover{color:var(--text)}
+.strength-bar{height:2px;background:var(--border);border-radius:2px;margin-top:7px;overflow:hidden}
+.strength-fill{height:100%;border-radius:2px;transition:width .3s,background .3s;width:0%}
+.dup-warn{font-size:11px;color:var(--warn);margin-top:5px;display:none}
+.dup-warn.on{display:block}
 
-  .screen{display:none;animation:fadeUp 0.28s ease}
-  .screen.active{display:block}
+/* ── BUTTONS ── */
+.btn{width:100%;padding:11px 20px;border-radius:var(--r-sm);font-family:var(--sans);font-weight:700;font-size:13px;letter-spacing:.05em;cursor:pointer;border:none;transition:transform .15s,box-shadow .15s,opacity .15s}
+.btn-p{background:var(--accent);color:#07070f}
+.btn-p:hover:not(:disabled){box-shadow:0 0 32px var(--accent-glow);transform:translateY(-1px)}
+.btn-p:disabled{opacity:.38;cursor:not-allowed}
+.btn-g{background:rgba(255,255,255,.04);color:var(--muted);border:1px solid var(--border);margin-top:10px;backdrop-filter:blur(8px)}
+.btn-g:hover{border-color:var(--border-hi);color:var(--text)}
+.btn-sm{padding:7px 13px;font-size:11px;width:auto;margin-top:0}
+.ibtn{display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;border-radius:7px;border:none;cursor:pointer;background:transparent;color:var(--muted);font-size:13px;transition:background .13s,color .13s;flex-shrink:0}
+.ibtn:hover{background:rgba(255,255,255,.08);color:var(--text)}
+.ibtn.del:hover{background:rgba(255,77,106,.14);color:var(--danger)}
+.ibtn.star.on{color:var(--warn)}
 
-  .logo{
-    font-family:var(--sans);font-weight:800;font-size:12px;
-    letter-spacing:0.3em;color:var(--accent);text-transform:uppercase;
-    margin-bottom:44px;display:flex;align-items:center;gap:10px;
-  }
-  .logo-dot{
-    width:8px;height:8px;background:var(--accent);border-radius:50%;
-    box-shadow:0 0 12px var(--accent);animation:glowpulse 2s ease-in-out infinite;
-  }
-  .screen-title{font-family:var(--sans);font-weight:800;font-size:32px;line-height:1.1;margin-bottom:8px}
-  .screen-sub{font-size:11px;color:var(--muted);margin-bottom:32px;line-height:1.7}
+/* ── VAULT SHELL ── */
+#vault{position:fixed;inset:0;z-index:1;display:none;flex-direction:column;overflow:hidden}
+#vault.on{display:flex}
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:0 22px;height:54px;min-height:54px;background:var(--glass);backdrop-filter:var(--blur);-webkit-backdrop-filter:var(--blur);border-bottom:1px solid var(--border);z-index:50;flex-shrink:0}
+.topbar-logo{font-family:var(--sans);font-weight:800;font-size:11px;letter-spacing:.32em;color:var(--accent);text-transform:uppercase;display:flex;align-items:center;gap:9px}
+.topbar-r{display:flex;align-items:center;gap:7px}
+.pill{display:flex;align-items:center;gap:5px;font-size:10px;color:var(--muted);padding:4px 10px;border:1px solid var(--border);border-radius:20px;background:rgba(255,255,255,.03)}
+.sdot{width:6px;height:6px;border-radius:50%;background:var(--accent);flex-shrink:0;transition:background .3s;animation:glow 1.6s ease-in-out infinite}
+.sdot.sy{background:var(--warn);animation:none}
+.sdot.er{background:var(--danger);animation:none}
+.ltimer{font-size:10px;color:var(--muted);padding:4px 10px;border:1px solid var(--border);border-radius:20px;background:rgba(255,255,255,.03);transition:color .25s,border-color .25s;white-space:nowrap}
+.ltimer.warn{color:var(--warn);border-color:rgba(255,211,42,.28)}
+.utag{font-size:11px;color:var(--muted);max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding:4px 10px;border:1px solid var(--border);border-radius:20px;background:rgba(255,255,255,.03)}
+.vbody{flex:1;display:flex;overflow:hidden;min-height:0}
 
-  /* ── FORMS ── */
-  .notice{
-    background:var(--accent-dim);border:1px solid rgba(200,251,74,0.15);
-    border-radius:var(--r-sm);padding:12px 14px;font-size:11px;
-    color:rgba(200,251,74,0.75);line-height:1.65;margin-bottom:22px;
-  }
-  .field{margin-bottom:14px}
-  .field label{
-    display:block;font-size:10px;letter-spacing:0.15em;text-transform:uppercase;
-    color:var(--muted);margin-bottom:6px;
-  }
-  .input-wrap{position:relative}
-  input[type=text],input[type=password],input[type=email],input[type=url]{
-    width:100%;background:var(--surface);border:1px solid var(--border);
-    border-radius:var(--r-sm);padding:11px 40px 11px 14px;
-    font-family:var(--mono);font-size:13px;color:var(--text);
-    outline:none;transition:border-color 0.2s,box-shadow 0.2s;
-  }
-  input:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-dim)}
-  input::placeholder{color:var(--muted2)}
-  .input-icon{
-    position:absolute;right:12px;top:50%;transform:translateY(-50%);
-    cursor:pointer;color:var(--muted);background:none;border:none;
-    padding:4px;font-size:14px;line-height:1;transition:color 0.15s;
-  }
-  .input-icon:hover{color:var(--text)}
+/* ── SIDEBAR ── */
+.sidebar{width:214px;flex-shrink:0;border-right:1px solid var(--border);padding:16px 10px;display:flex;flex-direction:column;gap:1px;overflow-y:auto;background:var(--glass);backdrop-filter:var(--blur);-webkit-backdrop-filter:var(--blur)}
+.sidebar::-webkit-scrollbar{width:3px}
+.sidebar::-webkit-scrollbar-thumb{background:var(--border-hi);border-radius:2px}
+.sec-label{font-size:9px;letter-spacing:.22em;text-transform:uppercase;color:var(--muted);padding:0 10px;margin:16px 0 4px}
+.sec-label:first-child{margin-top:0}
+.ctab{width:100%;text-align:left;padding:7px 10px;border-radius:7px;font-size:12px;font-family:var(--mono);cursor:pointer;border:none;background:transparent;color:var(--muted);transition:background .12s,color .12s;display:flex;align-items:center;gap:7px}
+.ctab:hover{background:rgba(255,255,255,.06);color:var(--text)}
+.ctab.on{background:var(--accent-dim);color:var(--accent)}
+.cbadge{margin-left:auto;font-size:10px;background:rgba(255,255,255,.06);padding:1px 6px;border-radius:10px;color:var(--muted)}
+.ctab.on .cbadge{background:rgba(200,251,74,.12);color:var(--accent)}
+.sb-stats{margin-top:auto;padding-top:14px;border-top:1px solid var(--border);display:flex;flex-direction:column;gap:7px}
+.st-row{display:flex;justify-content:space-between;align-items:center;font-size:11px}
+.st-l{color:var(--muted)}.st-v{color:var(--text)}.st-v.d{color:var(--danger)}.st-v.w{color:var(--warn)}
 
-  textarea.entry-notes{
-    width:100%;background:var(--surface);border:1px solid var(--border);
-    border-radius:var(--r-sm);padding:11px 14px;font-family:var(--mono);
-    font-size:12px;color:var(--text);outline:none;resize:vertical;
-    min-height:68px;line-height:1.55;transition:border-color 0.2s,box-shadow 0.2s;
-  }
-  textarea.entry-notes:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-dim)}
-  textarea.entry-notes::placeholder{color:var(--muted2)}
+/* ── MAIN ── */
+.mpanel{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0}
+.toolbar{padding:10px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;flex-shrink:0;background:var(--glass);backdrop-filter:var(--blur);-webkit-backdrop-filter:var(--blur)}
+.sbar{position:relative;flex:1}
+.sbar input{padding:9px 13px 9px 34px;width:100%}
+.sico{position:absolute;left:11px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:12px;pointer-events:none}
+.ssort{background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:var(--r-sm);color:var(--muted);font-family:var(--mono);font-size:11px;padding:8px 10px;cursor:pointer;outline:none;flex-shrink:0}
+.ssort:focus{border-color:var(--accent)}
+.xbtn{background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:var(--r-sm);color:var(--muted);font-family:var(--mono);font-size:11px;padding:8px 12px;cursor:pointer;white-space:nowrap;flex-shrink:0;transition:border-color .18s,color .18s}
+.xbtn:hover{border-color:var(--border-hi);color:var(--text)}
+.ewrap{flex:1;overflow-y:auto;padding:18px;contain:strict}
+.ewrap::-webkit-scrollbar{width:4px}
+.ewrap::-webkit-scrollbar-thumb{background:var(--border-hi);border-radius:2px}
+.egrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(268px,1fr));gap:10px;align-content:start}
 
-  select.cat-select{
-    width:100%;background:var(--surface);border:1px solid var(--border);
-    border-radius:var(--r-sm);padding:11px 36px 11px 14px;
-    font-family:var(--mono);font-size:13px;color:var(--text);
-    outline:none;cursor:pointer;appearance:none;
-    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23555566'/%3E%3C/svg%3E");
-    background-repeat:no-repeat;background-position:right 13px center;
-    transition:border-color 0.2s,box-shadow 0.2s;
-  }
-  select.cat-select:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-dim)}
-  select.cat-select option{background:#111114}
+/* ── ENTRY CARD ── */
+.ecard{background:var(--glass-card);border:1px solid var(--border);border-radius:var(--r);padding:14px;display:flex;flex-direction:column;backdrop-filter:var(--blur);-webkit-backdrop-filter:var(--blur);box-shadow:0 2px 12px rgba(0,0,0,.2);transition:border-color .14s,box-shadow .14s;cursor:default;contain:layout style}
+.ecard:hover{border-color:var(--border-hi);box-shadow:0 8px 32px rgba(0,0,0,.4),inset 0 1px 0 rgba(255,255,255,.05)}
+.etop{display:flex;align-items:center;gap:11px}
+.eico{width:38px;height:38px;border-radius:10px;background:var(--accent-dim);border:1px solid rgba(200,251,74,.15);display:flex;align-items:center;justify-content:center;font-family:var(--sans);font-weight:800;font-size:15px;color:var(--accent);text-transform:uppercase;flex-shrink:0}
+.einfo{flex:1;min-width:0}
+.ename{font-family:var(--sans);font-weight:700;font-size:13px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.euser{font-size:11px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:2px}
+.ecat{font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.1em;margin-top:3px}
+.eage{display:flex;align-items:center;gap:5px;margin-top:5px}
+.agedot{width:6px;height:6px;border-radius:50%;flex-shrink:0}
+.agedot.s{background:var(--accent)}.agedot.w{background:var(--warn)}.agedot.o{background:var(--danger);animation:glow 1.4s ease-in-out infinite}
+.agetxt{font-size:10px}.agetxt.s{color:#7aad30}.agetxt.w{color:var(--warn)}.agetxt.o{color:var(--danger)}
+.epeek{font-size:10px;color:var(--muted);font-family:var(--mono);word-break:break-all;display:none;padding-top:6px}
+.eactions{display:flex;align-items:center;gap:1px;padding-top:10px;margin-top:10px;border-top:1px solid var(--border)}
 
-  .strength-bar{height:3px;background:var(--border);border-radius:2px;margin-top:7px;overflow:hidden}
-  .strength-fill{height:100%;border-radius:2px;transition:width 0.3s,background 0.3s;width:0%}
+/* ── FOOTER ── */
+.mfooter{padding:9px 18px;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;background:var(--glass);backdrop-filter:var(--blur);-webkit-backdrop-filter:var(--blur)}
+.cnt{font-size:11px;color:var(--muted)}
+.empty{text-align:center;padding:80px 20px;color:var(--muted);grid-column:1/-1}
+.empty .ei{font-size:36px;margin-bottom:12px;opacity:.3}
+.empty p{font-size:13px;line-height:1.75}
 
-  .dup-warning{font-size:11px;color:var(--warn);margin-top:6px;display:none}
-  .dup-warning.show{display:block}
+/* ── PW HISTORY ── */
+.hist{margin-top:10px}
+.hist-title{font-size:10px;letter-spacing:.15em;text-transform:uppercase;color:var(--muted);margin-bottom:8px}
+.hist-item{display:flex;align-items:center;justify-content:space-between;padding:7px 11px;background:rgba(255,255,255,.03);border:1px solid var(--border);border-radius:var(--r-sm);margin-bottom:5px;font-size:11px;gap:8px}
+.hist-pw{font-family:var(--mono);color:var(--muted);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;filter:blur(4px);transition:filter .2s;cursor:pointer}
+.hist-pw:hover{filter:blur(0)}
+.hist-dt{font-size:10px;color:var(--muted);flex-shrink:0}
 
-  /* ── BUTTONS ── */
-  .btn{
-    width:100%;padding:12px 20px;border-radius:var(--r-sm);
-    font-family:var(--sans);font-weight:700;font-size:13px;
-    letter-spacing:0.05em;cursor:pointer;border:none;transition:all 0.18s;
-  }
-  .btn-primary{background:var(--accent);color:#0a0a0b}
-  .btn-primary:hover:not(:disabled){box-shadow:0 0 28px var(--accent-glow);transform:translateY(-1px)}
-  .btn-primary:active{transform:translateY(0)}
-  .btn-primary:disabled{opacity:0.4;cursor:not-allowed}
-  .btn-ghost{background:transparent;color:var(--muted);border:1px solid var(--border);margin-top:10px}
-  .btn-ghost:hover{border-color:var(--border-hi);color:var(--text)}
-  .btn-sm{padding:8px 14px;font-size:11px;width:auto;border-radius:var(--r-sm);margin-top:0}
+/* ── MODAL ── */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);z-index:100;display:flex;align-items:center;justify-content:center;padding:20px;animation:fadeIn .14s ease}
+.modal{background:var(--glass-hi);border:1px solid var(--border-hi);border-radius:16px;padding:28px;width:100%;max-width:420px;backdrop-filter:var(--blur);-webkit-backdrop-filter:var(--blur);box-shadow:0 32px 80px rgba(0,0,0,.55),inset 0 1px 0 rgba(255,255,255,.07);animation:scaleIn .18s ease;max-height:90vh;overflow-y:auto}
+.modal::-webkit-scrollbar{width:3px}
+.modal::-webkit-scrollbar-thumb{background:var(--border-hi);border-radius:2px}
+.mtitle{font-family:var(--sans);font-weight:800;font-size:18px;margin-bottom:22px;display:flex;align-items:center;justify-content:space-between}
+.mactions{display:flex;gap:10px;margin-top:8px}
+.mactions .btn{width:auto;flex:1;margin-top:0}
+.confirm-msg{font-size:13px;color:var(--text);line-height:1.6;margin-bottom:22px}
+.confirm-msg strong{color:var(--danger)}
 
-  .icon-btn{
-    display:inline-flex;align-items:center;justify-content:center;
-    width:32px;height:32px;border-radius:7px;border:none;cursor:pointer;
-    background:transparent;color:var(--muted);font-size:14px;
-    transition:background 0.15s,color 0.15s;flex-shrink:0;
-  }
-  .icon-btn:hover{background:var(--border);color:var(--text)}
-  .icon-btn.danger:hover{background:rgba(255,77,106,0.12);color:var(--danger)}
-  .icon-btn.star{color:var(--muted)}
-  .icon-btn.star.on{color:var(--warn)}
+/* ── TOAST ── */
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(10px);background:var(--glass-hi);border:1px solid var(--border-hi);border-radius:10px;padding:10px 18px;font-size:12px;color:var(--text);z-index:999;opacity:0;transition:opacity .22s,transform .22s;white-space:nowrap;display:flex;align-items:center;gap:8px;pointer-events:none;backdrop-filter:var(--blur);-webkit-backdrop-filter:var(--blur);box-shadow:0 8px 40px rgba(0,0,0,.5)}
+.toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
+.tdot{width:6px;height:6px;border-radius:50%;background:var(--accent);flex-shrink:0}
+.spin{display:inline-block;width:12px;height:12px;border:2px solid rgba(7,7,15,.25);border-top-color:#07070f;border-radius:50%;animation:spin .55s linear infinite;vertical-align:middle;margin-right:6px}
 
-  /* ══════════════════════════════════════════
-     VAULT SHELL
-  ══════════════════════════════════════════ */
-  #vaultScreen{
-    display:none;position:relative;z-index:1;
-    height:100vh;flex-direction:column;overflow:hidden;
-  }
-
-  /* ── TOPBAR ── */
-  .topbar{
-    display:flex;align-items:center;justify-content:space-between;
-    padding:0 24px;height:56px;min-height:56px;
-    border-bottom:1px solid var(--border);
-    background:rgba(10,10,11,0.9);backdrop-filter:blur(16px);
-    position:sticky;top:0;z-index:50;flex-shrink:0;
-  }
-  .topbar-logo{font-family:var(--sans);font-weight:800;font-size:12px;letter-spacing:0.3em;color:var(--accent);text-transform:uppercase;display:flex;align-items:center;gap:9px}
-  .topbar-right{display:flex;align-items:center;gap:8px}
-
-  .sync-pill{display:flex;align-items:center;gap:5px;font-size:10px;color:var(--muted);padding:4px 10px;border:1px solid var(--border);border-radius:20px}
-  .sync-dot{width:6px;height:6px;border-radius:50%;background:var(--accent);animation:glowpulse 1.5s ease-in-out infinite;flex-shrink:0;transition:background 0.3s}
-  .sync-dot.syncing{background:var(--warn)}
-  .sync-dot.error{background:var(--danger);animation:none}
-
-  .lock-timer{font-size:10px;color:var(--muted);display:flex;align-items:center;gap:4px;padding:4px 10px;border:1px solid var(--border);border-radius:20px;white-space:nowrap;transition:color 0.3s,border-color 0.3s}
-  .lock-timer.warn{color:var(--warn);border-color:rgba(255,211,42,0.3)}
-
-  .user-tag{font-size:11px;color:var(--muted);max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding:4px 10px;border:1px solid var(--border);border-radius:20px}
-
-  /* ── BODY ── */
-  .vault-body{flex:1;display:flex;overflow:hidden;height:calc(100vh - 56px)}
-
-  /* ── SIDEBAR ── */
-  .sidebar{
-    width:220px;flex-shrink:0;border-right:1px solid var(--border);
-    padding:20px 12px;display:flex;flex-direction:column;gap:2px;
-    overflow-y:auto;background:rgba(14,14,17,0.7);
-  }
-  .sidebar::-webkit-scrollbar{width:3px}
-  .sidebar::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
-  .sidebar-section{
-    font-size:9px;letter-spacing:0.2em;text-transform:uppercase;
-    color:var(--muted);padding:0 10px;margin:16px 0 4px;
-  }
-  .sidebar-section:first-child{margin-top:0}
-  .cat-tab{
-    width:100%;text-align:left;padding:8px 10px;border-radius:7px;
-    font-size:12px;font-family:var(--mono);cursor:pointer;
-    border:none;background:transparent;color:var(--muted);
-    transition:all 0.13s;display:flex;align-items:center;gap:8px;
-  }
-  .cat-tab:hover{background:var(--border);color:var(--text)}
-  .cat-tab.active{background:var(--accent-dim);color:var(--accent)}
-  .cat-count{margin-left:auto;font-size:10px;background:var(--muted2);padding:1px 6px;border-radius:10px;color:var(--muted)}
-  .cat-tab.active .cat-count{background:rgba(200,251,74,0.12);color:var(--accent)}
-
-  .sidebar-stats{margin-top:auto;padding-top:16px;border-top:1px solid var(--border);display:flex;flex-direction:column;gap:7px}
-  .stat-row{display:flex;justify-content:space-between;align-items:center;font-size:11px}
-  .stat-label{color:var(--muted)}
-  .stat-val{color:var(--text);font-weight:500}
-  .stat-val.danger{color:var(--danger)}
-  .stat-val.warn{color:var(--warn)}
-
-  /* ── MAIN PANEL ── */
-  .main-panel{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0}
-
-  .main-toolbar{
-    padding:12px 20px;border-bottom:1px solid var(--border);
-    display:flex;align-items:center;gap:8px;flex-shrink:0;
-    background:rgba(10,10,11,0.5);
-  }
-  .search-bar{position:relative;flex:1}
-  .search-bar input{padding:9px 14px 9px 36px;width:100%}
-  .search-icon{position:absolute;left:11px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:13px;pointer-events:none}
-
-  .sort-select{
-    background:var(--surface);border:1px solid var(--border);border-radius:var(--r-sm);
-    color:var(--muted);font-family:var(--mono);font-size:11px;
-    padding:8px 10px;cursor:pointer;outline:none;flex-shrink:0;transition:border-color 0.2s;
-  }
-  .sort-select:focus{border-color:var(--accent)}
-  .export-btn{
-    background:var(--surface);border:1px solid var(--border);border-radius:var(--r-sm);
-    color:var(--muted);font-family:var(--mono);font-size:11px;
-    padding:8px 12px;cursor:pointer;white-space:nowrap;flex-shrink:0;
-    transition:border-color 0.2s,color 0.2s;
-  }
-  .export-btn:hover{border-color:var(--border-hi);color:var(--text)}
-
-  .entries-wrap{flex:1;overflow-y:auto;padding:20px}
-  .entries-wrap::-webkit-scrollbar{width:4px}
-  .entries-wrap::-webkit-scrollbar-thumb{background:var(--border-hi);border-radius:2px}
-
-  /* ── ENTRIES GRID ── */
-  .entries{
-    display:grid;
-    grid-template-columns:repeat(auto-fill,minmax(280px,1fr));
-    gap:10px;
-  }
-
-  /* ── ENTRY CARD ── */
-  .entry{
-    background:var(--surface);border:1px solid var(--border);
-    border-radius:var(--r);padding:14px;
-    display:flex;flex-direction:column;gap:10px;
-    transition:border-color 0.15s,box-shadow 0.15s,background 0.15s;
-    cursor:default;
-  }
-  .entry:hover{border-color:var(--border-hi);background:var(--surface2);box-shadow:0 4px 24px rgba(0,0,0,0.35)}
-  .entry-top{display:flex;align-items:center;gap:11px}
-  .entry-icon{
-    width:40px;height:40px;border-radius:10px;background:var(--accent-dim);
-    display:flex;align-items:center;justify-content:center;
-    font-family:var(--sans);font-weight:800;font-size:16px;
-    color:var(--accent);text-transform:uppercase;flex-shrink:0;
-  }
-  .entry-info{flex:1;min-width:0}
-  .entry-name{font-family:var(--sans);font-weight:700;font-size:13px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  .entry-user{font-size:11px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:2px}
-  .entry-cat{font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:0.1em;margin-top:3px}
-
-  /* password age */
-  .entry-pw-age{display:flex;align-items:center;gap:5px;margin-top:4px}
-  .pw-age-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0}
-  .pw-age-dot.safe{background:var(--accent)}
-  .pw-age-dot.warn{background:var(--warn)}
-  .pw-age-dot.overdue{background:var(--danger);animation:glowpulse 1.4s ease-in-out infinite}
-  .pw-age-text{font-size:10px}
-  .pw-age-text.safe{color:#7aad30}
-  .pw-age-text.warn{color:var(--warn)}
-  .pw-age-text.overdue{color:var(--danger)}
-
-  /* peek */
-  .entry-peek{font-size:10px;color:var(--muted);font-family:var(--mono);letter-spacing:0.04em;word-break:break-all;display:none;padding-top:2px}
-
-  /* entry action row */
-  .entry-actions{display:flex;align-items:center;gap:2px;padding-top:8px;border-top:1px solid var(--border)}
-
-  /* ── MAIN FOOTER ── */
-  .main-footer{
-    padding:10px 20px;border-top:1px solid var(--border);
-    display:flex;align-items:center;justify-content:space-between;
-    flex-shrink:0;background:rgba(10,10,11,0.5);
-  }
-  .count-badge{font-size:11px;color:var(--muted)}
-
-  /* ── EMPTY STATE ── */
-  .empty-state{text-align:center;padding:80px 20px;color:var(--muted);grid-column:1/-1}
-  .empty-state .e-icon{font-size:36px;margin-bottom:12px;opacity:0.35}
-  .empty-state p{font-size:13px;line-height:1.7}
-
-  /* ── PASSWORD HISTORY ── */
-  .pw-history{margin-top:10px}
-  .pw-history-title{font-size:10px;letter-spacing:0.15em;text-transform:uppercase;color:var(--muted);margin-bottom:8px}
-  .pw-history-item{display:flex;align-items:center;justify-content:space-between;padding:8px 11px;background:var(--bg);border:1px solid var(--border);border-radius:var(--r-sm);margin-bottom:5px;font-size:11px;gap:8px}
-  .pw-history-pass{font-family:var(--mono);color:var(--muted);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;filter:blur(4px);transition:filter 0.2s;cursor:pointer}
-  .pw-history-pass:hover{filter:blur(0)}
-  .pw-history-date{font-size:10px;color:var(--muted);flex-shrink:0}
-
-  .confirm-modal-msg{font-size:13px;color:var(--text);line-height:1.6;margin-bottom:22px}
-  .confirm-modal-msg strong{color:var(--danger)}
-
-  /* ── MODAL ── */
-  .modal-overlay{
-    position:fixed;inset:0;background:rgba(0,0,0,0.8);backdrop-filter:blur(10px);
-    z-index:100;display:flex;align-items:center;justify-content:center;
-    padding:20px;animation:fadeIn 0.15s ease;
-  }
-  .modal{
-    background:var(--surface);border:1px solid var(--border-hi);
-    border-radius:14px;padding:28px;width:100%;max-width:420px;
-    animation:scaleIn 0.18s ease;max-height:90vh;overflow-y:auto;
-  }
-  .modal::-webkit-scrollbar{width:3px}
-  .modal::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
-  .modal-title{font-family:var(--sans);font-weight:800;font-size:18px;margin-bottom:22px;display:flex;align-items:center;justify-content:space-between}
-  .modal-actions{display:flex;gap:10px;margin-top:8px}
-  .modal-actions .btn{width:auto;flex:1;margin-top:0}
-
-  /* ── TOAST ── */
-  .toast{
-    position:fixed;bottom:24px;left:50%;
-    transform:translateX(-50%) translateY(10px);
-    background:var(--surface2);border:1px solid var(--border-hi);
-    border-radius:8px;padding:10px 18px;font-size:12px;color:var(--text);
-    z-index:999;opacity:0;transition:all 0.22s ease;
-    white-space:nowrap;display:flex;align-items:center;gap:8px;
-    pointer-events:none;box-shadow:0 8px 32px rgba(0,0,0,0.5);
-  }
-  .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
-  .toast-dot{width:6px;height:6px;border-radius:50%;background:var(--accent);flex-shrink:0}
-
-  /* ── SPINNER ── */
-  .spinner{display:inline-block;width:13px;height:13px;border:2px solid rgba(10,10,11,0.25);border-top-color:#0a0a0b;border-radius:50%;animation:spin 0.6s linear infinite;vertical-align:middle;margin-right:6px}
-
-  /* ── RESPONSIVE ── */
-  @media(max-width:768px){
-    .sidebar{display:none}
-    .entries{grid-template-columns:1fr}
-    .topbar{padding:0 14px}
-    .main-toolbar,.entries-wrap,.main-footer{padding-left:14px;padding-right:14px}
-  }
-  @media(max-width:520px){.screen-title{font-size:26px}}
+@media(max-width:768px){.sidebar{display:none}.egrid{grid-template-columns:1fr}.topbar,.toolbar,.ewrap,.mfooter{padding-left:14px;padding-right:14px}}
+@media(max-width:480px){.screen-title{font-size:26px}.topbar-r .pill,.topbar-r .utag{display:none}}
 </style>
 </head>
 <body>
+<div id="bg" aria-hidden="true"></div>
 
+<!-- AUTH -->
 <div class="auth-wrap" id="authWrap">
   <div class="auth-card">
-
-    <div id="registerScreen" class="screen active">
-      <div class="logo"><span class="logo-dot"></span> VAULT</div>
+    <div id="regScreen" class="screen active">
+      <div class="logo"><span class="logo-dot"></span>VAULT</div>
       <div class="screen-title">Create your<br>master vault.</div>
-      <p class="screen-sub">One password encrypts everything. Synced instantly across all your devices.</p>
+      <p class="screen-sub">One password encrypts everything. Synced across all devices.</p>
       <div class="notice">🔐 AES-256-GCM + PBKDF2 (310k rounds). Your master password never leaves this device.</div>
       <div class="field"><label>Username</label>
-        <input type="text" id="reg-username" placeholder="choose a username" autocomplete="off" spellcheck="false" />
+        <input type="text" id="rUser" placeholder="choose a username" autocomplete="off" spellcheck="false" onkeydown="if(event.key==='Enter')register()"/>
       </div>
       <div class="field"><label>Master Password</label>
         <div class="input-wrap">
-          <input type="password" id="reg-password" placeholder="strong master password" autocomplete="new-password" oninput="checkStrength(this)" />
-          <button class="input-icon" onclick="toggleVis('reg-password')" tabindex="-1">👁</button>
+          <input type="password" id="rPass" placeholder="strong master password" autocomplete="new-password" oninput="strength(this,'sf')"/>
+          <button class="eye" onclick="vis('rPass')" tabindex="-1">👁</button>
         </div>
-        <div class="strength-bar"><div class="strength-fill" id="strengthFill"></div></div>
+        <div class="strength-bar"><div class="strength-fill" id="sf"></div></div>
       </div>
       <div class="field"><label>Confirm Password</label>
         <div class="input-wrap">
-          <input type="password" id="reg-confirm" placeholder="repeat master password" autocomplete="new-password"
-            onkeydown="if(event.key==='Enter') register()" />
-          <button class="input-icon" onclick="toggleVis('reg-confirm')" tabindex="-1">👁</button>
+          <input type="password" id="rConf" placeholder="repeat master password" autocomplete="new-password" onkeydown="if(event.key==='Enter')register()"/>
+          <button class="eye" onclick="vis('rConf')" tabindex="-1">👁</button>
         </div>
       </div>
-      <button class="btn btn-primary" id="regBtn" onclick="register()">Create Vault</button>
-      <button class="btn btn-ghost" onclick="showScreen('loginScreen')">Already have a vault → Login</button>
+      <button class="btn btn-p" id="regBtn" onclick="register()">Create Vault</button>
+      <button class="btn btn-g" onclick="go('loginScreen')">Already have a vault → Login</button>
     </div>
 
     <div id="loginScreen" class="screen">
-      <div class="logo"><span class="logo-dot"></span> VAULT</div>
+      <div class="logo"><span class="logo-dot"></span>VAULT</div>
       <div class="screen-title">Welcome<br>back.</div>
-      <p class="screen-sub">Your encrypted vault lives in the cloud. Unlock it from any device.</p>
+      <p class="screen-sub">Your encrypted vault lives in the cloud. Unlock from any device.</p>
       <div class="field"><label>Username</label>
-        <input type="text" id="login-username" placeholder="your username" autocomplete="off" spellcheck="false" />
+        <input type="text" id="lUser" placeholder="your username" autocomplete="off" spellcheck="false"/>
       </div>
       <div class="field"><label>Master Password</label>
         <div class="input-wrap">
-          <input type="password" id="login-password" placeholder="master password" autocomplete="current-password"
-            onkeydown="if(event.key==='Enter') login()" />
-          <button class="input-icon" onclick="toggleVis('login-password')" tabindex="-1">👁</button>
+          <input type="password" id="lPass" placeholder="master password" autocomplete="current-password" onkeydown="if(event.key==='Enter')login()"/>
+          <button class="eye" onclick="vis('lPass')" tabindex="-1">👁</button>
         </div>
       </div>
-      <button class="btn btn-primary" id="loginBtn" onclick="login()">Unlock Vault</button>
-      <button class="btn btn-ghost" onclick="showScreen('registerScreen')">Create new vault</button>
+      <button class="btn btn-p" id="loginBtn" onclick="login()">Unlock Vault</button>
+      <button class="btn btn-g" onclick="go('regScreen')">Create new vault</button>
     </div>
-
   </div>
 </div>
 
-<div id="vaultScreen">
+<!-- VAULT -->
+<div id="vault">
   <div class="topbar">
-    <div class="topbar-logo"><span class="logo-dot"></span> VAULT</div>
-    <div class="topbar-right">
-      <div class="sync-pill">
-        <span class="sync-dot" id="syncDot"></span>
-        <span id="syncLabel">synced</span>
-      </div>
-      <div class="lock-timer" id="lockTimer">🔒 5:00</div>
-      <span class="user-tag" id="vaultUser"></span>
-      <button class="icon-btn" onclick="openChangeVaultPw()" title="Change vault password">🔑</button>
-      <button class="icon-btn" onclick="logout()" title="Lock vault">🔒</button>
+    <div class="topbar-logo"><span class="logo-dot"></span>VAULT</div>
+    <div class="topbar-r">
+      <div class="pill"><span class="sdot" id="sdot"></span><span id="slbl">synced</span></div>
+      <div class="ltimer" id="ltimer">🔒 5:00</div>
+      <span class="utag" id="utag"></span>
+      <button class="ibtn" onclick="openChangePw()" title="Change vault password">🔑</button>
+      <button class="ibtn" onclick="logout()" title="Lock vault">🔒</button>
     </div>
   </div>
-
-  <div class="vault-body">
+  <div class="vbody">
     <div class="sidebar">
-      <div class="sidebar-section">Categories</div>
-      <button class="cat-tab active" data-cat="all" onclick="setCategory('all')">🗂 All <span class="cat-count" id="cnt-all">0</span></button>
-      <button class="cat-tab" data-cat="work" onclick="setCategory('work')">💼 Work <span class="cat-count" id="cnt-work">0</span></button>
-      <button class="cat-tab" data-cat="finance" onclick="setCategory('finance')">💳 Finance <span class="cat-count" id="cnt-finance">0</span></button>
-      <button class="cat-tab" data-cat="social" onclick="setCategory('social')">💬 Social <span class="cat-count" id="cnt-social">0</span></button>
-      <button class="cat-tab" data-cat="personal" onclick="setCategory('personal')">👤 Personal <span class="cat-count" id="cnt-personal">0</span></button>
-      <button class="cat-tab" data-cat="other" onclick="setCategory('other')">📦 Other <span class="cat-count" id="cnt-other">0</span></button>
-      <button class="cat-tab" data-cat="fav" onclick="setCategory('fav')">⭐ Favorites <span class="cat-count" id="cnt-fav">0</span></button>
-
-      <div class="sidebar-section">Security</div>
-      <button class="cat-tab" data-cat="overdue" onclick="setCategory('overdue')">🔴 Overdue <span class="cat-count" id="cnt-overdue">0</span></button>
-      <button class="cat-tab" data-cat="warn" onclick="setCategory('warn')">🟡 Due Soon <span class="cat-count" id="cnt-warn">0</span></button>
-
-      <div class="sidebar-stats" id="sidebarStats">
-        <div class="stat-row"><span class="stat-label">Total entries</span><span class="stat-val" id="stat-total">0</span></div>
-        <div class="stat-row"><span class="stat-label">Overdue passwords</span><span class="stat-val danger" id="stat-overdue">0</span></div>
-        <div class="stat-row"><span class="stat-label">Due within 30d</span><span class="stat-val warn" id="stat-warn">0</span></div>
-        <div class="stat-row"><span class="stat-label">Favorites</span><span class="stat-val" id="stat-fav">0</span></div>
+      <div class="sec-label">Categories</div>
+      <button class="ctab on" data-cat="all"      onclick="setCat('all')">🗂 All<span class="cbadge" id="c-all">0</span></button>
+      <button class="ctab" data-cat="work"        onclick="setCat('work')">💼 Work<span class="cbadge" id="c-work">0</span></button>
+      <button class="ctab" data-cat="finance"     onclick="setCat('finance')">💳 Finance<span class="cbadge" id="c-finance">0</span></button>
+      <button class="ctab" data-cat="social"      onclick="setCat('social')">💬 Social<span class="cbadge" id="c-social">0</span></button>
+      <button class="ctab" data-cat="personal"    onclick="setCat('personal')">👤 Personal<span class="cbadge" id="c-personal">0</span></button>
+      <button class="ctab" data-cat="other"       onclick="setCat('other')">📦 Other<span class="cbadge" id="c-other">0</span></button>
+      <button class="ctab" data-cat="fav"         onclick="setCat('fav')">⭐ Favorites<span class="cbadge" id="c-fav">0</span></button>
+      <div class="sec-label">Security</div>
+      <button class="ctab" data-cat="overdue"     onclick="setCat('overdue')">🔴 Overdue<span class="cbadge" id="c-overdue">0</span></button>
+      <button class="ctab" data-cat="warn"        onclick="setCat('warn')">🟡 Due Soon<span class="cbadge" id="c-warn">0</span></button>
+      <div class="sb-stats">
+        <div class="st-row"><span class="st-l">Total</span><span class="st-v" id="st-total">0</span></div>
+        <div class="st-row"><span class="st-l">Overdue</span><span class="st-v d" id="st-ov">0</span></div>
+        <div class="st-row"><span class="st-l">Due soon</span><span class="st-v w" id="st-wn">0</span></div>
+        <div class="st-row"><span class="st-l">Favorites</span><span class="st-v" id="st-fav">0</span></div>
       </div>
     </div>
-
-    <div class="main-panel">
-      <div class="main-toolbar">
-        <div class="search-bar">
-          <span class="search-icon">🔍</span>
-          <input type="text" id="searchInput" placeholder="search entries…" oninput="renderEntries()" />
-        </div>
-        <select class="sort-select" id="sortSelect" onchange="renderEntries()">
+    <div class="mpanel">
+      <div class="toolbar">
+        <div class="sbar"><span class="sico">🔍</span><input type="text" id="search" placeholder="search entries…" oninput="render()"/></div>
+        <select class="ssort" id="sort" onchange="render()">
           <option value="az">A → Z</option>
           <option value="za">Z → A</option>
-          <option value="newest">Newest</option>
-          <option value="oldest">Oldest</option>
+          <option value="new">Newest</option>
+          <option value="old">Oldest</option>
           <option value="fav">⭐ Favorites first</option>
         </select>
-        <button class="export-btn" onclick="exportVault()">⬇ Export</button>
+        <button class="xbtn" onclick="exportVault()">⬇ Export</button>
       </div>
-
-      <div class="entries-wrap">
-        <div class="entries" id="entriesList"></div>
-      </div>
-
-      <div class="main-footer">
-        <span class="count-badge" id="entryCount">0 entries</span>
-        <div style="display:flex;gap:8px;align-items:center;">
-          <button class="btn btn-sm" style="background:transparent;border:1px solid rgba(255,77,106,0.3);color:var(--danger);font-family:var(--sans);font-weight:600;font-size:11px;padding:8px 14px;border-radius:4px;cursor:pointer;" onclick="openDeleteAccount()">🗑 Delete Account</button>
-          <button class="btn btn-primary btn-sm" onclick="openAddModal()">+ Add Entry</button>
+      <div class="ewrap"><div class="egrid" id="grid"></div></div>
+      <div class="mfooter">
+        <span class="cnt" id="cnt">0 entries</span>
+        <div style="display:flex;gap:8px;align-items:center">
+          <button class="btn btn-sm" style="background:transparent;border:1px solid rgba(255,77,106,.3);color:var(--danger);font-family:var(--sans);font-weight:600;font-size:11px;padding:7px 13px;border-radius:var(--r-sm);cursor:pointer" onclick="openDelAcct()">🗑 Delete Account</button>
+          <button class="btn btn-p btn-sm" onclick="openAdd()">+ Add Entry</button>
         </div>
       </div>
     </div>
   </div>
 </div>
 
-<div id="deleteAccountModal" class="modal-overlay" style="display:none" onclick="if(event.target===this)closeDeleteAccount()">
+<!-- DELETE ACCOUNT MODAL -->
+<div id="delAcctModal" class="overlay" style="display:none" onclick="if(event.target===this)closeDelAcct()">
   <div class="modal">
-    <div class="modal-title">
-      <span style="color:var(--danger)">Delete Account</span>
-      <button class="icon-btn" onclick="closeDeleteAccount()">✕</button>
-    </div>
-    <div class="notice" style="background:rgba(255,77,106,0.08);border-color:rgba(255,77,106,0.25);color:rgba(255,100,120,0.9);">
-      ☠️ This permanently deletes your vault. This action <strong>cannot be undone</strong>.
-    </div>
+    <div class="mtitle"><span style="color:var(--danger)">Delete Account</span><button class="ibtn" onclick="closeDelAcct()">✕</button></div>
+    <div class="notice" style="background:rgba(255,77,106,.08);border-color:rgba(255,77,106,.25);color:rgba(255,100,120,.9)">☠️ Permanently deletes your vault and ALL passwords. Cannot be undone.</div>
     <div class="field"><label>Confirm Master Password</label>
       <div class="input-wrap">
-        <input type="password" id="del-password" placeholder="enter password to confirm" />
-        <button class="input-icon" onclick="toggleVis('del-password')" tabindex="-1">👁</button>
+        <input type="password" id="da-pw" placeholder="enter password to confirm" onkeydown="if(event.key==='Enter')delAcct()"/>
+        <button class="eye" onclick="vis('da-pw')" tabindex="-1">👁</button>
       </div>
     </div>
     <div class="field"><label>Type DELETE to confirm</label>
-      <input type="text" id="del-confirm-text" placeholder='type DELETE' />
+      <input type="text" id="da-confirm" placeholder="type DELETE" autocomplete="off" spellcheck="false"/>
     </div>
-    <div class="modal-actions">
-      <button class="btn btn-ghost" onclick="closeDeleteAccount()">Cancel</button>
-      <button class="btn btn-primary" id="delBtn" style="background:var(--danger);color:#fff;" onclick="deleteAccount()">Delete Forever</button>
-    </div>
-  </div>
-</div>
-
-<div id="changeVaultPwModal" class="modal-overlay" style="display:none" onclick="if(event.target===this)closeChangeVaultPw()">
-  <div class="modal">
-    <div class="modal-title"><span>Change Vault Password</span><button class="icon-btn" onclick="closeChangeVaultPw()">✕</button></div>
-    <div class="notice">⚠️ All entries will be re-encrypted. This cannot be undone.</div>
-    <div class="field"><label>Current Master Password</label><input type="password" id="cvp-current" /></div>
-    <div class="field"><label>New Master Password</label><input type="password" id="cvp-new" oninput="checkStrengthEl(this,'cvpStrengthFill')" /><div class="strength-bar"><div class="strength-fill" id="cvpStrengthFill"></div></div></div>
-    <div class="field"><label>Confirm New Password</label><input type="password" id="cvp-confirm" /></div>
-    <div class="modal-actions">
-      <button class="btn btn-ghost" onclick="closeChangeVaultPw()">Cancel</button>
-      <button class="btn btn-primary" id="cvpBtn" onclick="changeVaultPassword()">Update Password</button>
+    <div class="mactions">
+      <button class="btn btn-g" onclick="closeDelAcct()">Cancel</button>
+      <button class="btn btn-p" id="daBtn" style="background:var(--danger)" onclick="delAcct()">Delete Forever</button>
     </div>
   </div>
 </div>
 
-<div id="entryModal" class="modal-overlay" style="display:none" onclick="if(event.target===this)closeModal()">
+<!-- CHANGE VAULT PW MODAL -->
+<div id="cvpModal" class="overlay" style="display:none" onclick="if(event.target===this)closeCvp()">
   <div class="modal">
-    <div class="modal-title"><span id="modalTitle">New Entry</span><button class="icon-btn" onclick="closeModal()">✕</button></div>
-    <div class="field"><label>Site / App Name</label><input type="text" id="entry-name" /></div>
-    <div class="field"><label>Username / Email</label><input type="text" id="entry-user" /></div>
-    <div class="field"><label>Password</label>
-      <div class="input-wrap"><input type="password" id="entry-pass" oninput="checkDuplicate(this.value)" /><button class="input-icon" onclick="toggleVis('entry-pass')" tabindex="-1">👁</button></div>
-      <div class="dup-warning" id="dupWarning">⚠️ This password is already used by another entry!</div>
+    <div class="mtitle"><span>Change Vault Password</span><button class="ibtn" onclick="closeCvp()">✕</button></div>
+    <div class="notice">⚠️ All entries will be re-encrypted with the new master password.</div>
+    <div class="field"><label>Current Password</label>
+      <div class="input-wrap">
+        <input type="password" id="cvp-cur" placeholder="current password"/>
+        <button class="eye" onclick="vis('cvp-cur')" tabindex="-1">👁</button>
+      </div>
     </div>
-    <div class="field"><label>URL (optional)</label><input type="url" id="entry-url" /></div>
+    <div class="field"><label>New Password</label>
+      <div class="input-wrap">
+        <input type="password" id="cvp-new" placeholder="new strong password" oninput="strength(this,'cvpsf')"/>
+        <button class="eye" onclick="vis('cvp-new')" tabindex="-1">👁</button>
+      </div>
+      <div class="strength-bar"><div class="strength-fill" id="cvpsf"></div></div>
+    </div>
+    <div class="field"><label>Confirm New Password</label>
+      <div class="input-wrap">
+        <input type="password" id="cvp-conf" placeholder="repeat new password" onkeydown="if(event.key==='Enter')changePw()"/>
+        <button class="eye" onclick="vis('cvp-conf')" tabindex="-1">👁</button>
+      </div>
+    </div>
+    <div class="mactions">
+      <button class="btn btn-g" onclick="closeCvp()">Cancel</button>
+      <button class="btn btn-p" id="cvpBtn" onclick="changePw()">Update Password</button>
+    </div>
+  </div>
+</div>
+
+<!-- ENTRY MODAL -->
+<div id="entryModal" class="overlay" style="display:none" onclick="if(event.target===this)closeEntry()">
+  <div class="modal">
+    <div class="mtitle"><span id="eModalTitle">New Entry</span><button class="ibtn" onclick="closeEntry()">✕</button></div>
+    <div class="field"><label>Site / App Name *</label>
+      <input type="text" id="e-name" placeholder="e.g. GitHub" autocomplete="off"/>
+    </div>
+    <div class="field"><label>Username / Email *</label>
+      <input type="text" id="e-user" placeholder="your login" autocomplete="off"/>
+    </div>
+    <div class="field"><label>Password *</label>
+      <div class="input-wrap">
+        <input type="password" id="e-pass" placeholder="password" autocomplete="new-password" oninput="checkDup(this.value)"/>
+        <button class="eye" onclick="vis('e-pass')" tabindex="-1">👁</button>
+      </div>
+      <div class="dup-warn" id="dupWarn">⚠️ This password is already used by another entry!</div>
+    </div>
+    <div class="field"><label>URL (optional)</label>
+      <input type="url" id="e-url" placeholder="https://…" autocomplete="off"/>
+    </div>
     <div class="field"><label>Category</label>
-      <select class="cat-select" id="entry-cat">
+      <select class="cat-select" id="e-cat">
         <option value="">— None —</option>
         <option value="work">💼 Work</option>
         <option value="finance">💳 Finance</option>
@@ -527,218 +364,508 @@
         <option value="other">📦 Other</option>
       </select>
     </div>
-    <div class="field"><label>Notes (optional)</label><textarea class="entry-notes" id="entry-notes"></textarea></div>
-    <button class="btn btn-ghost btn-sm" style="width:100%;margin-bottom:14px" onclick="generatePassword()">⚡ Generate Strong Password</button>
-    <div id="pwHistorySection" class="pw-history" style="display:none"><div class="pw-history-title">Password History</div><div id="pwHistoryList"></div></div>
-    <div class="modal-actions">
-      <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
-      <button class="btn btn-primary" id="saveBtn" onclick="saveEntry()">Save Entry</button>
+    <div class="field"><label>Notes (optional)</label>
+      <textarea class="notes-field" id="e-notes" placeholder="security questions, PIN, recovery codes…"></textarea>
+    </div>
+    <button class="btn btn-g btn-sm" style="width:100%;margin-bottom:14px" onclick="genPw()">⚡ Generate Strong Password</button>
+    <div id="histSection" class="hist" style="display:none">
+      <div class="hist-title">Password History (hover to reveal)</div>
+      <div id="histList"></div>
+    </div>
+    <div class="mactions">
+      <button class="btn btn-g" onclick="closeEntry()">Cancel</button>
+      <button class="btn btn-p" id="saveBtn" onclick="saveEntry()">Save Entry</button>
     </div>
   </div>
 </div>
 
-<div id="confirmDeleteModal" class="modal-overlay" style="display:none" onclick="if(event.target===this)closeConfirmDelete()">
+<!-- CONFIRM DELETE ENTRY MODAL -->
+<div id="confirmModal" class="overlay" style="display:none" onclick="if(event.target===this)closeConfirm()">
   <div class="modal">
-    <div class="modal-title"><span style="color:var(--danger)">Delete Entry</span><button class="icon-btn" onclick="closeConfirmDelete()">✕</button></div>
-    <p class="confirm-modal-msg">Delete <strong id="confirmDeleteName">"this entry"</strong>? This cannot be undone.</p>
-    <div class="modal-actions">
-      <button class="btn btn-ghost" onclick="closeConfirmDelete()">Cancel</button>
-      <button class="btn btn-primary" style="background:var(--danger);color:#fff;" onclick="confirmDeleteEntry()">Delete</button>
+    <div class="mtitle"><span style="color:var(--danger)">Delete Entry</span><button class="ibtn" onclick="closeConfirm()">✕</button></div>
+    <p class="confirm-msg">Delete <strong id="delName"></strong>? This cannot be undone.</p>
+    <div class="mactions">
+      <button class="btn btn-g" onclick="closeConfirm()">Cancel</button>
+      <button class="btn btn-p" style="background:var(--danger)" onclick="confirmDel()">Delete</button>
     </div>
   </div>
 </div>
 
-<div class="toast" id="toast"><span class="toast-dot"></span><span id="toastMsg"></span></div>
+<div class="toast" id="toast"><span class="tdot"></span><span id="tmsg"></span></div>
 
 <script type="module">
-// ════════════════════════════════════════════════════════
-// FIREBASE & CONFIG
-// ════════════════════════════════════════════════════════
-import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
-import { getFirestore, doc, getDoc, setDoc, deleteDoc, onSnapshot, runTransaction } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
+import { initializeApp }   from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
+import { getFirestore, doc, getDoc, setDoc, deleteDoc, onSnapshot, runTransaction }
+  from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
 
-const firebaseConfig = {
-  apiKey: "AIzaSyAF1nxXeZhz7LvWpQFTnFYNifuZII_R-mE",
-  authDomain: "onekey-5067d.firebaseapp.com",
-  projectId: "onekey-5067d",
-  storageBucket: "onekey-5067d.firebasestorage.app",
-  messagingSenderId: "1098836590874",
-  appId: "1:1098836590874:web:9c62490ce2670a4418aca3"
+// ── FIREBASE CONFIG ──
+const FB = {
+  apiKey:"AIzaSyAF1nxXeZhz7LvWpQFTnFYNifuZII_R-mE",
+  authDomain:"onekey-5067d.firebaseapp.com",
+  projectId:"onekey-5067d",
+  storageBucket:"onekey-5067d.firebasestorage.app",
+  messagingSenderId:"1098836590874",
+  appId:"1:1098836590874:web:9c62490ce2670a4418aca3"
 };
+const db = getFirestore(initializeApp(FB));
 
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
+// ── CRYPTO ──
+const ENC=new TextEncoder(),DEC=new TextDecoder();
 
-// ════════════════════════════════════════════════════════
-// CRYPTO HELPERS
-// ════════════════════════════════════════════════════════
-const ENC = new TextEncoder(), DEC = new TextDecoder();
-const toB64 = arr => btoa(String.fromCharCode(...arr));
-const fromB64 = str => Uint8Array.from(atob(str), c => c.charCodeAt(0));
-
-async function deriveKey(password, salt) {
-  const raw = await crypto.subtle.importKey('raw', ENC.encode(password), { name: 'PBKDF2' }, false, ['deriveKey']);
-  return crypto.subtle.deriveKey({ name: 'PBKDF2', salt, iterations: 310000, hash: 'SHA-256' }, raw, { name: 'AES-GCM', length: 256 }, false, ['encrypt', 'decrypt']);
+async function deriveKey(pw,salt){
+  const raw=await crypto.subtle.importKey('raw',ENC.encode(pw),{name:'PBKDF2'},false,['deriveKey']);
+  return crypto.subtle.deriveKey({name:'PBKDF2',salt,iterations:310000,hash:'SHA-256'},raw,{name:'AES-GCM',length:256},false,['encrypt','decrypt']);
 }
-
-async function aesEncrypt(plain, key) {
-  const iv = crypto.getRandomValues(new Uint8Array(12));
-  const ct = await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, key, ENC.encode(plain));
-  const out = new Uint8Array(12 + ct.byteLength);
-  out.set(iv); out.set(new Uint8Array(ct), 12);
+async function enc(plain,key){
+  const iv=crypto.getRandomValues(new Uint8Array(12));
+  const ct=await crypto.subtle.encrypt({name:'AES-GCM',iv},key,ENC.encode(plain));
+  const out=new Uint8Array(12+ct.byteLength);out.set(iv);out.set(new Uint8Array(ct),12);
   return btoa(String.fromCharCode(...out));
 }
-
-async function aesDecrypt(b64, key) {
-  const buf = Uint8Array.from(atob(b64), c => c.charCodeAt(0));
-  const pt = await crypto.subtle.decrypt({ name: 'AES-GCM', iv: buf.slice(0, 12) }, key, buf.slice(12));
+async function dec(b64,key){
+  const buf=Uint8Array.from(atob(b64),c=>c.charCodeAt(0));
+  const pt=await crypto.subtle.decrypt({name:'AES-GCM',iv:buf.slice(0,12)},key,buf.slice(12));
   return DEC.decode(pt);
 }
+const toB64=a=>btoa(String.fromCharCode(...a));
+const fromB64=s=>Uint8Array.from(atob(s),c=>c.charCodeAt(0));
 
-// ════════════════════════════════════════════════════════
-// APP STATE
-// ════════════════════════════════════════════════════════
-let currentUser = null, sessionKey = null, editingId = null, editingOriginalPass = null;
-let unsubscribe = null, activeCategory = 'all', pendingDeleteId = null, cachedEntries = [];
-let debounceTimer;
+// ── HELPERS ──
+const $=k=>document.getElementById(k);
+const esc=s=>s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 
-const LOCK_MINUTES = 5;
-let lockSecondsLeft = LOCK_MINUTES * 60;
-let lockInterval = null;
+let toastT;
+window.toast=msg=>{$('tmsg').textContent=msg;$('toast').classList.add('on');clearTimeout(toastT);toastT=setTimeout(()=>$('toast').classList.remove('on'),2800)};
 
-// ════════════════════════════════════════════════════════
-// CORE LOGIC
-// ════════════════════════════════════════════════════════
-window.register = async () => {
-  const user = $('reg-username').value.trim().toLowerCase();
-  const pass = $('reg-password').value, conf = $('reg-confirm').value;
-  if (!user || pass.length < 8 || pass !== conf) return toast('Invalid details or mismatch');
+window.vis=k=>{const el=$(k);el.type=el.type==='password'?'text':'password'};
 
-  setBtnLoading('regBtn', true, 'Creating…');
-  try {
-    const salt = crypto.getRandomValues(new Uint8Array(16));
-    const key = await deriveKey(pass, salt);
-    const token = await aesEncrypt('VAULT_OK', key);
-    await runTransaction(db, async tx => {
-      const snap = await tx.get(doc(db, 'vaults', user));
-      if (snap.exists()) throw new Error('Taken');
-      tx.set(doc(db, 'vaults', user), { salt: toB64(salt), verifyToken: token, entries: [], updatedAt: Date.now() });
-    });
-    showScreen('loginScreen');
-    toast('Vault created! Please login.');
-  } catch (e) { toast(e.message === 'Taken' ? 'Username taken' : 'Error'); }
-  finally { setBtnLoading('regBtn', false, 'Create Vault'); }
+window.strength=(inp,id)=>{
+  const v=inp.value;let s=0;
+  if(v.length>=8)s++;if(v.length>=14)s++;
+  if(/[A-Z]/.test(v))s++;if(/[0-9]/.test(v))s++;if(/[^A-Za-z0-9]/.test(v))s++;
+  const f=$(id);if(!f)return;
+  f.style.width=['20%','40%','60%','80%','100%'][s-1]||'0%';
+  f.style.background=['#ff4d6a','#ff9f43','#ffd32a','#a3cb38','#c8fb4a'][s-1]||'transparent';
 };
 
-window.login = async () => {
-  const user = $('login-username').value.trim().toLowerCase();
-  const pass = $('login-password').value;
-  setBtnLoading('loginBtn', true, 'Unlocking…');
-  try {
-    const snap = await getDoc(doc(db, 'vaults', user));
-    if (!snap.exists()) throw new Error('Not found');
-    const data = snap.data();
-    const key = await deriveKey(pass, fromB64(data.salt));
-    if (await aesDecrypt(data.verifyToken, key) !== 'VAULT_OK') throw new Error('Wrong');
-    
-    currentUser = user; sessionKey = key;
-    $('vaultUser').textContent = user;
-    showScreen('vaultScreen');
-    startLockTimer();
-    
-    if (unsubscribe) unsubscribe();
-    unsubscribe = onSnapshot(doc(db, 'vaults', user), snap => {
-      if (snap.exists()) { cachedEntries = snap.data().entries || []; renderEntries(); }
-    });
-  } catch (e) { toast('Invalid credentials'); }
-  finally { setBtnLoading('loginBtn', false, 'Unlock Vault'); }
+function setBusy(id,on,lbl){const b=$(id);if(!b)return;b.disabled=on;b.innerHTML=on?`<span class="spin"></span>${lbl}`:lbl}
+
+window.go=name=>{
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  $(name).classList.add('active');
 };
 
-window.copyPw = async (id) => {
-  const e = cachedEntries.find(i => i.id === id);
-  if (!e) return;
-  const pw = await aesDecrypt(e.pass, sessionKey);
-  try {
-    await navigator.clipboard.writeText(pw);
-    toast('Copied! Clears in 60s.');
-    setTimeout(() => navigator.clipboard.writeText(''), 60000); // SECURITY: Clear clipboard
-  } catch { toast('Copy failed'); }
-};
+// ── STATE ──
+let U=null,KEY=null,unsub=null,cached=[],activeCat='all',editId=null,editOrigPw=null,delId=null;
 
-window.checkDuplicate = (val) => {
-  clearTimeout(debounceTimer);
-  debounceTimer = setTimeout(async () => { // PERFORMANCE: Debounce decryption
-    const w = $('dupWarning');
-    if (!val || !sessionKey) return w.classList.remove('show');
-    for (let e of cachedEntries.filter(i => i.id !== editingId)) {
-      if (await aesDecrypt(e.pass, sessionKey) === val) return w.classList.add('show');
-    }
-    w.classList.remove('show');
-  }, 400);
-};
-
-window.deleteAccount = async () => {
-  const pass = $('del-password').value, conf = $('del-confirm-text').value;
-  if (conf !== 'DELETE') return toast('Type DELETE to confirm');
-  setBtnLoading('delBtn', true, 'Deleting…');
-  try {
-    const snap = await getDoc(doc(db, 'vaults', currentUser));
-    const key = await deriveKey(pass, fromB64(snap.data().salt));
-    await aesDecrypt(snap.data().verifyToken, key);
-    await deleteDoc(doc(db, 'vaults', currentUser));
-    logout();
-    toast('Account deleted.');
-  } catch { toast('Verification failed.'); }
-  finally { setBtnLoading('delBtn', false, 'Delete Forever'); }
-};
-
-// ════════════════════════════════════════════════════════
-// UI HELPERS (TIMER, SCREEN, LOADING)
-// ════════════════════════════════════════════════════════
-function startLockTimer() {
-  if (lockInterval) clearInterval(lockInterval);
-  lockInterval = setInterval(() => {
-    lockSecondsLeft--;
-    const m = Math.floor(lockSecondsLeft/60), s = String(lockSecondsLeft%60).padStart(2,'0');
-    $('lockTimer').textContent = `🔒 ${m}:${s}`;
-    if (lockSecondsLeft <= 0) logout();
-  }, 1000);
+// ── SYNC STATUS ──
+function sync(state){
+  const d=$('sdot'),l=$('slbl');if(!d)return;
+  d.className='sdot'+(state==='syncing'?' sy':state==='error'?' er':'');
+  l.textContent=state;
 }
-window.logout = () => {
-  if (unsubscribe) unsubscribe();
-  clearInterval(lockInterval);
-  currentUser = null; sessionKey = null;
-  showScreen('loginScreen');
+
+// ── AUTO LOCK ──
+const LOCK_S=300;let lockLeft=LOCK_S,lockIv=null;
+function resetIdle(){lockLeft=LOCK_S}
+function startLock(){
+  stopLock();lockLeft=LOCK_S;
+  lockIv=setInterval(()=>{
+    lockLeft--;
+    const m=Math.floor(lockLeft/60),s=String(lockLeft%60).padStart(2,'0');
+    const el=$('ltimer');if(el){el.textContent=`🔒 ${m}:${s}`;el.className='ltimer'+(lockLeft<=60?' warn':'')}
+    if(lockLeft<=0){stopLock();logout();toast('Vault auto-locked 🔒')}
+  },1000);
+}
+function stopLock(){if(lockIv){clearInterval(lockIv);lockIv=null}}
+['mousemove','keydown','click','touchstart'].forEach(e=>document.addEventListener(e,resetIdle,{passive:true}));
+
+// ── FIRESTORE ──
+async function fsGet(u){const s=await getDoc(doc(db,'vaults',u));return s.exists()?s.data():null}
+// NOTE: Using setDoc WITHOUT merge:true so the full entries array is always written correctly
+async function fsSet(u,data){await setDoc(doc(db,'vaults',u),data)}
+
+// ── AUTH ──
+window.register=async()=>{
+  const u=$('rUser').value.trim().toLowerCase();
+  const p=$('rPass').value,c=$('rConf').value;
+  if(!u)return toast('Choose a username');
+  if(!/^[a-z0-9_]{3,24}$/.test(u))return toast('Username: 3-24 chars, letters/numbers/_');
+  if(p.length<8)return toast('Password must be 8+ characters');
+  if(p!==c)return toast('Passwords do not match');
+  setBusy('regBtn',true,'Creating…');
+  try{
+    const salt=crypto.getRandomValues(new Uint8Array(16));
+    const key=await deriveKey(p,salt);
+    const token=await enc('VAULT_OK',key);
+    const vDoc=doc(db,'vaults',u);
+    await runTransaction(db,async tx=>{
+      const snap=await tx.get(vDoc);
+      if(snap.exists())throw new Error('Username already taken');
+      tx.set(vDoc,{salt:toB64(salt),verifyToken:token,entries:[],updatedAt:Date.now()});
+    });
+    toast('Vault created! Log in now.');
+    $('lUser').value=u;go('loginScreen');
+  }catch(e){toast(e.message.includes('already taken')?'Username already taken':'Error: '+e.message)}
+  finally{setBusy('regBtn',false,'Create Vault')}
 };
-window.showScreen = n => {
-  $('authWrap').style.display = n === 'vaultScreen' ? 'none' : 'flex';
-  $('vaultScreen').style.display = n === 'vaultScreen' ? 'flex' : 'none';
-  if (n !== 'vaultScreen') {
-    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-    $(n).classList.add('active');
+
+window.login=async()=>{
+  const u=$('lUser').value.trim().toLowerCase();
+  const p=$('lPass').value;
+  if(!u||!p)return toast('Fill in all fields');
+  setBusy('loginBtn',true,'Unlocking…');
+  try{
+    const data=await fsGet(u);
+    if(!data)return toast('No vault found for this username');
+    let key;
+    try{
+      key=await deriveKey(p,fromB64(data.salt));
+      if(await dec(data.verifyToken,key)!=='VAULT_OK')throw 0;
+    }catch{return toast('Wrong password')}
+    U=u;KEY=key;
+    $('utag').textContent=u;
+    $('authWrap').style.display='none';
+    $('vault').classList.add('on');
+    startLock();
+    if(unsub)unsub();
+    unsub=onSnapshot(doc(db,'vaults',u),snap=>{
+      if(snap.exists()){cached=snap.data().entries||[];render()}
+      sync('synced');
+    },err=>{console.error(err);sync('error')});
+  }catch(e){toast('Error: '+e.message)}
+  finally{setBusy('loginBtn',false,'Unlock Vault')}
+};
+
+window.logout=()=>{
+  if(unsub){unsub();unsub=null}
+  stopLock();U=null;KEY=null;cached=[];
+  $('lPass').value='';
+  $('vault').classList.remove('on');
+  $('authWrap').style.display='';
+  go('loginScreen');
+  toast('Vault locked 🔒');
+};
+
+// ── RENDER ──
+window.setCat=cat=>{
+  activeCat=cat;
+  document.querySelectorAll('.ctab').forEach(t=>t.classList.toggle('on',t.dataset.cat===cat));
+  render();
+};
+
+window.render=async()=>{
+  if(!KEY)return;
+  const q=($('search')?.value||'').toLowerCase();
+  const sortVal=$('sort')?.value||'az';
+  const grid=$('grid');if(!grid)return;
+
+  // Decrypt all entries for display — parallelised
+  let items=(await Promise.all(cached.map(async e=>{
+    try{return{...e,_n:await dec(e.name,KEY),_u:await dec(e.user,KEY)}}
+    catch{return null}
+  }))).filter(Boolean);
+
+  // Sidebar counts
+  const cats=['work','finance','social','personal','other'];
+  const byId=k=>$(k);
+  if(byId('c-all'))byId('c-all').textContent=items.length;
+  cats.forEach(c=>{const el=byId('c-'+c);if(el)el.textContent=items.filter(e=>e.category===c).length});
+  const favs=items.filter(e=>e.favorite).length;
+  if(byId('c-fav'))byId('c-fav').textContent=favs;
+  const ov=items.filter(e=>{const d=e.pwUpdated||e.created;return d&&Math.floor((Date.now()-d)/86400000)>90});
+  const wn=items.filter(e=>{const d=e.pwUpdated||e.created;if(!d)return false;const l=90-Math.floor((Date.now()-d)/86400000);return l>0&&l<=30});
+  if(byId('c-overdue'))byId('c-overdue').textContent=ov.length;
+  if(byId('c-warn'))byId('c-warn').textContent=wn.length;
+  if(byId('st-total'))byId('st-total').textContent=items.length;
+  if(byId('st-ov'))byId('st-ov').textContent=ov.length;
+  if(byId('st-wn'))byId('st-wn').textContent=wn.length;
+  if(byId('st-fav'))byId('st-fav').textContent=favs;
+
+  // Filter by category
+  if(activeCat==='fav')items=items.filter(e=>e.favorite);
+  else if(activeCat==='overdue')items=ov.map(o=>items.find(i=>i.id===o.id)).filter(Boolean);
+  else if(activeCat==='warn')items=wn.map(o=>items.find(i=>i.id===o.id)).filter(Boolean);
+  else if(activeCat!=='all')items=items.filter(e=>e.category===activeCat);
+
+  // Search filter
+  if(q)items=items.filter(e=>e._n.toLowerCase().includes(q)||e._u.toLowerCase().includes(q));
+
+  // Sort
+  items.sort((a,b)=>{
+    if(sortVal==='az')return a._n.localeCompare(b._n);
+    if(sortVal==='za')return b._n.localeCompare(a._n);
+    if(sortVal==='new')return(b.created||0)-(a.created||0);
+    if(sortVal==='old')return(a.created||0)-(b.created||0);
+    if(sortVal==='fav')return(b.favorite?1:0)-(a.favorite?1:0)||a._n.localeCompare(b._n);
+    return 0;
+  });
+
+  // Update count
+  const total=cached.length;
+  const showing=items.length;
+  const cntEl=$('cnt');
+  if(cntEl)cntEl.textContent=q||activeCat!=='all'?`${showing} of ${total} entries`:`${total} entries`;
+
+  // Render cards
+  if(items.length===0){
+    grid.innerHTML=`<div class="empty"><div class="ei">🔐</div><p>${q?'No entries match your search.':'No entries yet.<br>Click + Add Entry to start.'}</p></div>`;
+    return;
   }
-};
-function setBtnLoading(id, l, txt) {
-  const b = $(id); b.disabled = l;
-  b.innerHTML = l ? `<span class="spinner"></span>` + txt : txt;
-}
-window.toast = m => {
-  const t = $('toast'); $('toastMsg').textContent = m;
-  t.classList.add('show'); setTimeout(() => t.classList.remove('show'), 3000);
-};
-const $ = k => document.getElementById(k);
-['mousemove','keydown'].forEach(e => document.addEventListener(e, () => lockSecondsLeft = LOCK_MINUTES*60));
 
-// Global accessible functions for the UI
-window.setCategory = c => { activeCategory = c; renderEntries(); };
-window.openAddModal = () => { editingId = null; $('entryModal').style.display = 'flex'; };
-window.closeModal = () => $('entryModal').style.display = 'none';
-window.closeDeleteAccount = () => $('deleteAccountModal').style.display = 'none';
-window.openDeleteAccount = () => $('deleteAccountModal').style.display = 'flex';
-window.toggleVis = k => { const i = $(k); i.type = i.type === 'password' ? 'text' : 'password'; };
+  const frag=document.createDocumentFragment();
+  for(const e of items){
+    const daysAgo=e.pwUpdated||e.created?Math.floor((Date.now()-(e.pwUpdated||e.created))/86400000):null;
+    const daysLeft=daysAgo!==null?90-daysAgo:null;
+    let lvl='s',ageStr='';
+    if(daysLeft!==null){
+      if(daysLeft>30){lvl='s';ageStr=`${daysAgo}d ago · ${daysLeft}d left`}
+      else if(daysLeft>0){lvl='w';ageStr=`${daysAgo}d ago · ${daysLeft}d left`}
+      else{lvl='o';ageStr=`${daysAgo}d ago · ${Math.abs(daysLeft)}d overdue`}
+    }
+    const hasUrl=!!e.url;
+    const card=document.createElement('div');
+    card.className='ecard';
+    card.innerHTML=`
+      <div class="etop">
+        <div class="eico">${esc(e._n.charAt(0))}</div>
+        <div class="einfo">
+          <div class="ename">${esc(e._n)}</div>
+          <div class="euser">${esc(e._u)}</div>
+          ${e.category?`<div class="ecat">${esc(e.category)}</div>`:''}
+          ${daysLeft!==null?`<div class="eage"><span class="agedot ${lvl}"></span><span class="agetxt ${lvl}">${ageStr}</span></div>`:''}
+        </div>
+      </div>
+      <div class="epeek" id="peek-${e.id}"></div>
+      <div class="eactions">
+        <button class="ibtn star${e.favorite?' on':''}" title="${e.favorite?'Unfavorite':'Favorite'}" onclick="toggleFav('${e.id}')">⭐</button>
+        <button class="ibtn" title="Peek password" onclick="peekPw('${e.id}')">👁</button>
+        <button class="ibtn" title="Copy password" onclick="copyPw('${e.id}')">📋</button>
+        ${hasUrl?`<button class="ibtn" title="Open site" onclick="openUrl('${e.id}')">🔗</button>`:''}
+        <button class="ibtn" title="Edit" onclick="editEntry('${e.id}')">✏️</button>
+        <button class="ibtn del" title="Delete" onclick="askDel('${e.id}','${esc(e._n)}')">🗑</button>
+      </div>`;
+    frag.appendChild(card);
+  }
+  grid.innerHTML='';
+  grid.appendChild(frag);
+};
 
-// Initial boot
-showScreen('loginScreen');
+// ── ENTRY CRUD ──
+window.openAdd=()=>{
+  editId=null;editOrigPw=null;
+  $('eModalTitle').textContent='New Entry';
+  ['e-name','e-user','e-pass','e-url','e-notes'].forEach(k=>$(k).value='');
+  $('e-cat').value='';
+  $('dupWarn').classList.remove('on');
+  $('histSection').style.display='none';
+  $('entryModal').style.display='flex';
+  setTimeout(()=>$('e-name').focus(),80);
+};
+
+window.closeEntry=()=>$('entryModal').style.display='none';
+
+window.editEntry=async id=>{
+  const e=cached.find(x=>x.id===id);if(!e)return;
+  editId=id;
+  $('eModalTitle').textContent='Edit Entry';
+  const pw=await dec(e.pass,KEY);
+  editOrigPw=pw;
+  $('e-name').value=await dec(e.name,KEY);
+  $('e-user').value=await dec(e.user,KEY);
+  $('e-pass').value=pw;
+  $('e-url').value=e.url?await dec(e.url,KEY):'';
+  $('e-notes').value=e.notes?await dec(e.notes,KEY):'';
+  $('e-cat').value=e.category||'';
+  $('dupWarn').classList.remove('on');
+  const hist=e.pwHistory||[];
+  const hs=$('histSection'),hl=$('histList');
+  if(hist.length){
+    hs.style.display='block';hl.innerHTML='';
+    for(const h of [...hist].reverse()){
+      try{
+        const op=await dec(h.pass,KEY);
+        const d=document.createElement('div');d.className='hist-item';
+        d.innerHTML=`<span class="hist-pw">${esc(op)}</span><span class="hist-dt">${new Date(h.at).toLocaleDateString()}</span>`;
+        hl.appendChild(d);
+      }catch{}
+    }
+  }else{hs.style.display='none'}
+  $('entryModal').style.display='flex';
+};
+
+window.saveEntry=async()=>{
+  const name=$('e-name').value.trim();
+  const user=$('e-user').value.trim();
+  const pass=$('e-pass').value;
+  const url=$('e-url').value.trim();
+  const notes=$('e-notes').value.trim();
+  const cat=$('e-cat').value;
+  if(!name||!user||!pass)return toast('Name, username and password are required');
+  setBusy('saveBtn',true,'Saving…');
+  sync('syncing');
+  try{
+    const [en,eu,ep]=await Promise.all([enc(name,KEY),enc(user,KEY),enc(pass,KEY)]);
+    const eurl=url?await enc(url,KEY):'';
+    const enotes=notes?await enc(notes,KEY):'';
+    // Read fresh data from Firestore each time to avoid overwriting concurrent changes
+    const fresh=await fsGet(U);
+    const entries=[...(fresh?.entries||[])];
+    if(editId){
+      const idx=entries.findIndex(e=>e.id===editId);
+      if(idx!==-1){
+        const pwChanged=pass!==editOrigPw;
+        let hist=entries[idx].pwHistory||[];
+        if(pwChanged&&editOrigPw){
+          hist=[{pass:await enc(editOrigPw,KEY),at:Date.now()},...hist].slice(0,5);
+        }
+        entries[idx]={...entries[idx],name:en,user:eu,pass:ep,url:eurl,notes:enotes,category:cat||null,pwHistory:hist,...(pwChanged?{pwUpdated:Date.now()}:{})};
+      }
+      toast('Entry updated ✓');
+    }else{
+      entries.push({id:crypto.randomUUID(),name:en,user:eu,pass:ep,url:eurl,notes:enotes,category:cat||null,created:Date.now(),pwUpdated:Date.now(),pwHistory:[],favorite:false});
+      toast('Entry saved ✓');
+    }
+    // Write the full document — no merge:true to avoid array corruption
+    await fsSet(U,{...(fresh||{}),entries,updatedAt:Date.now()});
+    closeEntry();
+  }catch(e){sync('error');toast('Save failed: '+e.message);console.error(e)}
+  finally{setBusy('saveBtn',false,'Save Entry')}
+};
+
+window.askDel=(id,name)=>{delId=id;$('delName').textContent=`"${name}"`;$('confirmModal').style.display='flex'};
+window.closeConfirm=()=>{$('confirmModal').style.display='none';delId=null};
+window.confirmDel=async()=>{
+  if(!delId)return;
+  try{
+    const fresh=await fsGet(U);
+    const entries=(fresh?.entries||[]).filter(e=>e.id!==delId);
+    await fsSet(U,{...(fresh||{}),entries,updatedAt:Date.now()});
+    toast('Entry deleted');
+  }catch(e){toast('Delete failed: '+e.message)}
+  finally{closeConfirm()}
+};
+
+window.copyPw=async id=>{
+  const e=cached.find(x=>x.id===id);if(!e)return;
+  try{const p=await dec(e.pass,KEY);await navigator.clipboard.writeText(p);toast('Password copied 📋')}
+  catch{toast('Copy failed — needs HTTPS')}
+};
+
+window.peekPw=async id=>{
+  const el=$('peek-'+id);if(!el)return;
+  if(el.style.display==='block'){el.style.display='none';el.textContent='';return}
+  const e=cached.find(x=>x.id===id);if(!e)return;
+  try{el.textContent=await dec(e.pass,KEY);el.style.display='block';setTimeout(()=>{el.style.display='none';el.textContent=''},8000)}
+  catch{toast('Could not decrypt')}
+};
+
+window.openUrl=async id=>{
+  const e=cached.find(x=>x.id===id);if(!e||!e.url)return;
+  try{window.open(await dec(e.url,KEY),'_blank','noopener,noreferrer')}catch{toast('Could not open URL')}
+};
+
+window.toggleFav=async id=>{
+  try{
+    const fresh=await fsGet(U);
+    const entries=[...(fresh?.entries||[])];
+    const idx=entries.findIndex(e=>e.id===id);if(idx===-1)return;
+    entries[idx]={...entries[idx],favorite:!entries[idx].favorite};
+    await fsSet(U,{...(fresh||{}),entries,updatedAt:Date.now()});
+    toast(entries[idx].favorite?'⭐ Favorited':'Removed from favorites');
+  }catch(e){toast('Error: '+e.message)}
+};
+
+window.checkDup=async val=>{
+  const w=$('dupWarn');if(!w||!val||!KEY){w?.classList.remove('on');return}
+  for(const e of cached.filter(x=>x.id!==editId)){
+    try{if(await dec(e.pass,KEY)===val){w.classList.add('on');return}}catch{}
+  }
+  w.classList.remove('on');
+};
+
+window.genPw=()=>{
+  const ch='abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()-_=+[]{}';
+  const arr=new Uint32Array(24);crypto.getRandomValues(arr);
+  const pw=Array.from(arr,n=>ch[n%ch.length]).join('');
+  const inp=$('e-pass');inp.value=pw;inp.type='text';
+  checkDup(pw);setTimeout(()=>inp.type='password',2500);
+  toast('Strong password generated ⚡');
+};
+
+// ── CHANGE VAULT PASSWORD ──
+window.openChangePw=()=>{['cvp-cur','cvp-new','cvp-conf'].forEach(k=>$(k).value='');$('cvpsf').style.width='0%';$('cvpModal').style.display='flex';setTimeout(()=>$('cvp-cur').focus(),80)};
+window.closeCvp=()=>$('cvpModal').style.display='none';
+
+window.changePw=async()=>{
+  const cur=$('cvp-cur').value,nw=$('cvp-new').value,conf=$('cvp-conf').value;
+  if(!cur||!nw||!conf)return toast('All fields required');
+  if(nw.length<8)return toast('New password must be 8+ characters');
+  if(nw!==conf)return toast('New passwords do not match');
+  if(cur===nw)return toast('New password must differ from current');
+  setBusy('cvpBtn',true,'Re-encrypting…');sync('syncing');
+  try{
+    const fresh=await fsGet(U);
+    const oldKey=await deriveKey(cur,fromB64(fresh.salt));
+    try{if(await dec(fresh.verifyToken,oldKey)!=='VAULT_OK')throw 0}
+    catch{return toast('Current password is incorrect')}
+    const newSalt=crypto.getRandomValues(new Uint8Array(16));
+    const newKey=await deriveKey(nw,newSalt);
+    const newToken=await enc('VAULT_OK',newKey);
+    const entries=await Promise.all((fresh.entries||[]).map(async e=>{
+      try{
+        const [n,u,p]=await Promise.all([dec(e.name,oldKey),dec(e.user,oldKey),dec(e.pass,oldKey)]);
+        const url=e.url?await dec(e.url,oldKey):'';
+        const notes=e.notes?await dec(e.notes,oldKey):'';
+        const hist=await Promise.all((e.pwHistory||[]).map(async h=>{
+          try{return{pass:await enc(await dec(h.pass,oldKey),newKey),at:h.at}}catch{return null}
+        })).then(a=>a.filter(Boolean));
+        return{...e,name:await enc(n,newKey),user:await enc(u,newKey),pass:await enc(p,newKey),url:url?await enc(url,newKey):'',notes:notes?await enc(notes,newKey):'',pwHistory:hist};
+      }catch{return e}
+    }));
+    await fsSet(U,{salt:toB64(newSalt),verifyToken:newToken,entries,updatedAt:Date.now()});
+    KEY=newKey;closeCvp();sync('synced');toast('Vault password updated 🔐');
+  }catch(e){sync('error');toast('Error: '+e.message)}
+  finally{setBusy('cvpBtn',false,'Update Password')}
+};
+
+// ── DELETE ACCOUNT ──
+window.openDelAcct=()=>{['da-pw','da-confirm'].forEach(k=>$(k).value='');$('delAcctModal').style.display='flex';setTimeout(()=>$('da-pw').focus(),80)};
+window.closeDelAcct=()=>$('delAcctModal').style.display='none';
+
+window.delAcct=async()=>{
+  const pw=$('da-pw').value,conf=$('da-confirm').value.trim();
+  if(!pw)return toast('Enter your master password');
+  if(conf!=='DELETE')return toast('Type DELETE in capitals to confirm');
+  setBusy('daBtn',true,'Deleting…');
+  try{
+    const fresh=await fsGet(U);
+    const k=await deriveKey(pw,fromB64(fresh.salt));
+    try{if(await dec(fresh.verifyToken,k)!=='VAULT_OK')throw 0}
+    catch{return toast('Password is incorrect — deletion cancelled')}
+    if(unsub){unsub();unsub=null}stopLock();
+    await deleteDoc(doc(db,'vaults',U));
+    U=null;KEY=null;cached=[];
+    closeDelAcct();
+    $('lPass').value='';$('lUser').value='';
+    $('vault').classList.remove('on');$('authWrap').style.display='';
+    go('loginScreen');toast('Account permanently deleted');
+  }catch(e){toast('Error: '+e.message)}
+  finally{setBusy('daBtn',false,'Delete Forever')}
+};
+
+// ── EXPORT ──
+window.exportVault=async()=>{
+  try{
+    const data=await fsGet(U);if(!data)return toast('No data to export');
+    const blob=new Blob([JSON.stringify({exportedAt:new Date().toISOString(),vault:U,data},null,2)],{type:'application/json'});
+    const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=`onekey-${U}-${Date.now()}.json`;a.click();
+    URL.revokeObjectURL(a.href);toast('Encrypted backup downloaded ⬇');
+  }catch(e){toast('Export failed: '+e.message)}
+};
+
+// Boot
+go('loginScreen');
 </script>
 </body>
 </html>
