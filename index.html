@@ -160,10 +160,10 @@ select.sel option{background:#0e0e1c}
 }
 .ib:hover{background:rgba(255,255,255,.08);color:var(--text)}
 .ib.red:hover{background:rgba(255,77,106,.14);color:var(--danger)}
-.ib.star{color:var(--muted);transition:background .15s,transform .15s,color .15s}
-.ib.star:hover{background:rgba(255,211,42,.12);color:var(--warn)}
-.ib.star.on{color:var(--warn);background:rgba(255,211,42,.18);transform:scale(1.18)}
-.ib.star.on:hover{background:rgba(255,211,42,.26)}
+.ib.star{color:var(--muted);font-size:14px;transition:color .15s,transform .15s}
+.ib.star:hover{color:var(--warn)}
+.ib.star.on{color:var(--warn);transform:scale(1.15)}
+.ib.star.on:hover{color:#ffe066}
 
 /* ══ VAULT SHELL ══ */
 #vault{position:fixed;inset:0;z-index:1;display:none;flex-direction:column;overflow:hidden}
@@ -584,6 +584,14 @@ select.sel option{background:#0e0e1c}
   <div class="modal">
     <div class="mtitle"><span>Import Backup</span><button class="ib" onclick="closeImport()">✕</button></div>
     <div id="importResults" class="import-results"></div>
+    <div id="importPwField" class="field" style="display:none">
+      <label>Backup Password</label>
+      <div class="iw">
+        <input type="password" id="import-pw" placeholder="password used when backup was created"/>
+        <button class="eye" onclick="vis('import-pw')" tabindex="-1">👁</button>
+      </div>
+      <div style="font-size:10px;color:var(--muted);margin-top:5px">This backup was created with a different vault instance. Enter the master password that was active at export time.</div>
+    </div>
     <div class="notice" id="importNotice" style="margin-bottom:16px">Only new entries will be added. Identical entries (same name + username + password) will be skipped.</div>
     <div class="macts">
       <button class="btn btn-g" onclick="closeImport()">Cancel</button>
@@ -859,7 +867,7 @@ window.render=async()=>{
         ${dL!==null?`<div class="eage"><span class="agedot ${lvl}"></span><span class="agetxt ${lvl}">${ageStr}</span></div>`:''}
       </div>
       <div class="eacts">
-        <button class="ib star${e.favorite?' on':''}" title="${e.favorite?'Unfavorite':'Favorite'}" onclick="toggleFav('${e.id}')">⭐</button>
+        <button class="ib star${e.favorite?' on':''}" title="${e.favorite?'Remove from favorites':'Add to favorites'}" onclick="toggleFav('${e.id}')">${e.favorite?'★':'☆'}</button>
         <button class="ib" title="Peek password" onclick="peekPw('${e.id}')">👁</button>
         <button class="ib" title="Copy password" onclick="copyPw('${e.id}')">📋</button>
         ${e.url?`<button class="ib" title="Open site" onclick="openUrl('${e.id}')">🔗</button>`:''}
@@ -1050,112 +1058,135 @@ window.exportVault=async()=>{
   }catch(e){ toast('Export failed: '+e.message); }
 };
 
-// ── IMPORT — smart merge ──────────────────────────────────
+// ── IMPORT STATE ──────────────────────────────────────────
+let pendingImportRaw=[];   // raw encrypted entries from backup
+let pendingImportKey=null; // key to decrypt them (may differ from current KEY)
+let pendingImportSalt='';  // salt from backup (to detect same vs different vault)
+
 window.importVault=async(input)=>{
   const file=input.files[0]; if(!file)return;
-  input.value=''; // reset so same file can be re-selected
+  input.value='';
   try{
-    const text=await file.text();
-    const json=JSON.parse(text);
-    // Support both raw export format and wrapped format
+    const json=JSON.parse(await file.text());
     const importData=json.data||json;
-    if(!importData.salt||!importData.entries)return toast('Invalid backup file');
-
-    // Verify the backup was made with the same vault password by trying to decrypt verifyToken
-    let importKey;
-    try{
-      importKey=await deriveKey(
-        // We need to try with the current key directly since the ciphertext
-        // was encrypted with whatever key was active at export time.
-        // Strategy: try current session key's raw password — we don't have it.
-        // Instead, verify by attempting to decrypt the first entry.
-        null,null // placeholder
-      );
-    }catch{}
-
-    // Smart merge approach:
-    // 1. Decrypt all existing entries
-    // 2. Decrypt all incoming entries (they were encrypted with the same key
-    //    because they came from the same vault — the salt in the export matches)
-    // 3. Compare name+user+pass — skip identical ones, add the rest
-
-    // Derive the import key from the exported salt using current KEY material.
-    // Since the export was from the same vault (same master password),
-    // the imported entries are already encrypted with a key derived from
-    // the same password + that export's salt. We need to re-encrypt them
-    // with the current key after decrypting.
-    const importedSalt=fromB64(importData.salt);
-    // We don't have the raw password anymore (session only stores the CryptoKey).
-    // Solution: use the encrypted entries as-is IF salts match (same key).
-    // If salts differ, we can't decrypt — inform user.
+    if(!importData.salt||!importData.entries)return toast('Invalid backup file — missing required fields');
 
     const currentFresh=await fsGet(U);
     const sameSalt=currentFresh.salt===importData.salt;
 
-    // Decrypt existing entries for comparison
-    const existingDecrypted=await Promise.all(cached.map(async e=>{
-      try{ return{id:e.id,n:await dec(e.name,KEY),u:await dec(e.user,KEY),p:await dec(e.pass,KEY)}; }
-      catch{ return null; }
-    })).then(a=>a.filter(Boolean));
+    pendingImportRaw=importData.entries||[];
+    pendingImportSalt=importData.salt;
+    pendingImportKey=sameSalt?KEY:null; // null = needs password from user
 
-    if(!sameSalt){
-      // Different password was used — we cannot decrypt the imported entries.
-      // Show a clear error.
-      $('importResults').innerHTML=`<div class="ir"><span class="lbl">Status</span><span class="val r">Cannot import</span></div>
-        <div style="margin-top:10px;font-size:11px;color:var(--muted)">This backup was encrypted with a different master password. To import it, you must use the same password that was active when the backup was created.</div>`;
+    if(sameSalt){
+      // Same vault key — decrypt and analyse immediately
+      await analyseAndShowImportModal(KEY);
+    } else {
+      // Different vault instance — show password field first
+      $('importResults').innerHTML=`<div class="ir"><span class="lbl">Entries in backup</span><span class="val">${pendingImportRaw.length}</span></div>
+        <div class="ir"><span class="lbl">Status</span><span class="val w">Different vault — password required</span></div>`;
+      $('importPwField').style.display='block';
+      $('import-pw').value='';
       $('importNotice').style.display='none';
-      busy('importBtn',false,'');
-      $('importBtn').style.display='none';
+      $('importBtn').textContent='Verify & Import';
+      $('importBtn').style.display='';
       $('importModal').style.display='flex';
-      return;
+      setTimeout(()=>$('import-pw').focus(),80);
     }
-
-    // Same salt = same key — decrypt imported entries directly
-    const importedEntries=importData.entries||[];
-    const toAdd=[];
-    let skipped=0;
-
-    for(const ie of importedEntries){
-      try{
-        const [in_,iu,ip]=await Promise.all([dec(ie.name,KEY),dec(ie.user,KEY),dec(ie.pass,KEY)]);
-        // Check if identical entry already exists (same name + user + password)
-        const isDup=existingDecrypted.some(ex=>
-          ex.n.toLowerCase()===in_.toLowerCase()&&
-          ex.u.toLowerCase()===iu.toLowerCase()&&
-          ex.p===ip
-        );
-        if(!isDup) toAdd.push({...ie, id:crypto.randomUUID()}); // new id to avoid collision
-        else skipped++;
-      }catch{ skipped++; }
-    }
-
-    pendingImportEntries=toAdd;
-
-    // Show preview modal
-    $('importResults').innerHTML=`
-      <div class="ir"><span class="lbl">Entries in backup</span><span class="val">${importedEntries.length}</span></div>
-      <div class="ir"><span class="lbl">Already exist (skipped)</span><span class="val y">${skipped}</span></div>
-      <div class="ir"><span class="lbl">New entries to import</span><span class="val g">${toAdd.length}</span></div>`;
-    $('importNotice').style.display=toAdd.length?'block':'none';
-    $('importBtn').style.display=toAdd.length?'':'none';
-    $('importBtn').textContent=`Import ${toAdd.length} New ${toAdd.length===1?'Entry':'Entries'}`;
-    $('importModal').style.display='flex';
-
   }catch(e){ toast('Failed to read file: '+e.message); console.error(e); }
 };
 
-window.closeImport=()=>{ $('importModal').style.display='none'; pendingImportEntries=[]; };
+async function analyseAndShowImportModal(importKey){
+  // Decrypt existing entries for comparison
+  const existingDec=await Promise.all(cached.map(async e=>{
+    try{ return{n:(await dec(e.name,KEY)).toLowerCase(),u:(await dec(e.user,KEY)).toLowerCase(),p:await dec(e.pass,KEY)}; }
+    catch{ return null; }
+  })).then(a=>a.filter(Boolean));
+
+  const toAdd=[]; let skipped=0;
+  for(const ie of pendingImportRaw){
+    try{
+      const [in_,iu,ip]=await Promise.all([dec(ie.name,importKey),dec(ie.user,importKey),dec(ie.pass,importKey)]);
+      const dup=existingDec.some(ex=>ex.n===in_.toLowerCase()&&ex.u===iu.toLowerCase()&&ex.p===ip);
+      if(!dup) toAdd.push({entry:ie, n:in_, u:iu, p:ip, url:ie.url, notes:ie.notes, rest:ie});
+      else skipped++;
+    }catch{ skipped++; }
+  }
+
+  pendingImportKey=importKey;
+  // Store analysed results for confirmImport
+  window._importToAdd=toAdd;
+
+  $('importResults').innerHTML=`
+    <div class="ir"><span class="lbl">Entries in backup</span><span class="val">${pendingImportRaw.length}</span></div>
+    <div class="ir"><span class="lbl">Already exist (skipped)</span><span class="val w">${skipped}</span></div>
+    <div class="ir"><span class="lbl">New entries to import</span><span class="val g">${toAdd.length}</span></div>`;
+  $('importPwField').style.display='none';
+  $('importNotice').style.display=toAdd.length?'block':'none';
+  $('importBtn').style.display=toAdd.length||skipped===pendingImportRaw.length?'':'none';
+  $('importBtn').textContent=toAdd.length?`Import ${toAdd.length} New ${toAdd.length===1?'Entry':'Entries'}`:'Nothing new to import';
+  $('importBtn').disabled=toAdd.length===0;
+  $('importModal').style.display='flex';
+}
+
+window.closeImport=()=>{
+  $('importModal').style.display='none';
+  pendingImportRaw=[]; pendingImportKey=null; pendingImportSalt='';
+  window._importToAdd=[];
+};
 
 window.confirmImport=async()=>{
-  if(!pendingImportEntries.length)return;
+  // If password field is visible, user needs to verify backup password first
+  if($('importPwField').style.display!=='none'){
+    const pw=$('import-pw').value;
+    if(!pw)return toast('Enter the backup password');
+    busy('importBtn',true,'Verifying…');
+    try{
+      const importKey=await deriveKey(pw,fromB64(pendingImportSalt));
+      // Verify against backup's verifyToken by attempting to decrypt one entry
+      // (we don't store the verifyToken in pendingImportRaw, so try first entry)
+      if(pendingImportRaw.length===0)return toast('Backup has no entries');
+      try{
+        await dec(pendingImportRaw[0].name,importKey); // will throw if wrong key
+      }catch{
+        busy('importBtn',false,'Verify & Import');
+        return toast('Wrong password — cannot decrypt backup');
+      }
+      await analyseAndShowImportModal(importKey);
+    }catch(e){ toast('Error: '+e.message); }
+    finally{ busy('importBtn',false,'Verify & Import'); }
+    return;
+  }
+
+  // Proceed with confirmed import
+  const toAdd=window._importToAdd||[];
+  if(!toAdd.length)return;
   busy('importBtn',true,'Importing…'); sync('syncing');
   try{
     const fresh=await fsGet(U);
-    const entries=[...(fresh?.entries||[]),...pendingImportEntries];
-    await fsSet(U,{...(fresh||{}),entries,updatedAt:Date.now()});
-    closeImport();
-    toast(`✓ ${pendingImportEntries.length} entries imported`);
-  }catch(e){ sync('error'); toast('Import failed: '+e.message); }
+    const existing=[...(fresh?.entries||[])];
+
+    // Re-encrypt each entry with the current KEY (in case it came from a different vault)
+    const newEntries=await Promise.all(toAdd.map(async({n,u,p,url,notes,rest})=>{
+      const [en,eu,ep]=await Promise.all([enc(n,KEY),enc(u,KEY),enc(p,KEY)]);
+      const eurl=url?await enc(await dec(url,pendingImportKey).catch(()=>url),KEY).catch(()=>''):'';
+      const enotes=notes?await enc(await dec(notes,pendingImportKey).catch(()=>notes),KEY).catch(()=>''):'';
+      return{
+        id:crypto.randomUUID(),
+        name:en, user:eu, pass:ep, url:eurl, notes:enotes,
+        category:rest.category||null,
+        favorite:rest.favorite||false,
+        created:rest.created||Date.now(),
+        pwUpdated:rest.pwUpdated||rest.created||Date.now(),
+        pwHistory:[],
+      };
+    }));
+
+    await fsSet(U,{...(fresh||{}),entries:[...existing,...newEntries],updatedAt:Date.now()});
+    const count=newEntries.length;
+    closeImport(); sync('synced');
+    toast(`✓ ${count} ${count===1?'entry':'entries'} imported`);
+  }catch(e){ sync('error'); toast('Import failed: '+e.message); console.error(e); }
   finally{ busy('importBtn',false,'Import'); }
 };
 
