@@ -160,7 +160,10 @@ select.sel option{background:#0e0e1c}
 }
 .ib:hover{background:rgba(255,255,255,.08);color:var(--text)}
 .ib.red:hover{background:rgba(255,77,106,.14);color:var(--danger)}
-.ib.star{color:var(--muted)}.ib.star.on{color:var(--warn)}
+.ib.star{color:var(--muted);transition:background .15s,transform .15s,color .15s}
+.ib.star:hover{background:rgba(255,211,42,.12);color:var(--warn)}
+.ib.star.on{color:var(--warn);background:rgba(255,211,42,.18);transform:scale(1.18)}
+.ib.star.on:hover{background:rgba(255,211,42,.26)}
 
 /* ══ VAULT SHELL ══ */
 #vault{position:fixed;inset:0;z-index:1;display:none;flex-direction:column;overflow:hidden}
@@ -470,12 +473,8 @@ select.sel option{background:#0e0e1c}
           <span class="sico">🔍</span>
           <input type="text" id="search" placeholder="search entries…" oninput="render()"/>
         </div>
-        <select class="ssort" id="sort" onchange="render()">
+        <select class="ssort" id="sort" style="display:none">
           <option value="az">A → Z</option>
-          <option value="za">Z → A</option>
-          <option value="new">Newest</option>
-          <option value="old">Oldest</option>
-          <option value="fav">⭐ Favorites first</option>
         </select>
         <button class="tbtn" onclick="exportVault()">⬇ Export</button>
         <button class="tbtn" onclick="$('importFile').click()">⬆ Import</button>
@@ -819,14 +818,8 @@ window.render=async()=>{
   if(q)items=items.filter(e=>e._n.toLowerCase().includes(q)||e._u.toLowerCase().includes(q));
 
   // Sort
-  items.sort((a,b)=>{
-    if(sortVal==='az') return a._n.localeCompare(b._n);
-    if(sortVal==='za') return b._n.localeCompare(a._n);
-    if(sortVal==='new')return(b.created||0)-(a.created||0);
-    if(sortVal==='old')return(a.created||0)-(b.created||0);
-    if(sortVal==='fav')return((b.favorite?1:0)-(a.favorite?1:0))||a._n.localeCompare(b._n);
-    return 0;
-  });
+  // Favorites always pinned to top, then alphabetical within each group
+  items.sort((a,b)=>((b.favorite?1:0)-(a.favorite?1:0))||a._n.localeCompare(b._n));
 
   // Count label
   const tot=cached.length;
