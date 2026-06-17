@@ -97,7 +97,6 @@ button.danger:hover { background: #ff7777; box-shadow: 0 4px 12px var(--rdim); }
         <select id="ui_sort_filter">
           <option value="title_asc">Title (A-Z)</option>
           <option value="title_desc">Title (Z-A)</option>
-          <option value="date_desc">Newest First</option>
         </select>
       </div>
     </div>
@@ -125,7 +124,7 @@ button.danger:hover { background: #ff7777; box-shadow: 0 4px 12px var(--rdim); }
 <div class="modal" id="delModal">
   <div class="modal-content">
     <h3 style="color:var(--red);">Danger Zone: Permanent Deletion</h3>
-    <p style="font-size:0.9rem; color:var(--sub);">This actions wipes your cryptographic store document and collections completely. Input password and confirmation phrase to execute structural drop.</p>
+    <p style="font-size:0.9rem; color:var(--sub);">This action wipes your cryptographic record store document completely. Input your password and confirmation phrase to execute drop.</p>
     <div class="input-group"><label>Confirm Master Password</label><input type="password" id="del_confirm_pass"></div>
     <div class="input-group"><label>Type "DELETE"</label><input type="text" id="del_confirm_text" placeholder="DELETE"></div>
     <div style="display:flex; gap:12px; justify-content:flex-end;">
@@ -138,31 +137,31 @@ button.danger:hover { background: #ff7777; box-shadow: 0 4px 12px var(--rdim); }
 <div id="toast">Notification Engine</div>
 
 <script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import { 
-  getFirestore, doc, getDoc, setDoc, deleteDoc, collection, getDocs, writeBatch 
-} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+  getFirestore, doc, getDoc, setDoc, deleteDoc, onSnapshot
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-// !!! PLACE YOUR REAL CONFIGURATION PARAMETERS HERE !!!
+// ── RESTORED YOUR GENUINE FIREBASE PROJECT CREDENTIALS ──
 const firebaseConfig = {
-  apiKey: "AIzaSyYourRealApiKeyHere...",
-  authDomain: "your-app.firebaseapp.com",
-  projectId: "your-app-id",
-  storageBucket: "your-app.appspot.com",
-  messagingSenderId: "1234567890",
-  appId: "1:1234567890:web:abcdef"
+  apiKey: "AIzaSyAF1nxXeZhz7LvWpQFTnFYNifuZII_R-mE",
+  authDomain: "onekey-5067d.firebaseapp.com",
+  projectId: "onekey-5067d",
+  storageBucket: "onekey-5067d.firebasestorage.app",
+  messagingSenderId: "1098836590874",
+  appId: "1:1098836590874:web:9c62490ce2670a4418aca3"
 };
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
 // Global Runtime Variables
-let APP_MODE = 'LOGIN'; // Or 'REGISTER'
-let USER_ID_HASH = null;
+let APP_MODE = 'LOGIN'; 
+let U = null; // Plaintext Username matches your backend layout explicitly
 let CIPHER_KEY = null;
 let DEC_ENTRIES_CACHE = [];
-
-const DEFAULT_ITERATIONS = 310000;
+let RAW_ENTRIES_BACKUP = []; // Stores encrypted representations for mutations
+let unsub = null;
 
 /* ══ UTILITY & ELEMENT SHORTCUTS ══ */
 const $ = id => document.getElementById(id);
@@ -175,16 +174,10 @@ const fromB64 = str => Uint8Array.from(atob(str), c => c.charCodeAt(0));
 const txtEnc = new TextEncoder();
 const txtDec = new TextDecoder();
 
-// Compute Username Document Paths safely without leaking identities via plaintext names
-async function hashUsername(username) {
-  const hashBuf = await crypto.subtle.digest('SHA-256', txtEnc.encode(username.trim().toLowerCase()));
-  return toB64(hashBuf).replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, ''); // URI safe transform
-}
-
-async function deriveKey(password, salt, iterations) {
+async function deriveKey(password, salt) {
   const base = await crypto.subtle.importKey("raw", txtEnc.encode(password), "PBKDF2", false, ["deriveKey"]);
   return crypto.subtle.deriveKey(
-    { name: "PBKDF2", salt: salt, iterations: iterations, hash: "SHA-256" },
+    { name: "PBKDF2", salt: salt, iterations: 310000, hash: "SHA-256" },
     base,
     { name: "AES-GCM", length: 256 },
     false,
@@ -195,102 +188,95 @@ async function deriveKey(password, salt, iterations) {
 async function enc(txt, key) {
   const iv = crypto.getRandomValues(new Uint8Array(12));
   const encBuf = await crypto.subtle.encrypt({ name: "AES-GCM", iv: iv }, key, txtEnc.encode(txt));
-  return toB64(iv) + "." + toB64(encBuf);
+  const out = new Uint8Array(12 + encBuf.byteLength);
+  out.set(iv);
+  out.set(new Uint8Array(encBuf), 12);
+  return toB64(out);
 }
 
-async function dec(cipherText, key) {
-  const parts = cipherText.split('.');
-  if(parts.length !== 2) throw new Error("Malformed ciphertext payload");
-  const iv = fromB64(parts[0]);
-  const data = fromB64(parts[1]);
-  const decBuf = await crypto.subtle.decrypt({ name: "AES-GCM", iv: iv }, key, data);
+async function dec(b64, key) {
+  const buf = fromB64(b64);
+  const decBuf = await crypto.subtle.decrypt({ name: "AES-GCM", iv: buf.slice(0, 12) }, key, buf.slice(12));
   return txtDec.decode(decBuf);
 }
 
 /* ══ AUTH MANAGEMENT FLOWS ══ */
 async function handleAuth() {
-  const u = $('auth_user').value.trim();
+  const u = $('auth_user').value.trim().toLowerCase();
   const p = $('auth_pass').value;
   if(!u || !p) return showToast("Missing fields");
 
   setBusy('btn_submit_auth', true, APP_MODE === 'LOGIN' ? 'Unlock Vault' : 'Create Account');
   
   try {
-    USER_ID_HASH = await hashUsername(u);
-    const userDocRef = doc(db, 'vaults', USER_ID_HASH);
+    const userDocRef = doc(db, 'vaults', u);
     const snap = await getDoc(userDocRef);
 
     if (APP_MODE === 'REGISTER') {
-      if (snap.exists()) throw new Error("Vault identifier profile already claimed");
+      if (snap.exists()) throw new Error("Username already taken");
       
       const salt = crypto.getRandomValues(new Uint8Array(16));
-      CIPHER_KEY = await deriveKey(p, salt, DEFAULT_ITERATIONS);
-      const verifyToken = await enc("VAULT_VERIFIED_OK", CIPHER_KEY);
+      CIPHER_KEY = await deriveKey(p, salt);
+      const verifyToken = await enc("VAULT_OK", CIPHER_KEY);
       
       await setDoc(userDocRef, {
         salt: toB64(salt),
-        iterations: DEFAULT_ITERATIONS,
         verifyToken: verifyToken,
-        createdAt: Date.now()
+        entries: [],
+        updatedAt: Date.now()
       });
       
       showToast("Secure Vault Generated 🔐");
     } else {
-      if (!snap.exists()) throw new Error("Invalid access signature profile components");
+      if (!snap.exists()) throw new Error("No vault found for this username");
       const data = snap.data();
       
-      // Adapt automatically to dynamic iterations stored globally per account record
-      const iterations = data.iterations || DEFAULT_ITERATIONS; 
-      CIPHER_KEY = await deriveKey(p, fromB64(data.salt), iterations);
+      CIPHER_KEY = await deriveKey(p, fromB64(data.salt));
       
       try {
         const verify = await dec(data.verifyToken, CIPHER_KEY);
-        if (verify !== "VAULT_VERIFIED_OK") throw 0;
+        if (verify !== "VAULT_OK") throw 0;
       } catch(e) {
-        throw new Error("Invalid access signature profile components");
+        throw new Error("Wrong password");
       }
       showToast("Vault Unlocked!");
     }
 
+    U = u;
     $('authScreen').style.display = 'none';
     $('mainScreen').style.display = 'flex';
-    await fetchAndRenderEntries();
+    
+    // Bind Realtime snapshot channels matching original architecture layouts
+    unsub = onSnapshot(userDocRef, async (snapshot) => {
+      if (snapshot.exists()) {
+        $('sync_status').innerText = "● Syncing...";
+        RAW_ENTRIES_BACKUP = snapshot.data().entries || [];
+        DEC_ENTRIES_CACHE = [];
+        
+        for (let e of RAW_ENTRIES_BACKUP) {
+          try {
+            const title = await dec(e.name, CIPHER_KEY);
+            const login = await dec(e.user, CIPHER_KEY);
+            const password = await dec(e.pass, CIPHER_KEY);
+            const notes = await dec(e.notes, CIPHER_KEY);
+            
+            DEC_ENTRIES_CACHE.push({ id: e.id, title, login, password, notes });
+          } catch(err) {
+            console.error("Decryption single failure loop tracking node.", err);
+          }
+        }
+        renderUI();
+        $('sync_status').innerText = "● Synced";
+      }
+    }, (error) => {
+      showToast("Sync break boundary detected: " + error.message);
+      $('sync_status').innerText = "● Sync Error";
+    });
     
   } catch(err) {
     showToast(err.message);
-    USER_ID_HASH = null; CIPHER_KEY = null;
   } finally {
     setBusy('btn_submit_auth', false, APP_MODE === 'LOGIN' ? 'Unlock Vault' : 'Create Account');
-  }
-}
-
-/* ══ CORE CRUD ENGINE (SUBCOLLECTIONS CONVERSION) ══ */
-async function fetchAndRenderEntries() {
-  $('sync_status').innerText = "● Syncing...";
-  try {
-    const entriesSnapshot = await getDocs(collection(db, 'vaults', USER_ID_HASH, 'entries'));
-    DEC_ENTRIES_CACHE = [];
-
-    for (let d of entriesSnapshot.docs) {
-      const data = d.data();
-      try {
-        const title = await dec(data.title, CIPHER_KEY);
-        const login = await dec(data.login, CIPHER_KEY);
-        const password = await dec(data.password, CIPHER_KEY);
-        const notes = await dec(data.notes, CIPHER_KEY);
-        
-        DEC_ENTRIES_CACHE.push({
-          id: d.id, title, login, password, notes, updated: data.updated
-        });
-      } catch (e) {
-        console.error("Failed decrypting single target entity matrix packet index node.", e);
-      }
-    }
-    renderUI();
-    $('sync_status').innerText = "● Synced";
-  } catch(e) {
-    showToast("Error parsing cloud nodes: " + e.message);
-    $('sync_status').innerText = "● Sync Error";
   }
 }
 
@@ -303,10 +289,9 @@ function renderUI() {
   
   if (sortVal === "title_asc") sorted.sort((a,b) => a.title.localeCompare(b.title));
   if (sortVal === "title_desc") sorted.sort((a,b) => b.title.localeCompare(a.title));
-  if (sortVal === "date_desc") sorted.sort((a,b) => b.updated - a.updated);
 
   if (sorted.length === 0) {
-    container.innerHTML = `<p style="color:var(--muted); text-align:center; padding:40px 0;">No entries inside isolation array layers.</p>`;
+    container.innerHTML = `<p style="color:var(--muted); text-align:center; padding:40px 0;">No entries inside array.</p>`;
     return;
   }
 
@@ -337,20 +322,22 @@ async function saveEntry() {
 
   try {
     const targetId = id || crypto.randomUUID();
-    const docRef = doc(db, 'vaults', USER_ID_HASH, 'entries', targetId);
-
-    // Parallel WebCrypto Array Buffer Pipeline Exertions
-    const [eTitle, eLogin, ePassword, eNotes] = await Promise.all([
+    
+    // Parallel WebCrypto Array Buffer Pipeline executions
+    const [eName, eUser, ePass, eNotes] = await Promise.all([
       enc(title, CIPHER_KEY), enc(login, CIPHER_KEY), enc(password, CIPHER_KEY), enc(notes, CIPHER_KEY)
     ]);
 
-    await setDoc(docRef, {
-      title: eTitle, login: eLogin, password: ePassword, notes: eNotes, updated: Date.now()
-    });
+    const targetPayload = { id: targetId, name: eName, user: eUser, pass: ePass, notes: eNotes };
+    
+    // Filter and update or insert new items inside the original schema vector array
+    let updatedEntries = RAW_ENTRIES_BACKUP.filter(item => item.id !== targetId);
+    updatedEntries.push(targetPayload);
+
+    await setDoc(doc(db, 'vaults', U), { entries: updatedEntries }, { merge: true });
 
     showToast("Atomic Entity Saved Securely");
     $('entryModal').style.display = 'none';
-    await fetchAndRenderEntries();
   } catch(e) {
     showToast("Encryption/Storage error loop: " + e.message);
   } finally {
@@ -358,7 +345,6 @@ async function saveEntry() {
   }
 }
 
-/* ══ PERMANENT STRUCTURAL DELETION (BATCH DROPS) ══ */
 async function executeAccountPurge() {
   const p = $('del_confirm_pass').value;
   const conf = $('del_confirm_text').value.trim();
@@ -368,20 +354,14 @@ async function executeAccountPurge() {
   setBusy('btn_execute_del', true, 'Purge Storage Profile');
 
   try {
-    const snap = await getDoc(doc(db, 'vaults', USER_ID_HASH));
+    const snap = await getDoc(doc(db, 'vaults', U));
     const data = snap.data();
-    const checkKey = await deriveKey(p, fromB64(data.salt), data.iterations || DEFAULT_ITERATIONS);
+    const checkKey = await deriveKey(p, fromB64(data.salt));
     const verify = await dec(data.verifyToken, checkKey);
-    if(verify !== "VAULT_VERIFIED_OK") throw new Error("Incorrect authentication context verification");
+    if(verify !== "VAULT_OK") throw new Error("Incorrect authentication context verification");
 
-    // Clear internal Subcollection documents inside an unified operation batch allocation
-    const batch = writeBatch(db);
-    const subSnap = await getDocs(collection(db, 'vaults', USER_ID_HASH, 'entries'));
-    subSnap.forEach(d => batch.delete(d.ref));
-    
-    // Clear Core Root Registration Store Map
-    batch.delete(doc(db, 'vaults', USER_ID_HASH));
-    await batch.commit();
+    if (unsub) { unsub(); unsub = null; }
+    await deleteDoc(doc(db, 'vaults', U));
 
     showToast("Profile drop lifecycle execution completed.");
     window.location.reload();
