@@ -1,0 +1,1801 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"/>
+<title>SAP Easy Access</title>
+<style>
+/* ── SAP Signature Theme Reset ───────────────────────────────── */
+*{box-sizing:border-box;margin:0;padding:0;}
+html,body{height:100%;overflow:hidden;}
+body{font-family:Arial,Helvetica,sans-serif;font-size:11px;background:#ECE9D8;display:flex;flex-direction:column;min-height:100vh;}
+input,select,textarea,button{font-family:Arial,Helvetica,sans-serif;font-size:11px;}
+::-webkit-scrollbar{width:16px;height:16px;}
+::-webkit-scrollbar-track{background:#F0EFEB;border-left:1px solid #ACA899;}
+::-webkit-scrollbar-thumb{background:#C1BDB3;border:1px solid #ACA899;}
+::-webkit-scrollbar-thumb:hover{background:#A8A198;}
+::-webkit-scrollbar-corner{background:#F0EFEB;}
+
+/* ── Window Title Bar ─────────────────────────────────────────── */
+#wnd-title{height:30px;background:linear-gradient(180deg,#4A6FA5 0%,#1B3A6B 40%,#0D2857 100%);display:flex;align-items:center;padding:0 6px;gap:6px;flex-shrink:0;border-bottom:1px solid #0A1F45;}
+.sap-logo-box{width:22px;height:22px;background:linear-gradient(135deg,#FFD700,#FFA500);border:1px solid #CC8800;border-radius:1px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:bold;color:#0D2857;flex-shrink:0;box-shadow:0 1px 2px rgba(0,0,0,.4);}
+#wnd-title-text{color:#FFFFFF;font-size:11px;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-shadow:0 1px 1px rgba(0,0,0,.3);}
+.wnd-ctrl-btns{display:flex;gap:1px;}
+.wnd-ctrl-btn{width:18px;height:17px;background:linear-gradient(180deg,#5A7BBF,#2A4A8F);border:1px solid rgba(255,255,255,.25);color:#FFF;font-size:9px;display:flex;align-items:center;justify-content:center;cursor:pointer;border-radius:1px;}
+.wnd-ctrl-btn:hover{background:linear-gradient(180deg,#7A9BCF,#4A6AAF);}
+
+/* ── Menu Bar ─────────────────────────────────────────────────── */
+#menu-bar{height:21px;background:linear-gradient(180deg,#F5F4F1 0%,#E8E6E0 100%);border-bottom:1px solid #ACA899;display:flex;align-items:center;padding:0 2px;flex-shrink:0;}
+.menu-item{padding:2px 8px;font-size:11px;cursor:pointer;height:19px;display:flex;align-items:center;color:#000;border:1px solid transparent;white-space:nowrap;}
+.menu-item:hover{background:linear-gradient(180deg,#316AC5,#2458A8);color:#FFF;border-color:#2458A8;}
+.menu-sep{width:1px;height:14px;background:#ACA899;margin:0 2px;}
+
+/* ── Navigation Toolbar ───────────────────────────────────────── */
+#nav-toolbar{height:26px;background:linear-gradient(180deg,#F5F4F1,#E0DED8);border-bottom:1px solid #ACA899;display:flex;align-items:center;padding:0 3px;gap:1px;flex-shrink:0;}
+#cmd-box{display:flex;align-items:center;height:20px;margin-right:4px;}
+#cmd-input{width:150px;height:20px;font-size:11px;font-family:Courier New,monospace;padding:1px 4px;border:1px solid #7A7974;background:#FFFFFF;outline:none;border-right:none;}
+#cmd-input:focus{border-color:#316AC5;}
+#cmd-dd{width:16px;height:20px;border:1px solid #7A7974;background:linear-gradient(180deg,#F5F4F1,#D8D6D0);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:8px;color:#333;}
+#cmd-enter{width:22px;height:20px;border:1px solid #7A7974;background:linear-gradient(180deg,#F5F4F1,#D8D6D0);cursor:pointer;display:flex;align-items:center;justify-content:center;color:#006600;font-size:13px;font-weight:bold;margin-right:4px;}
+#cmd-enter:hover{background:linear-gradient(180deg,#EEF4EE,#C8DCC8);}
+.tb-sep-v{width:1px;height:18px;background:#ACA899;margin:0 2px;}
+.tb-btn{min-width:22px;height:22px;padding:0 2px;border:1px solid transparent;background:transparent;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:12px;border-radius:0;color:#333;}
+.tb-btn:hover{border:1px solid #7A7974;background:linear-gradient(180deg,#F8F7F4,#DDD9D0);}
+.tb-btn:active{background:linear-gradient(180deg,#D8D4CC,#E8E4DC);border:1px solid #5A5651;}
+.tb-btn svg{width:16px;height:16px;}
+
+/* ── Standard Toolbar / App Toolbar ──────────────────────────── */
+.app-toolbar{min-height:26px;background:linear-gradient(180deg,#F0EFE9,#E4E2DA);border-bottom:1px solid #ACA899;display:flex;align-items:center;padding:0 4px;gap:2px;flex-shrink:0;flex-wrap:wrap;}
+.app-btn{height:22px;padding:0 8px;border:1px solid #ACA899;background:linear-gradient(180deg,#F5F4F1,#E0DED8);cursor:pointer;font-size:11px;color:#000;white-space:nowrap;display:flex;align-items:center;gap:3px;}
+.app-btn:hover{background:linear-gradient(180deg,#EBF0F8,#C8D8EC);border-color:#7AA0C8;}
+.app-btn:active{background:linear-gradient(180deg,#C8D8EC,#A8C0DC);}
+.app-btn.primary{background:linear-gradient(180deg,#F5F4F1,#E0DED8);font-weight:bold;}
+.app-btn-icon{font-size:13px;}
+.app-sep{width:1px;height:18px;background:#ACA899;margin:0 2px;}
+
+/* ── Title Bar (Transaction Title) ───────────────────────────── */
+#tx-title-bar{height:24px;background:linear-gradient(180deg,#DAE4F0,#C8D8EC);border-bottom:1px solid #9AACC0;display:flex;align-items:center;padding:0 10px;gap:8px;flex-shrink:0;display:none;}
+#tx-title-bar .tx-title{font-size:12px;font-weight:bold;color:#003399;}
+#tx-title-bar .tx-code{font-size:10px;color:#555566;}
+
+/* ── Canvas ───────────────────────────────────────────────────── */
+#canvas{flex:1;overflow:hidden;background:#F0EFE9;position:relative;display:flex;flex-direction:column;}
+.view{display:none;flex-direction:column;height:100%;overflow:hidden;}
+.view.active{display:flex;}
+.view-scroll{flex:1;overflow:auto;background:#F0EFE9;}
+.view-pad{padding:8px 12px 24px;}
+
+/* ── SAP Screen Areas (Frames/Groups) ────────────────────────── */
+.screen{background:#F0EFE9;padding:6px 10px 10px;}
+.frame{border:1px solid #9E9A94;margin-bottom:8px;background:#FFFFFF;}
+.frame-title{background:linear-gradient(180deg,#ECE9E0,#D8D4C8);border-bottom:1px solid #9E9A94;padding:2px 8px;font-size:11px;font-weight:bold;color:#333;letter-spacing:0.3px;}
+.frame-body{padding:6px 12px 8px;}
+.frame-body.compact{padding:4px 8px 6px;}
+
+/* ── Field Rows ───────────────────────────────────────────────── */
+.frow{display:flex;align-items:center;margin-bottom:3px;min-height:20px;}
+.flabel{font-size:11px;color:#000;text-align:right;padding-right:6px;flex-shrink:0;white-space:nowrap;}
+.flabel-w1{min-width:120px;}
+.flabel-w2{min-width:160px;}
+.flabel-w3{min-width:200px;}
+.flabel-w4{min-width:240px;}
+.fval{font-size:11px;font-family:Courier New,monospace;padding:1px 3px;min-height:18px;border-bottom:1px solid #C8C4BC;color:#000;background:transparent;min-width:60px;}
+.fval.hl{background:#FFFFCC;}
+.finput{height:20px;font-size:11px;font-family:Courier New,monospace;padding:1px 4px;border:1px solid #7A7974;background:#FFFFFF;outline:none;}
+.finput:focus{border-color:#316AC5;box-shadow:0 0 0 1px rgba(49,106,197,.3);}
+.finput.ro{background:#F0EFE9;color:#555;}
+.fselect{height:20px;font-size:11px;font-family:Arial,sans-serif;border:1px solid #7A7974;background:#FFFFFF;outline:none;padding:0 2px;}
+.fselect:focus{border-color:#316AC5;}
+.ftextarea{font-size:11px;font-family:Courier New,monospace;padding:3px 4px;border:1px solid #7A7974;background:#FFFFFF;outline:none;resize:vertical;}
+.ftextarea:focus{border-color:#316AC5;}
+.fradio-grp{display:flex;align-items:center;gap:16px;}
+.fradio{display:flex;align-items:center;gap:4px;cursor:pointer;font-size:11px;}
+.fcheckbox{display:flex;align-items:center;gap:4px;cursor:pointer;font-size:11px;}
+
+/* ── SAP Tabs ─────────────────────────────────────────────────── */
+.tab-bar{display:flex;border-bottom:1px solid #9E9A94;background:#E4E2DA;flex-shrink:0;overflow-x:auto;overflow-y:hidden;}
+.tab-bar::-webkit-scrollbar{height:6px;}
+.tab{padding:3px 14px 4px;font-size:11px;cursor:pointer;border:1px solid transparent;border-bottom:none;background:#D4D2CA;color:#555;white-space:nowrap;user-select:none;margin-bottom:-1px;}
+.tab:hover{background:#E4E0D8;}
+.tab.active{background:#FFFFFF;border-color:#9E9A94;border-bottom:1px solid #FFFFFF;color:#000;font-weight:bold;z-index:1;}
+.tab-content{flex:1;overflow:auto;background:#FFFFFF;padding:8px 12px;}
+
+/* ── SAP ALV Grid ─────────────────────────────────────────────── */
+.alv-wrap{overflow:auto;border:1px solid #9E9A94;}
+table.alv{width:100%;border-collapse:collapse;font-size:11px;font-family:Arial,Helvetica,sans-serif;white-space:nowrap;}
+table.alv thead tr{background:linear-gradient(180deg,#DAE4F0,#C0D0E8);}
+table.alv th{border:1px solid #9AACC0;padding:2px 6px;font-weight:bold;color:#1A3050;text-align:left;position:sticky;top:0;z-index:2;background:linear-gradient(180deg,#DAE4F0,#C0D0E8);cursor:pointer;user-select:none;}
+table.alv th:hover{background:linear-gradient(180deg,#CCDAF0,#A8C4E0);}
+table.alv td{border:1px solid #C8D0DC;padding:2px 6px;color:#000;white-space:nowrap;overflow:hidden;max-width:200px;text-overflow:ellipsis;}
+table.alv tr:nth-child(even) td{background:#F4F8FF;}
+table.alv tr:hover td{background:#D0E4F8 !important;cursor:default;}
+table.alv tr.selected td{background:#C0D8F4 !important;}
+table.alv td.r{text-align:right;}
+table.alv td.c{text-align:center;}
+table.alv td.link{color:#0000EE;text-decoration:underline;cursor:pointer;}
+table.alv tfoot tr td{background:linear-gradient(180deg,#E0E8F4,#D0DCE8);font-weight:bold;border-top:2px solid #7A90A8;}
+.alv-toolbar{background:linear-gradient(180deg,#EEECe4,#E4E2D8);border:1px solid #9E9A94;border-bottom:none;padding:2px 4px;display:flex;align-items:center;gap:2px;}
+
+/* ── Status Badges ────────────────────────────────────────────── */
+.badge{display:inline-block;padding:0 5px;font-size:10px;font-weight:bold;border:1px solid;line-height:15px;}
+.badge-green{background:#D4EDDA;color:#155724;border-color:#C3E6CB;}
+.badge-blue{background:#D1ECF1;color:#0C5460;border-color:#BEE5EB;}
+.badge-orange{background:#FFF3CD;color:#856404;border-color:#FFEEBA;}
+.badge-red{background:#F8D7DA;color:#721C24;border-color:#F5C6CB;}
+.badge-gray{background:#E2E3E5;color:#383D41;border-color:#D6D8DB;}
+.badge-sap{display:inline-block;padding:0 6px;font-size:10px;font-weight:bold;line-height:16px;border-radius:0;}
+
+/* ── Status Bar ───────────────────────────────────────────────── */
+#status-bar{height:24px;background:linear-gradient(180deg,#ECE9E0,#D8D4C8);border-top:2px solid #ACA899;display:flex;align-items:center;padding:0 8px;flex-shrink:0;gap:4px;}
+#status-icon{width:16px;height:16px;border-radius:50%;background:#CCCCCC;border:1px solid #999;flex-shrink:0;}
+#status-icon.green{background:#00AA00;border-color:#008800;}
+#status-icon.red{background:#CC0000;border-color:#990000;}
+#status-icon.yellow{background:#FFAA00;border-color:#CC8800;}
+#status-msg{font-size:11px;color:#000;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.status-right{display:flex;gap:0;margin-left:auto;flex-shrink:0;}
+.status-cell{padding:0 8px;font-size:10px;color:#333;border-left:1px solid #ACA899;white-space:nowrap;line-height:22px;}
+
+/* ── Easy Access ──────────────────────────────────────────────── */
+#easy-access-wrap{height:100%;overflow:auto;background:#F4F2EC;}
+.ea-header-bar{background:linear-gradient(180deg,#DAE4F4,#C4D4EC);border-bottom:1px solid #9AACC4;padding:3px 10px;display:flex;align-items:center;gap:8px;}
+.ea-header-bar .ea-title{font-size:12px;font-weight:bold;color:#003399;}
+.ea-tree-toolbar{background:linear-gradient(180deg,#F0EEE8,#E4E0D8);border-bottom:1px solid #ACA899;padding:2px 6px;display:flex;align-items:center;gap:4px;}
+.ea-tree-btn{width:20px;height:20px;border:1px solid #ACA899;background:linear-gradient(180deg,#F4F2EC,#DDD9D0);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:10px;color:#333;}
+.ea-tree-btn:hover{background:linear-gradient(180deg,#EBF0F8,#C8D8EC);}
+.ea-body{padding:8px 12px;display:flex;gap:12px;flex-wrap:wrap;}
+.ea-group{border:1px solid #9E9A94;background:#FFFFFF;margin-bottom:8px;flex:1 1 280px;min-width:250px;}
+.ea-group-hdr{background:linear-gradient(180deg,#C8D8EC,#B0C4E0);border-bottom:1px solid #9AACC4;padding:3px 8px;display:flex;align-items:center;gap:6px;}
+.ea-group-hdr .folder-icon{color:#F5A623;font-size:13px;}
+.ea-group-hdr .group-label{font-size:11px;font-weight:bold;color:#1A2A4A;}
+.ea-item{display:flex;align-items:center;gap:6px;padding:3px 8px 3px 20px;border-bottom:1px dotted #E0DDD8;cursor:pointer;}
+.ea-item:hover{background:#EBF2FA;}
+.ea-item:last-child{border-bottom:none;}
+.ea-item .star{color:#F5A623;font-size:12px;flex-shrink:0;}
+.ea-item .tc-code{font-family:Courier New,monospace;font-weight:bold;color:#003399;min-width:70px;font-size:11px;}
+.ea-item .tc-desc{font-size:11px;color:#333;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.ea-footer{padding:6px 10px;background:#FFFEF0;border-top:1px solid #E0D890;font-size:10px;color:#6B5B00;}
+
+/* ── Print Forms ──────────────────────────────────────────────── */
+.print-doc{background:#FFFFFF;border:1px solid #9E9A94;padding:20px;max-width:760px;box-shadow:2px 2px 6px rgba(0,0,0,.15);}
+.print-hdr{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:2px solid #003399;margin-bottom:16px;padding-bottom:10px;}
+.print-org{font-size:9px;color:#666;margin-top:2px;}
+.print-title{font-size:20px;font-weight:bold;color:#003399;}
+.print-num{font-size:16px;font-family:Courier New;font-weight:bold;color:#003399;text-align:right;}
+.print-meta{display:grid;grid-template-columns:1fr 1fr;gap:4px 24px;margin-bottom:14px;font-size:11px;}
+.print-meta span{color:#555;}
+.print-meta b{color:#000;}
+.print-sig-row{display:flex;justify-content:space-between;margin-top:24px;}
+.print-sig-line{width:180px;border-top:1px solid #000;padding-top:4px;font-size:11px;text-align:center;color:#333;}
+
+/* ── Process Order Status Steps ──────────────────────────────── */
+.order-status-bar{display:flex;margin-bottom:10px;}
+.ost{flex:1;text-align:center;padding:5px 2px;font-size:10px;border:1px solid #9E9A94;border-right:none;}
+.ost:last-child{border-right:1px solid #9E9A94;}
+.ost.done{background:linear-gradient(180deg,#D4EDD8,#C0DFCA);color:#155724;}
+.ost.active{background:linear-gradient(180deg,#1B3A6B,#0D2857);color:#FFFFFF;font-weight:bold;}
+.ost.todo{background:linear-gradient(180deg,#F4F2EC,#E8E4DC);color:#888;}
+
+/* ── Transfer Order Timeline ──────────────────────────────────── */
+.to-timeline{display:flex;align-items:center;gap:0;margin-bottom:10px;}
+.to-step{padding:4px 16px;font-size:11px;border:1px solid #9E9A94;background:#F4F2EC;color:#555;}
+.to-step.done{background:linear-gradient(180deg,#D4EDD8,#C0DFCA);color:#155724;border-color:#9BC4A8;}
+.to-step.active{background:linear-gradient(180deg,#1B3A6B,#0D2857);color:#FFF;font-weight:bold;border-color:#0D2857;}
+.to-arrow{padding:0 6px;font-size:16px;color:#888;}
+
+/* ── Notification Banners ─────────────────────────────────────── */
+.msg-success{padding:5px 10px;background:#DFF0D8;border:1px solid #3C763D;font-size:11px;color:#3C763D;margin:4px 0;}
+.msg-error{padding:5px 10px;background:#F2DEDE;border:1px solid #A94442;font-size:11px;color:#A94442;margin:4px 0;}
+.msg-info{padding:5px 10px;background:#D9EDF7;border:1px solid #31708F;font-size:11px;color:#31708F;margin:4px 0;}
+.msg-warn{padding:5px 10px;background:#FCF8E3;border:1px solid #8A6D3B;font-size:11px;color:#8A6D3B;margin:4px 0;}
+
+/* ── Quarantine Label ─────────────────────────────────────────── */
+.quar-wrap{background:#FFFFFF;border:3px solid #CC0000;padding:18px;max-width:420px;}
+.quar-hdr{background:#CC0000;color:#FFFFFF;text-align:center;padding:10px;font-size:20px;font-weight:bold;letter-spacing:4px;margin-bottom:14px;}
+.quar-row{display:flex;border-bottom:1px dotted #DDD;padding:4px 0;font-size:11px;}
+.quar-row .ql{color:#555;min-width:140px;}
+.quar-row .qv{font-family:Courier New;font-weight:bold;}
+.quar-warn{margin-top:12px;padding:8px;background:#FFF8DC;border:1px solid #DAA520;font-size:10px;text-align:center;font-weight:bold;color:#6B4A00;}
+
+/* ── Responsive Adjustments ───────────────────────────────────── */
+@media (max-width: 768px) {
+  #nav-toolbar{flex-wrap:nowrap;overflow-x:auto;}
+  .app-toolbar{flex-wrap:wrap;}
+  .form-cols{flex-direction:column!important;}
+  table.alv td,table.alv th{padding:2px 4px;font-size:10px;}
+  .flabel-w2{min-width:120px;}
+  .flabel-w3{min-width:150px;}
+  .print-doc{padding:12px;}
+  .print-meta{grid-template-columns:1fr;}
+}
+@media (max-width: 480px) {
+  #wnd-title{height:28px;}
+  .sap-logo-box{width:20px;height:20px;}
+  #tx-title-bar{height:22px;}
+  .tab{padding:2px 10px 3px;}
+  .ea-group{flex:1 1 100%;}
+}
+.form-cols{display:flex;gap:12px;}
+.form-col{flex:1;min-width:0;}
+</style>
+</head>
+<body>
+<!-- Window Title -->
+<div id="wnd-title">
+  <div class="sap-logo-box">S</div>
+  <div id="wnd-title-text">SAP Easy Access &nbsp;|&nbsp; User Menu for MANOJ KUMAR T V &nbsp;|&nbsp; HHP (1) 100 &nbsp;|&nbsp; vhhdehhpci</div>
+  <div class="wnd-ctrl-btns"><div class="wnd-ctrl-btn">&#x2012;</div><div class="wnd-ctrl-btn">&#x25A1;</div><div class="wnd-ctrl-btn">&#x2715;</div></div>
+</div>
+
+<!-- Menu Bar -->
+<div id="menu-bar">
+  <div class="menu-item">Menu</div>
+  <div class="menu-item">Edit</div>
+  <div class="menu-item">Favorites</div>
+  <div class="menu-item">Extras</div>
+  <div class="menu-item">System</div>
+  <div class="menu-item">Help</div>
+  <div style="margin-left:auto;display:flex;align-items:center;padding-right:6px;font-size:10px;color:#333;">
+    <span style="margin-right:8px;">&#9654; HHP (1) 100</span>
+    <span>vhhdehhpci</span>
+  </div>
+</div>
+
+<!-- Navigation Toolbar -->
+<div id="nav-toolbar">
+  <div id="cmd-box">
+    <input id="cmd-input" onkeydown="if(event.key==='Enter')navCmd()" autocomplete="off" spellcheck="false"/>
+    <div id="cmd-dd" onclick="showCmdHistory()">&#x25BC;</div>
+  </div>
+  <div id="cmd-enter" onclick="navCmd()" title="Enter (F5)">&#x2714;</div>
+  <!-- Save -->
+  <button class="tb-btn" title="Save (Ctrl+S)"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.2"><rect x="1" y="1" width="14" height="14" rx="0"/><rect x="4" y="1" width="8" height="5" fill="#AAC0E8" stroke="none"/><rect x="3" y="9" width="10" height="5"/><rect x="5" y="3" width="3" height="2" fill="#1B3A6B" stroke="none"/></svg></button>
+  <!-- Back -->
+  <button class="tb-btn" onclick="goHome()" title="Back (F3)"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="10,3 4,8 10,13"/><line x1="4" y1="8" x2="14" y2="8"/></svg></button>
+  <!-- Exit -->
+  <button class="tb-btn" onclick="goHome()" title="Exit (Shift+F3)"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.2"><rect x="2" y="2" width="10" height="13" rx="0"/><polyline points="10,6 14,8 10,10"/><line x1="6" y1="8" x2="14" y2="8"/></svg></button>
+  <!-- Cancel -->
+  <button class="tb-btn" title="Cancel (F12)"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><line x1="3" y1="3" x2="13" y2="13"/><line x1="13" y1="3" x2="3" y2="13"/></svg></button>
+  <div class="tb-sep-v"></div>
+  <!-- Print -->
+  <button class="tb-btn" title="Print (Ctrl+P)"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.2"><rect x="3" y="6" width="10" height="7"/><rect x="5" y="1" width="6" height="5"/><rect x="4" y="8" width="8" height="3" fill="#D4E4F4" stroke="none"/><line x1="5" y1="10" x2="11" y2="10"/><line x1="5" y1="12" x2="9" y2="12"/></svg></button>
+  <!-- Find -->
+  <button class="tb-btn" title="Find (Ctrl+F)"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="6.5" cy="6.5" r="4"/><line x1="9.5" y1="9.5" x2="14" y2="14"/></svg></button>
+  <!-- Find Next -->
+  <button class="tb-btn" title="Find Next (Ctrl+G)"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="6.5" cy="6.5" r="4"/><line x1="9.5" y1="9.5" x2="14" y2="14"/><line x1="3" y1="6.5" x2="10" y2="6.5"/><polyline points="7.5,4 10,6.5 7.5,9"/></svg></button>
+  <div class="tb-sep-v"></div>
+  <!-- First page -->
+  <button class="tb-btn" title="First Page"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><line x1="3" y1="3" x2="3" y2="13"/><polyline points="7,3 4,8 7,13"/><polyline points="12,3 9,8 12,13"/></svg></button>
+  <!-- Prev page -->
+  <button class="tb-btn" title="Previous Page"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="10,3 5,8 10,13"/></svg></button>
+  <!-- Next page -->
+  <button class="tb-btn" title="Next Page"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="6,3 11,8 6,13"/></svg></button>
+  <!-- Last page -->
+  <button class="tb-btn" title="Last Page"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><line x1="13" y1="3" x2="13" y2="13"/><polyline points="4,3 7,8 4,13"/><polyline points="9,3 12,8 9,13"/></svg></button>
+  <div class="tb-sep-v"></div>
+  <!-- New session -->
+  <button class="tb-btn" title="Create New Session"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.2"><rect x="2" y="4" width="10" height="10"/><rect x="4" y="2" width="10" height="10" fill="#EEF4FF"/><rect x="4" y="2" width="10" height="10"/></svg></button>
+  <!-- Help -->
+  <button class="tb-btn" title="Help (F1)"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="8" r="6.5"/><path d="M5.5,6 C5.5,4.3 6.5,3.5 8,3.5 C9.5,3.5 10.5,4.5 10.5,5.8 C10.5,7.5 8,8 8,9.5" stroke-linecap="round"/><circle cx="8" cy="12" r="0.8" fill="currentColor" stroke="none"/></svg></button>
+  <div class="tb-sep-v"></div>
+  <!-- Customise toolbar shortcut -->
+  <button class="tb-btn" title="Customize Local Layout"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.2"><circle cx="8" cy="8" r="3"/><line x1="8" y1="1" x2="8" y2="4"/><line x1="8" y1="12" x2="8" y2="15"/><line x1="1" y1="8" x2="4" y2="8"/><line x1="12" y1="8" x2="15" y2="8"/><line x1="3" y1="3" x2="5.1" y2="5.1"/><line x1="10.9" y1="10.9" x2="13" y2="13"/><line x1="13" y1="3" x2="10.9" y2="5.1"/><line x1="5.1" y1="10.9" x2="3" y2="13"/></svg></button>
+</div>
+
+<!-- Transaction Title Bar -->
+<div id="tx-title-bar">
+  <span class="tx-title" id="tx-title-text"></span>
+  <span class="tx-code" id="tx-code-text"></span>
+</div>
+
+<!-- Canvas -->
+<div id="canvas">
+
+<!-- ═══════ EASY ACCESS ═══════ -->
+<div id="view-HOME" class="view active">
+<div id="easy-access-wrap">
+  <div class="ea-header-bar">
+    <div class="ea-title">SAP Easy Access &nbsp;&mdash;&nbsp; User Menu for <strong>MANOJ KUMAR T V</strong></div>
+  </div>
+  <div class="ea-tree-toolbar">
+    <div class="ea-tree-btn" title="Expand All">&#x25BC;</div>
+    <div class="ea-tree-btn" title="Collapse All">&#x25B6;</div>
+    <div class="ea-tree-btn" title="Other Menu">&#x2630;</div>
+    <div class="ea-tree-btn" title="Add to Favorites">&#x2605;</div>
+    <div class="ea-tree-btn" title="Delete from Favorites">&#x2606;</div>
+    <div class="ea-tree-btn" title="Change Favorites">&#x270E;</div>
+    <div class="ea-tree-btn" title="Move Up">&#x25B2;</div>
+    <div class="ea-tree-btn" title="Move Down">&#x25BC;</div>
+    <span style="margin-left:8px;font-size:11px;color:#555;">Search:</span>
+    <input id="ea-search" style="height:18px;font-size:11px;padding:0 4px;border:1px solid #7A7974;width:160px;margin-left:2px;" placeholder="T-Code or description..." oninput="eaFilter(this.value)"/>
+  </div>
+  <div class="ea-body" id="ea-body"></div>
+  <div class="ea-footer">ERP = Enterprise Resource Planning &nbsp;|&nbsp; SAP = Systems, Applications and Products in Data Processing &nbsp;|&nbsp; Enter T-Code in command field or click a transaction above</div>
+</div>
+</div>
+
+<!-- ═══════ MIGO ═══════ -->
+<div id="view-MIGO" class="view">
+  <div class="app-toolbar">
+    <button class="app-btn primary" id="migo-post-btn" onclick="migoPost()"><span class="app-btn-icon">&#x26A1;</span> Post</button>
+    <button class="app-btn" onclick="migoReset()">&#x21BA; New Entry</button>
+    <div class="app-sep"></div>
+    <button class="app-btn" onclick="setMsg('No messages.','I')">&#x1F4CB; Messages</button>
+    <button class="app-btn">&#x1F4CE; Attachments</button>
+    <span id="migo-result" style="margin-left:12px;font-size:11px;font-weight:bold;color:#006600;"></span>
+  </div>
+  <div style="padding:4px 10px;background:linear-gradient(180deg,#EBF2FF,#DCE8F8);border-bottom:1px solid #B0C4E0;display:flex;gap:10px;align-items:center;flex-wrap:wrap;flex-shrink:0;">
+    <div class="frow"><label class="flabel flabel-w1">Transaction</label>
+      <select class="fselect" id="migo-txn" onchange="migoUpdateMvmt()" style="width:160px;">
+        <option value="A01">A01 Goods Receipt</option>
+        <option value="A07">A07 Goods Issue</option>
+        <option value="A08">A08 Transfer Posting</option>
+      </select>
+    </div>
+    <div class="frow"><label class="flabel flabel-w1">Reference Doc.</label>
+      <select class="fselect" id="migo-ref" onchange="migoUpdateMvmt()" style="width:140px;">
+        <option value="PO">Purchase Order</option>
+        <option value="RESV">Reservation</option>
+        <option value="OTHER">Other</option>
+      </select>
+    </div>
+    <div class="frow"><label class="flabel flabel-w1">Movement Type</label>
+      <select class="fselect" id="migo-mvmt" style="min-width:340px;"></select>
+    </div>
+    <div class="frow"><label class="flabel flabel-w1">Document No.</label>
+      <input class="finput" id="migo-doc-in" style="width:160px;" placeholder="Enter any number" onkeydown="if(event.key==='Enter')migoLoad()"/>
+      <button class="app-btn" style="margin-left:4px;" onclick="migoLoad()">&#x23CE; Execute</button>
+    </div>
+  </div>
+  <div id="migo-header-info" style="display:none;padding:3px 10px;background:#FFFEF0;border-bottom:1px solid #E8DC80;font-size:11px;display:flex;gap:20px;"></div>
+  <div class="view-scroll"><div class="view-pad" id="migo-body"></div></div>
+</div>
+
+<!-- ═══════ MB21 ═══════ -->
+<div id="view-MB21" class="view">
+  <div class="app-toolbar">
+    <button class="app-btn primary" onclick="mb21Save()">&#x1F4BE; Save</button>
+    <button class="app-btn" onclick="mb21Reset()">&#x21BA; Reset</button>
+    <span id="mb21-result" style="margin-left:12px;font-size:11px;font-weight:bold;color:#006600;"></span>
+  </div>
+  <div class="view-scroll"><div class="view-pad">
+    <div class="form-cols">
+      <div class="form-col">
+        <div class="frame"><div class="frame-title">Movement Data</div><div class="frame-body">
+          <div class="frow"><label class="flabel flabel-w2">Movement Type</label>
+            <select class="fselect" id="mb21-mvmt" style="min-width:280px;">
+              <option value="201">201 &mdash; Consumption for cost center from warehouse</option>
+              <option value="202">202 &mdash; Consumption reversal from warehouse</option>
+              <option value="261">261 &mdash; GI for production order</option>
+              <option value="301">301 &mdash; Transfer posting plant to plant</option>
+              <option value="311">311 &mdash; Transfer posting SLoc to SLoc</option>
+            </select>
+          </div>
+          <div class="frow"><label class="flabel flabel-w2">Plant</label><input class="finput" id="mb21-plant" value="HHP1" style="width:80px;"/></div>
+          <div class="frow"><label class="flabel flabel-w2">Cost Center</label><input class="finput" id="mb21-cc" value="PROD01" style="width:120px;"/></div>
+          <div class="frow"><label class="flabel flabel-w2">Requirement Date</label><input class="finput" id="mb21-date" style="width:120px;" placeholder="DD.MM.YYYY"/></div>
+          <div class="frow"><label class="flabel flabel-w2">Order / WBS Element</label><input class="finput" id="mb21-order" style="width:160px;" placeholder="Process Order No."/></div>
+        </div></div>
+      </div>
+      <div class="form-col">
+        <div class="frame"><div class="frame-title">Document Header</div><div class="frame-body">
+          <div class="frow"><label class="flabel flabel-w2">Document Type</label><div class="fval">Reservation</div></div>
+          <div class="frow"><label class="flabel flabel-w2">Document Date</label><div class="fval" id="mb21-docdate"></div></div>
+          <div class="frow"><label class="flabel flabel-w2">Posting Date</label><div class="fval" id="mb21-postdate"></div></div>
+          <div class="frow"><label class="flabel flabel-w2">Status</label><div class="fval" id="mb21-status-disp">New</div></div>
+          <div class="frow"><label class="flabel flabel-w2">Reservation No.</label><div class="fval hl" id="mb21-resv-num">&nbsp;</div></div>
+        </div></div>
+      </div>
+    </div>
+    <div class="frame">
+      <div class="frame-title">Reservation Items &nbsp;<button class="app-btn" style="font-size:10px;height:18px;" onclick="mb21AddItem()">+ Add Item</button></div>
+      <div class="frame-body compact">
+        <div class="alv-wrap"><table class="alv" id="mb21-tbl">
+          <thead><tr><th style="width:50px;">Item</th><th style="min-width:130px;">Material</th><th style="min-width:200px;">Short Text</th><th style="width:80px;">Req. Qty</th><th style="width:60px;">Unit</th><th style="width:80px;">Plant</th><th style="width:70px;">SLoc</th></tr></thead>
+          <tbody id="mb21-items-body"></tbody>
+        </table></div>
+      </div>
+    </div>
+  </div></div>
+</div>
+
+<!-- ═══════ MB22 ═══════ -->
+<div id="view-MB22" class="view">
+  <div class="app-toolbar">
+    <button class="app-btn" onclick="mb22Load()">&#x1F50D; Load</button>
+    <button class="app-btn" onclick="mb22Reset()">&#x21BA; Reset</button>
+    <span id="mb22-result" style="margin-left:12px;font-size:11px;font-weight:bold;color:#006600;"></span>
+  </div>
+  <div class="view-scroll"><div class="view-pad">
+    <div class="frame"><div class="frame-title">Selection</div><div class="frame-body">
+      <div class="frow"><label class="flabel flabel-w2">Reservation Number</label>
+        <input class="finput" id="mb22-num" style="width:160px;" placeholder="Any reservation number" onkeydown="if(event.key==='Enter')mb22Load()"/>
+        <button class="app-btn" style="margin-left:4px;" onclick="mb22Load()">&#x23CE; Load</button>
+      </div>
+    </div></div>
+    <div id="mb22-detail"></div>
+  </div></div>
+</div>
+
+<!-- ═══════ MB23 ═══════ -->
+<div id="view-MB23" class="view">
+  <div class="app-toolbar">
+    <button class="app-btn" onclick="mb23Load()">&#x1F50D; Display</button>
+    <button class="app-btn" onclick="goHome()">&#x2190; Back</button>
+  </div>
+  <div class="view-scroll"><div class="view-pad">
+    <div class="frame"><div class="frame-title">Selection</div><div class="frame-body">
+      <div class="frow"><label class="flabel flabel-w2">Reservation Number</label>
+        <input class="finput" id="mb23-num" style="width:160px;" placeholder="Any reservation number" onkeydown="if(event.key==='Enter')mb23Load()"/>
+        <button class="app-btn" style="margin-left:4px;" onclick="mb23Load()">&#x23CE; Display</button>
+      </div>
+    </div></div>
+    <div id="mb23-detail"></div>
+  </div></div>
+</div>
+
+<!-- ═══════ MB26 ═══════ -->
+<div id="view-MB26" class="view">
+  <div class="app-toolbar">
+    <button class="app-btn primary" onclick="mb26Execute()">&#x26A1; Execute (F8)</button>
+    <button class="app-btn" onclick="mb26Reset()">&#x21BA; Reset</button>
+    <button class="app-btn">&#x1F5A8; Print</button>
+    <button class="app-btn">&#x1F4CA; Export</button>
+    <span id="mb26-result" style="margin-left:12px;font-size:11px;color:#003399;font-style:italic;"></span>
+  </div>
+  <div class="view-scroll"><div class="view-pad">
+    <div id="mb26-sel">
+      <div class="frame"><div class="frame-title">Selection Criteria</div><div class="frame-body">
+        <div class="frow"><label class="flabel flabel-w2">Plant</label><input class="finput" id="mb26-plant" value="HHP1" style="width:80px;"/></div>
+        <div class="frow"><label class="flabel flabel-w2">Storage Location</label><input class="finput" id="mb26-sloc" style="width:80px;" placeholder="Optional"/></div>
+        <div class="frow"><label class="flabel flabel-w2">Requirement Date From</label><input class="finput" id="mb26-date" style="width:120px;" placeholder="DD.MM.YYYY"/></div>
+        <div class="frow"><label class="flabel flabel-w2">Movement Type</label><input class="finput" id="mb26-mvmt" style="width:80px;" placeholder="e.g. 201"/></div>
+      </div></div>
+      <button class="app-btn primary" onclick="mb26Execute()">&#x26A1; Execute</button>
+    </div>
+    <div id="mb26-report" style="display:none;"></div>
+  </div></div>
+</div>
+
+<!-- ═══════ ZWHRPF ═══════ -->
+<div id="view-ZWHRPF" class="view">
+  <div class="app-toolbar">
+    <button class="app-btn primary" onclick="zwhrpfPrint()">&#x1F5A8; Print</button>
+    <button class="app-btn" onclick="zwhrpfReset()">&#x21BA; Clear</button>
+  </div>
+  <div class="view-scroll"><div class="view-pad">
+    <div class="frame"><div class="frame-title">Selection</div><div class="frame-body">
+      <div class="frow"><label class="flabel flabel-w2">Reservation Number</label>
+        <input class="finput" id="zwhrpf-num" style="width:160px;" placeholder="Any reservation number" onkeydown="if(event.key==='Enter')zwhrpfLoad()"/>
+        <button class="app-btn" style="margin-left:4px;" onclick="zwhrpfLoad()">Load</button>
+      </div>
+    </div></div>
+    <div id="zwhrpf-output" style="margin-top:12px;"></div>
+  </div></div>
+</div>
+
+<!-- ═══════ ZGP1 ═══════ -->
+<div id="view-ZGP1" class="view">
+  <div class="app-toolbar">
+    <button class="app-btn primary" onclick="zgp1Save()">&#x1F4BE; Save</button>
+    <button class="app-btn" onclick="zgp1Reset()">&#x21BA; Reset</button>
+    <div class="app-sep"></div>
+    <button class="app-btn">&#x1F4CB; Messages</button>
+    <span id="zgp1-result" style="margin-left:12px;font-size:11px;font-weight:bold;color:#006600;"></span>
+  </div>
+  <div class="view-scroll"><div class="view-pad">
+    <div class="form-cols">
+      <div class="form-col">
+        <div class="frame"><div class="frame-title">Gate Pass Header</div><div class="frame-body">
+          <div class="frow"><label class="flabel flabel-w2">Gate Pass Type</label>
+            <div class="fradio-grp">
+              <label class="fradio"><input type="radio" name="gptype" value="RGP" checked onchange="zgp1TypeChange()"> RGP (Returnable)</label>
+              <label class="fradio"><input type="radio" name="gptype" value="NRGP" onchange="zgp1TypeChange()"> NRGP (Non-Returnable)</label>
+            </div>
+          </div>
+          <div class="frow"><label class="flabel flabel-w2">Vendor / Party</label><input class="finput" id="zgp1-vendor" style="width:260px;" placeholder="Vendor ID or Name"/></div>
+          <div class="frow"><label class="flabel flabel-w2">Recipient Name</label><input class="finput" id="zgp1-recip" style="width:260px;"/></div>
+          <div class="frow"><label class="flabel flabel-w2">Purpose / Reason</label><input class="finput" id="zgp1-purpose" style="width:300px;" placeholder="e.g. Equipment repair"/></div>
+          <div class="frow"><label class="flabel flabel-w2">Vehicle No.</label><input class="finput" id="zgp1-vehicle" style="width:160px;"/></div>
+          <div class="frow" id="zgp1-retdate-row"><label class="flabel flabel-w2">Expected Return Date</label><input class="finput" id="zgp1-retdate" style="width:120px;" placeholder="DD.MM.YYYY"/></div>
+        </div></div>
+      </div>
+      <div class="form-col">
+        <div class="frame"><div class="frame-title">Status Information</div><div class="frame-body">
+          <div class="frow"><label class="flabel flabel-w2">Type Description</label><div class="fval" id="zgp1-type-disp">RGP &mdash; Returnable Gate Pass</div></div>
+          <div class="frow"><label class="flabel flabel-w2">Document Status</label><div class="fval" id="zgp1-status-disp">New</div></div>
+          <div class="frow"><label class="flabel flabel-w2">Gate Pass No.</label><div class="fval hl" id="zgp1-num-disp">&nbsp;</div></div>
+          <div class="frow"><label class="flabel flabel-w2">Created By</label><div class="fval">MANOJ.TV</div></div>
+          <div class="frow"><label class="flabel flabel-w2">Date</label><div class="fval" id="zgp1-date-disp"></div></div>
+        </div></div>
+      </div>
+    </div>
+    <div class="frame">
+      <div class="frame-title">Items &nbsp;<button class="app-btn" style="font-size:10px;height:18px;" onclick="zgp1AddItem()">+ Add Item</button></div>
+      <div class="frame-body compact">
+        <div class="alv-wrap"><table class="alv"><thead><tr><th>Item</th><th style="min-width:150px;">Material / Description</th><th style="min-width:180px;">Short Text</th><th style="width:80px;">Quantity</th><th style="width:60px;">Unit</th><th style="min-width:160px;">Remarks</th></tr></thead><tbody id="zgp1-items-body"></tbody></table></div>
+      </div>
+    </div>
+  </div></div>
+</div>
+
+<!-- ═══════ SBWP ═══════ -->
+<div id="view-SBWP" class="view">
+  <div class="app-toolbar">
+    <span style="font-size:11px;font-weight:bold;color:#003399;margin-right:10px;">Business Workplace &mdash; Gate Pass Approval</span>
+    <div class="app-sep"></div>
+    <span style="font-size:11px;margin-right:4px;">Filter:</span>
+    <button class="app-btn" id="sbwp-f-pend" onclick="sbwpFilter('Pending')">Pending</button>
+    <button class="app-btn" id="sbwp-f-appr" onclick="sbwpFilter('Approved')">Approved</button>
+    <button class="app-btn" id="sbwp-f-rej"  onclick="sbwpFilter('Rejected')">Rejected</button>
+    <button class="app-btn" id="sbwp-f-all"  onclick="sbwpFilter('All')">All</button>
+    <span id="sbwp-count" style="margin-left:8px;font-size:11px;color:#555;"></span>
+  </div>
+  <div style="flex:1;display:flex;overflow:hidden;">
+    <div id="sbwp-inbox" style="width:320px;min-width:200px;border-right:1px solid #9E9A94;overflow:auto;background:#FAFAF6;flex-shrink:0;">
+      <div style="padding:3px 8px;background:linear-gradient(180deg,#D4E0F0,#C0D0E4);border-bottom:1px solid #9AACC4;font-size:11px;font-weight:bold;color:#1A2A4A;">&#x1F4E5; Inbox</div>
+    </div>
+    <div id="sbwp-detail" style="flex:1;overflow:auto;padding:12px 16px;">
+      <div style="display:flex;align-items:center;justify-content:center;height:100%;color:#888;font-size:12px;">Select a Gate Pass from the inbox to view details.</div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════ ZGP3 ═══════ -->
+<div id="view-ZGP3" class="view">
+  <div class="app-toolbar">
+    <button class="app-btn primary" onclick="zgp3Print()">&#x1F5A8; Print</button>
+    <button class="app-btn" onclick="zgp3Reset()">&#x21BA; Clear</button>
+  </div>
+  <div class="view-scroll"><div class="view-pad">
+    <div class="frame"><div class="frame-title">Selection</div><div class="frame-body">
+      <div class="frow"><label class="flabel flabel-w2">Gate Pass Number</label>
+        <input class="finput" id="zgp3-num" style="width:220px;" placeholder="RGP-2025-XXXXX or NRGP-2025-XXXXX" onkeydown="if(event.key==='Enter')zgp3Load()"/>
+        <button class="app-btn" style="margin-left:4px;" onclick="zgp3Load()">Load</button>
+      </div>
+    </div></div>
+    <div id="zgp3-output" style="margin-top:12px;"></div>
+  </div></div>
+</div>
+
+<!-- ═══════ ZGR1 ═══════ -->
+<div id="view-ZGR1" class="view">
+  <div class="app-toolbar">
+    <button class="app-btn primary" onclick="zgr1Close()">&#x1F512; Close RGP</button>
+    <button class="app-btn" onclick="zgr1Reset()">&#x21BA; New Entry</button>
+    <span id="zgr1-result" style="margin-left:12px;font-size:11px;font-weight:bold;color:#006600;"></span>
+  </div>
+  <div class="view-scroll"><div class="view-pad">
+    <div class="frame"><div class="frame-title">Selection</div><div class="frame-body">
+      <div class="frow"><label class="flabel flabel-w2">RGP Gate Pass Number</label>
+        <input class="finput" id="zgr1-num" style="width:220px;" placeholder="RGP-2025-XXXXX" onkeydown="if(event.key==='Enter')zgr1Load()"/>
+        <button class="app-btn" style="margin-left:4px;" onclick="zgr1Load()">Load</button>
+      </div>
+    </div></div>
+    <div id="zgr1-detail"></div>
+  </div></div>
+</div>
+
+<!-- ═══════ MB52 ═══════ -->
+<div id="view-MB52" class="view">
+  <div class="app-toolbar">
+    <button class="app-btn primary" onclick="mb52Execute()">&#x26A1; Execute (F8)</button>
+    <button class="app-btn" onclick="mb52Reset()">&#x21BA; Reset</button>
+    <button class="app-btn">&#x1F4CA; Export</button>
+    <span id="mb52-result" style="margin-left:12px;font-size:11px;color:#003399;font-style:italic;"></span>
+  </div>
+  <div class="view-scroll"><div class="view-pad">
+    <div id="mb52-sel">
+      <div class="frame"><div class="frame-title">Selection Criteria</div><div class="frame-body">
+        <div class="frow"><label class="flabel flabel-w2">Plant</label><input class="finput" id="mb52-plant" value="HHP1" style="width:80px;"/></div>
+        <div class="frow"><label class="flabel flabel-w2">Material From</label><input class="finput" id="mb52-mat1" style="width:160px;"/><span style="padding:0 8px;font-size:11px;">to</span><input class="finput" id="mb52-mat2" style="width:160px;"/></div>
+        <div class="frow"><label class="flabel flabel-w2">Storage Location</label><input class="finput" id="mb52-sloc" style="width:80px;" placeholder="Optional"/></div>
+      </div></div>
+      <button class="app-btn primary" onclick="mb52Execute()">&#x26A1; Execute</button>
+    </div>
+    <div id="mb52-report" style="display:none;"></div>
+  </div></div>
+</div>
+
+<!-- ═══════ COR2 ═══════ -->
+<div id="view-COR2" class="view">
+  <div class="app-toolbar">
+    <button class="app-btn primary" onclick="cor2Save()">&#x1F4BE; Save</button>
+    <button class="app-btn" onclick="cor2Reset()">&#x21BA; Reset</button>
+    <div class="app-sep"></div>
+    <button class="app-btn" onclick="cor2Action('REL')">&#x1F7E2; Release</button>
+    <button class="app-btn" onclick="cor2Action('TECO')">&#x2705; TECO</button>
+    <button class="app-btn" onclick="cor2Action('CLSD')">&#x1F512; Close</button>
+    <div class="app-sep"></div>
+    <button class="app-btn">&#x1F4CB; Goods Movements</button>
+    <button class="app-btn">&#x1F4C4; Documents</button>
+    <span id="cor2-result" style="margin-left:12px;font-size:11px;font-weight:bold;color:#006600;"></span>
+  </div>
+  <div class="view-scroll"><div class="view-pad">
+    <div class="frame"><div class="frame-title">Selection</div><div class="frame-body">
+      <div class="frow"><label class="flabel flabel-w2">Process Order</label>
+        <input class="finput" id="cor2-order" style="width:160px;" placeholder="Any order number" onkeydown="if(event.key==='Enter')cor2Load()"/>
+        <button class="app-btn" style="margin-left:4px;" onclick="cor2Load()">&#x23CE; Load</button>
+      </div>
+    </div></div>
+    <div id="cor2-detail"></div>
+  </div></div>
+</div>
+
+<!-- ═══════ ZCOR2 ═══════ -->
+<div id="view-ZCOR2" class="view">
+  <div class="app-toolbar">
+    <button class="app-btn primary" onclick="zcor2Execute()">&#x26A1; Execute</button>
+    <button class="app-btn" onclick="zcor2Reset()">&#x21BA; Reset</button>
+    <button class="app-btn">&#x1F4CA; Export</button>
+  </div>
+  <div class="view-scroll"><div class="view-pad">
+    <div class="frame"><div class="frame-title">Selection Criteria</div><div class="frame-body">
+      <div class="frow"><label class="flabel flabel-w2">Process Order From</label><input class="finput" id="zcor2-o1" style="width:160px;"/><span style="padding:0 8px;font-size:11px;">to</span><input class="finput" id="zcor2-o2" style="width:160px;"/></div>
+      <div class="frow"><label class="flabel flabel-w2">Material</label><input class="finput" id="zcor2-mat" style="width:200px;"/></div>
+      <div class="frow"><label class="flabel flabel-w2">Plant</label><input class="finput" id="zcor2-plant" value="HHP1" style="width:80px;"/></div>
+      <div class="frow"><label class="flabel flabel-w2">Change Date From</label><input class="finput" id="zcor2-date" style="width:120px;" placeholder="DD.MM.YYYY"/></div>
+      <div class="frow"><label class="flabel flabel-w2">Order Status</label>
+        <select class="fselect" style="width:220px;"><option>All</option><option>REL - Released</option><option>CNF - Confirmed</option><option>TECO - Technically Complete</option><option>CLSD - Closed</option></select>
+      </div>
+    </div></div>
+    <button class="app-btn primary" onclick="zcor2Execute()">&#x26A1; Execute</button>
+    <div id="zcor2-report" style="margin-top:10px;"></div>
+  </div></div>
+</div>
+
+<!-- ═══════ ZWPLN ═══════ -->
+<div id="view-ZWPLN" class="view">
+  <div class="app-toolbar">
+    <button class="app-btn primary" onclick="zwplnExecute()">&#x26A1; Execute</button>
+    <button class="app-btn" onclick="zwplnReset()">&#x21BA; Reset</button>
+    <button class="app-btn">&#x1F5A8; Print</button>
+  </div>
+  <div class="view-scroll"><div class="view-pad">
+    <div class="frame"><div class="frame-title">Selection Criteria</div><div class="frame-body">
+      <div class="frow"><label class="flabel flabel-w2">Process Order</label><input class="finput" id="zwpln-order" style="width:160px;" placeholder="Order number"/></div>
+      <div class="frow"><label class="flabel flabel-w2">Plant</label><input class="finput" id="zwpln-plant" value="HHP1" style="width:80px;"/></div>
+      <div class="frow"><label class="flabel flabel-w2">Output Device</label><input class="finput" id="zwpln-printer" value="LP01" style="width:100px;"/></div>
+      <div class="frow"><label class="flabel flabel-w2">Number of Copies</label><input class="finput" id="zwpln-copies" value="1" style="width:60px;"/></div>
+      <div class="frow"><label class="flabel flabel-w2">Print Immediately</label><label class="fcheckbox"><input type="checkbox" id="zwpln-imm" checked/> Yes</label></div>
+    </div></div>
+    <button class="app-btn primary" onclick="zwplnExecute()">&#x26A1; Execute</button>
+    <div id="zwpln-output" style="margin-top:10px;"></div>
+  </div></div>
+</div>
+
+<!-- ═══════ ZWPL ═══════ -->
+<div id="view-ZWPL" class="view">
+  <div class="app-toolbar">
+    <button class="app-btn primary" onclick="zwplExecute()">&#x26A1; Execute (F8)</button>
+    <button class="app-btn" onclick="zwplReset()">&#x21BA; Reset</button>
+    <button class="app-btn">&#x1F4CA; Export</button>
+    <span id="zwpl-result" style="margin-left:12px;font-size:11px;color:#003399;font-style:italic;"></span>
+  </div>
+  <div class="view-scroll"><div class="view-pad">
+    <div id="zwpl-sel">
+      <div class="frame"><div class="frame-title">Selection Criteria</div><div class="frame-body">
+        <div class="frow"><label class="flabel flabel-w2">Plant</label><input class="finput" id="zwpl-plant" value="HHP1" style="width:80px;"/></div>
+        <div class="frow"><label class="flabel flabel-w2">Process Order</label><input class="finput" id="zwpl-o1" style="width:160px;"/></div>
+        <div class="frow"><label class="flabel flabel-w2">Material</label><input class="finput" id="zwpl-mat" style="width:160px;"/></div>
+        <div class="frow"><label class="flabel flabel-w2">Dispensing Date</label><input class="finput" id="zwpl-date" style="width:120px;" placeholder="DD.MM.YYYY"/></div>
+        <div class="frow"><label class="flabel flabel-w2">Dispensing Status</label>
+          <select class="fselect" id="zwpl-status" style="width:200px;"><option value="">All</option><option>Open</option><option>Partially Dispensed</option><option>Fully Dispensed</option></select>
+        </div>
+      </div></div>
+      <button class="app-btn primary" onclick="zwplExecute()">&#x26A1; Execute</button>
+    </div>
+    <div id="zwpl-report" style="display:none;"></div>
+  </div></div>
+</div>
+
+<!-- ═══════ MMBE ═══════ -->
+<div id="view-MMBE" class="view">
+  <div class="app-toolbar">
+    <button class="app-btn primary" onclick="mmbeExecute()">&#x26A1; Execute</button>
+    <button class="app-btn" onclick="mmbeReset()">&#x21BA; Reset</button>
+    <button class="app-btn">&#x1F4CA; Export</button>
+  </div>
+  <div class="view-scroll"><div class="view-pad">
+    <div class="frame"><div class="frame-title">Selection</div><div class="frame-body">
+      <div class="frow"><label class="flabel flabel-w2">Material</label><input class="finput" id="mmbe-mat" style="width:200px;" placeholder="Any material number" onkeydown="if(event.key==='Enter')mmbeExecute()"/></div>
+      <div class="frow"><label class="flabel flabel-w2">Plant</label><input class="finput" id="mmbe-plant" value="HHP1" style="width:80px;"/></div>
+      <div class="frow"><label class="flabel flabel-w2">Storage Location</label><input class="finput" id="mmbe-sloc" style="width:80px;" placeholder="Optional"/></div>
+    </div></div>
+    <button class="app-btn primary" onclick="mmbeExecute()">&#x26A1; Execute</button>
+    <div id="mmbe-report" style="margin-top:10px;"></div>
+  </div></div>
+</div>
+
+<!-- ═══════ COOISPI ═══════ -->
+<div id="view-COOISPI" class="view">
+  <div class="app-toolbar">
+    <button class="app-btn primary" onclick="cooispiExecute()">&#x26A1; Execute (F8)</button>
+    <button class="app-btn" onclick="cooispiReset()">&#x21BA; Reset</button>
+    <button class="app-btn">&#x1F4CA; Export</button>
+    <span id="cooispi-result" style="margin-left:12px;font-size:11px;color:#003399;font-style:italic;"></span>
+  </div>
+  <div class="view-scroll"><div class="view-pad">
+    <div id="cooispi-sel">
+      <div class="form-cols">
+        <div class="form-col">
+          <div class="frame"><div class="frame-title">Order Selection</div><div class="frame-body">
+            <div class="frow"><label class="flabel flabel-w2">Process Order</label><input class="finput" id="cooispi-ord" style="width:160px;"/></div>
+            <div class="frow"><label class="flabel flabel-w2">Material</label><input class="finput" id="cooispi-mat" style="width:160px;"/></div>
+            <div class="frow"><label class="flabel flabel-w2">Plant</label><input class="finput" id="cooispi-plant" value="HHP1" style="width:80px;"/></div>
+            <div class="frow"><label class="flabel flabel-w2">Order Type</label><input class="finput" id="cooispi-otype" value="PI01" style="width:80px;"/></div>
+          </div></div>
+        </div>
+        <div class="form-col">
+          <div class="frame"><div class="frame-title">Time Frame / Status</div><div class="frame-body">
+            <div class="frow"><label class="flabel flabel-w2">Basic Start Date From</label><input class="finput" id="cooispi-d1" style="width:120px;" placeholder="DD.MM.YYYY"/></div>
+            <div class="frow"><label class="flabel flabel-w2">Basic Start Date To</label><input class="finput" id="cooispi-d2" style="width:120px;" placeholder="DD.MM.YYYY"/></div>
+            <div class="frow"><label class="flabel flabel-w2">System Status</label>
+              <select class="fselect" id="cooispi-status" style="width:200px;">
+                <option value="">All</option><option value="REL">REL &mdash; Released</option>
+                <option value="PREL">PREL &mdash; Partially Released</option>
+                <option value="TECO">TECO &mdash; Technically Complete</option>
+                <option value="CLSD">CLSD &mdash; Closed</option>
+              </select>
+            </div>
+          </div></div>
+        </div>
+      </div>
+      <button class="app-btn primary" onclick="cooispiExecute()">&#x26A1; Execute</button>
+    </div>
+    <div id="cooispi-report" style="display:none;"></div>
+  </div></div>
+</div>
+
+<!-- ═══════ MSC2N ═══════ -->
+<div id="view-MSC2N" class="view">
+  <div class="tab-bar" id="msc2n-tabs">
+    <div class="tab active" onclick="msc2nTabClick(this,'classification')">Classification</div>
+    <div class="tab" onclick="msc2nTabClick(this,'plant')">Plant Batches</div>
+    <div class="tab" onclick="msc2nTabClick(this,'quality')">Quality Management</div>
+  </div>
+  <div class="app-toolbar">
+    <button class="app-btn primary" onclick="msc2nSave()">&#x1F4BE; Save</button>
+    <button class="app-btn" onclick="msc2nReset()">&#x21BA; Reset</button>
+    <span id="msc2n-result" style="margin-left:12px;font-size:11px;font-weight:bold;color:#006600;"></span>
+  </div>
+  <div class="view-scroll"><div class="view-pad">
+    <div class="frame"><div class="frame-title">Selection</div><div class="frame-body" style="display:flex;gap:12px;flex-wrap:wrap;">
+      <div class="frow"><label class="flabel flabel-w2">Material</label><input class="finput" id="msc2n-mat" style="width:180px;" placeholder="Material number"/></div>
+      <div class="frow"><label class="flabel flabel-w1" style="min-width:50px;">Batch</label><input class="finput" id="msc2n-batch" style="width:120px;" placeholder="Batch number"/></div>
+      <div class="frow"><label class="flabel flabel-w1" style="min-width:40px;">Plant</label><input class="finput" id="msc2n-plant" value="HHP1" style="width:80px;"/></div>
+      <button class="app-btn" onclick="msc2nLoad()">&#x23CE; Load</button>
+    </div></div>
+    <div id="msc2n-detail"></div>
+  </div></div>
+</div>
+
+<!-- ═══════ ZLDM ═══════ -->
+<div id="view-ZLDM" class="view">
+  <div class="app-toolbar">
+    <button class="app-btn primary" onclick="zldmExecute()">&#x26A1; Execute (F8)</button>
+    <button class="app-btn" onclick="zldmReset()">&#x21BA; Reset</button>
+    <button class="app-btn">&#x1F4CA; Export</button>
+    <span id="zldm-result" style="margin-left:12px;font-size:11px;color:#003399;font-style:italic;"></span>
+  </div>
+  <div class="view-scroll"><div class="view-pad">
+    <div id="zldm-sel">
+      <div class="frame"><div class="frame-title">Selection Criteria</div><div class="frame-body">
+        <div class="frow"><label class="flabel flabel-w2">Process Order</label><input class="finput" id="zldm-order" style="width:160px;" placeholder="Optional"/></div>
+        <div class="frow"><label class="flabel flabel-w2">Material</label><input class="finput" id="zldm-mat" style="width:160px;"/></div>
+        <div class="frow"><label class="flabel flabel-w2">Plant</label><input class="finput" id="zldm-plant" value="HHP1" style="width:80px;"/></div>
+      </div></div>
+      <button class="app-btn primary" onclick="zldmExecute()">&#x26A1; Execute</button>
+    </div>
+    <div id="zldm-report" style="display:none;"></div>
+  </div></div>
+</div>
+
+<!-- ═══════ ZATMR ═══════ -->
+<div id="view-ZATMR" class="view">
+  <div class="app-toolbar">
+    <button class="app-btn primary" onclick="zatmrExecute()">&#x26A1; Execute</button>
+    <button class="app-btn" onclick="zatmrReset()">&#x21BA; Reset</button>
+    <button class="app-btn">&#x1F4CA; Export</button>
+    <button class="app-btn">&#x1F5A8; Print</button>
+  </div>
+  <div class="view-scroll"><div class="view-pad">
+    <div id="zatmr-sel">
+      <div class="frame"><div class="frame-title">Selection Criteria</div><div class="frame-body">
+        <div class="frow"><label class="flabel flabel-w2">Plant</label><input class="finput" id="zatmr-plant" value="HHP1" style="width:80px;"/></div>
+        <div class="frow"><label class="flabel flabel-w2">Material From</label><input class="finput" id="zatmr-m1" style="width:160px;"/><span style="padding:0 8px;font-size:11px;">to</span><input class="finput" id="zatmr-m2" style="width:160px;"/></div>
+        <div class="frow"><label class="flabel flabel-w2">Transfer Date</label><input class="finput" id="zatmr-date" style="width:120px;" placeholder="DD.MM.YYYY"/></div>
+        <div class="frow"><label class="flabel flabel-w2">SLoc From</label><input class="finput" id="zatmr-s1" style="width:80px;"/><span style="padding:0 8px;font-size:11px;">to</span><input class="finput" id="zatmr-s2" style="width:80px;"/></div>
+      </div></div>
+      <button class="app-btn primary" onclick="zatmrExecute()">&#x26A1; Execute</button>
+    </div>
+    <div id="zatmr-report" style="display:none;"></div>
+  </div></div>
+</div>
+
+<!-- ═══════ QM01 ═══════ -->
+<div id="view-QM01" class="view">
+  <div class="app-toolbar">
+    <button class="app-btn primary" onclick="qm01Save()">&#x1F4BE; Save</button>
+    <button class="app-btn" onclick="qm01Reset()">&#x21BA; Reset</button>
+    <div class="app-sep"></div>
+    <button class="app-btn" onclick="qm01Act('pip')">&#x25B6; Put in Process</button>
+    <button class="app-btn" onclick="qm01Act('complete')">&#x2705; Complete</button>
+    <div class="app-sep"></div>
+    <button class="app-btn">&#x1F4CB; Tasks</button>
+    <span id="qm01-result" style="margin-left:12px;font-size:11px;font-weight:bold;color:#006600;"></span>
+  </div>
+  <div class="tab-bar" id="qm01-tabs">
+    <div class="tab active" onclick="qm01Tab(this,'subject')">Subject</div>
+    <div class="tab" onclick="qm01Tab(this,'items')">Items</div>
+    <div class="tab" onclick="qm01Tab(this,'tasks')">Tasks</div>
+    <div class="tab" onclick="qm01Tab(this,'activities')">Activities</div>
+  </div>
+  <div class="view-scroll">
+    <div id="qm01-body" style="padding:8px 12px;background:#FFFFFF;min-height:400px;"></div>
+  </div>
+</div>
+
+<!-- ═══════ ME23N ═══════ -->
+<div id="view-ME23N" class="view">
+  <div class="app-toolbar">
+    <button class="app-btn" onclick="me23nLoad()">&#x1F50D; Display</button>
+    <button class="app-btn" onclick="goHome()">&#x2190; Back</button>
+    <div class="app-sep"></div>
+    <button class="app-btn">&#x1F4CB; Messages</button>
+    <span id="me23n-result" style="margin-left:12px;font-size:11px;color:#003399;font-style:italic;"></span>
+  </div>
+  <div class="view-scroll"><div class="view-pad">
+    <div class="frame"><div class="frame-title">Selection</div><div class="frame-body">
+      <div class="frow"><label class="flabel flabel-w2">Purchase Order</label>
+        <input class="finput" id="me23n-po" style="width:160px;" placeholder="Any PO number" onkeydown="if(event.key==='Enter')me23nLoad()"/>
+        <button class="app-btn" style="margin-left:4px;" onclick="me23nLoad()">&#x23CE; Display</button>
+      </div>
+    </div></div>
+    <div id="me23n-detail"></div>
+  </div></div>
+</div>
+
+<!-- ═══════ XK03 ═══════ -->
+<div id="view-XK03" class="view">
+  <div class="app-toolbar">
+    <button class="app-btn" onclick="xk03Load()">&#x1F50D; Display</button>
+    <button class="app-btn" onclick="goHome()">&#x2190; Back</button>
+  </div>
+  <div class="view-scroll"><div class="view-pad">
+    <div class="frame"><div class="frame-title">Selection</div><div class="frame-body">
+      <div class="frow">
+        <label class="flabel flabel-w2">Vendor</label>
+        <input class="finput" id="xk03-vendor" style="width:160px;" placeholder="Any vendor number" onkeydown="if(event.key==='Enter')xk03Load()"/>
+        <span style="padding:0 8px;font-size:11px;">Company Code</span>
+        <input class="finput" id="xk03-cc" value="HHP1" style="width:80px;"/>
+        <button class="app-btn" style="margin-left:4px;" onclick="xk03Load()">&#x23CE; Display</button>
+      </div>
+    </div></div>
+    <div id="xk03-detail"></div>
+  </div></div>
+</div>
+
+<!-- ═══════ ZQI06 ═══════ -->
+<div id="view-ZQI06" class="view">
+  <div class="app-toolbar">
+    <button class="app-btn primary" onclick="zqi06Execute()">&#x26A1; Execute</button>
+    <button class="app-btn" onclick="zqi06Reset()">&#x21BA; Reset</button>
+    <button class="app-btn">&#x1F4CA; Export</button>
+  </div>
+  <div class="view-scroll"><div class="view-pad">
+    <div class="frame"><div class="frame-title">Selection Criteria</div><div class="frame-body">
+      <div class="frow"><label class="flabel flabel-w2">Vendor From</label><input class="finput" id="zqi06-v1" style="width:160px;"/><span style="padding:0 8px;font-size:11px;">to</span><input class="finput" id="zqi06-v2" style="width:160px;"/></div>
+      <div class="frow"><label class="flabel flabel-w2">Material</label><input class="finput" id="zqi06-mat" style="width:160px;"/></div>
+      <div class="frow"><label class="flabel flabel-w2">Notification Date From</label><input class="finput" id="zqi06-d1" style="width:120px;" placeholder="DD.MM.YYYY"/></div>
+    </div></div>
+    <button class="app-btn primary" onclick="zqi06Execute()">&#x26A1; Execute</button>
+    <div id="zqi06-report" style="margin-top:10px;"></div>
+  </div></div>
+</div>
+
+<!-- ═══════ LX02 ═══════ -->
+<div id="view-LX02" class="view">
+  <div class="app-toolbar">
+    <button class="app-btn primary" onclick="lx02Execute()">&#x26A1; Execute (F8)</button>
+    <button class="app-btn" onclick="lx02Reset()">&#x21BA; Reset</button>
+    <button class="app-btn">&#x1F4CA; Export</button>
+    <span id="lx02-result" style="margin-left:12px;font-size:11px;color:#003399;font-style:italic;"></span>
+  </div>
+  <div class="view-scroll"><div class="view-pad">
+    <div id="lx02-sel">
+      <div class="frame"><div class="frame-title">Selection Criteria</div><div class="frame-body">
+        <div class="frow"><label class="flabel flabel-w2">Warehouse Number</label><input class="finput" id="lx02-wh" value="001" style="width:60px;"/></div>
+        <div class="frow"><label class="flabel flabel-w2">Storage Type</label><input class="finput" id="lx02-st" style="width:60px;" placeholder="Opt."/></div>
+        <div class="frow"><label class="flabel flabel-w2">Material</label><input class="finput" id="lx02-mat" style="width:160px;"/></div>
+        <div class="frow"><label class="flabel flabel-w2">Quant Category</label>
+          <select class="fselect" style="width:180px;"><option>All</option><option>Unrestricted</option><option>Blocked</option><option>Quality Inspection</option></select>
+        </div>
+      </div></div>
+      <button class="app-btn primary" onclick="lx02Execute()">&#x26A1; Execute</button>
+    </div>
+    <div id="lx02-report" style="display:none;"></div>
+  </div></div>
+</div>
+
+<!-- ═══════ LT10 ═══════ -->
+<div id="view-LT10" class="view">
+  <div class="app-toolbar">
+    <button class="app-btn primary" onclick="lt10Save()">&#x1F4BE; Save / Create TO</button>
+    <button class="app-btn" onclick="lt10Reset()">&#x21BA; Reset</button>
+    <span id="lt10-result" style="margin-left:12px;font-size:11px;font-weight:bold;color:#006600;"></span>
+  </div>
+  <div class="view-scroll"><div class="view-pad">
+    <div class="form-cols">
+      <div class="form-col">
+        <div class="frame"><div class="frame-title">Transfer Order Header</div><div class="frame-body">
+          <div class="frow"><label class="flabel flabel-w2">Warehouse Number</label><input class="finput" id="lt10-wh" value="001" style="width:60px;"/></div>
+          <div class="frow"><label class="flabel flabel-w2">Plant</label><input class="finput" id="lt10-plant" value="HHP1" style="width:80px;"/></div>
+          <div class="frow"><label class="flabel flabel-w2">Source Storage Type</label><input class="finput" id="lt10-src-st" value="001" style="width:60px;"/></div>
+          <div class="frow"><label class="flabel flabel-w2">Source Storage Bin</label><input class="finput" id="lt10-src-bin" style="width:100px;" placeholder="e.g. A-01-01"/></div>
+          <div class="frow"><label class="flabel flabel-w2">Dest. Storage Type</label><input class="finput" id="lt10-dst-st" value="002" style="width:60px;"/></div>
+          <div class="frow"><label class="flabel flabel-w2">Dest. Storage Bin</label><input class="finput" id="lt10-dst-bin" style="width:100px;" placeholder="e.g. B-02-05"/></div>
+        </div></div>
+      </div>
+      <div class="form-col">
+        <div class="frame"><div class="frame-title">Material / Item Data</div><div class="frame-body">
+          <div class="frow"><label class="flabel flabel-w2">Material</label><input class="finput" id="lt10-mat" style="width:180px;" placeholder="Any material number" onblur="lt10LoadMat()"/></div>
+          <div class="frow"><label class="flabel flabel-w2">Material (resolved)</label><div class="fval hl" id="lt10-mat-desc">&nbsp;</div></div>
+          <div class="frow"><label class="flabel flabel-w2">Quantity</label><input class="finput" id="lt10-qty" value="1" style="width:80px;"/></div>
+          <div class="frow"><label class="flabel flabel-w2">Reference Document</label><input class="finput" id="lt10-ref" style="width:160px;"/></div>
+        </div></div>
+      </div>
+    </div>
+    <div id="lt10-result-area"></div>
+  </div></div>
+</div>
+
+<!-- ═══════ LT12 ═══════ -->
+<div id="view-LT12" class="view">
+  <div class="app-toolbar">
+    <button class="app-btn primary" onclick="lt12Confirm()">&#x2705; Confirm Transfer Order</button>
+    <button class="app-btn" onclick="lt12Reset()">&#x21BA; Reset</button>
+    <span id="lt12-result" style="margin-left:12px;font-size:11px;font-weight:bold;color:#006600;"></span>
+  </div>
+  <div class="view-scroll"><div class="view-pad">
+    <div class="frame"><div class="frame-title">Selection</div><div class="frame-body">
+      <div class="frow">
+        <label class="flabel flabel-w2">Transfer Order Number</label>
+        <input class="finput" id="lt12-to" style="width:160px;" placeholder="TO number" onkeydown="if(event.key==='Enter')lt12Load()"/>
+        <span style="padding:0 8px;font-size:11px;">Warehouse No.</span>
+        <input class="finput" id="lt12-wh" value="001" style="width:60px;"/>
+        <button class="app-btn" style="margin-left:4px;" onclick="lt12Load()">&#x23CE; Load</button>
+      </div>
+    </div></div>
+    <div id="lt12-detail"></div>
+  </div></div>
+</div>
+
+<!-- ═══════ LT23 ═══════ -->
+<div id="view-LT23" class="view">
+  <div class="app-toolbar">
+    <button class="app-btn primary" onclick="lt23Execute()">&#x26A1; Execute (F8)</button>
+    <button class="app-btn" onclick="lt23Reset()">&#x21BA; Reset</button>
+    <button class="app-btn">&#x1F4CA; Export</button>
+    <span id="lt23-result" style="margin-left:12px;font-size:11px;color:#003399;font-style:italic;"></span>
+  </div>
+  <div class="view-scroll"><div class="view-pad">
+    <div id="lt23-sel">
+      <div class="frame"><div class="frame-title">Selection Criteria</div><div class="frame-body">
+        <div class="frow"><label class="flabel flabel-w2">Warehouse Number</label><input class="finput" id="lt23-wh" value="001" style="width:60px;"/></div>
+        <div class="frow"><label class="flabel flabel-w2">Transfer Order From</label><input class="finput" id="lt23-to1" style="width:120px;"/><span style="padding:0 8px;font-size:11px;">to</span><input class="finput" id="lt23-to2" style="width:120px;"/></div>
+        <div class="frow"><label class="flabel flabel-w2">Status</label>
+          <select class="fselect" style="width:180px;"><option>All</option><option>Open</option><option>Confirmed</option><option>Cancelled</option></select>
+        </div>
+      </div></div>
+      <button class="app-btn primary" onclick="lt23Execute()">&#x26A1; Execute</button>
+    </div>
+    <div id="lt23-report" style="display:none;"></div>
+  </div></div>
+</div>
+
+<!-- ═══════ ZMB56N ═══════ -->
+<div id="view-ZMB56N" class="view">
+  <div class="app-toolbar">
+    <button class="app-btn primary" onclick="zmb56nExecute()">&#x26A1; Execute (F8)</button>
+    <button class="app-btn" onclick="zmb56nReset()">&#x21BA; Reset</button>
+    <button class="app-btn">&#x1F4CA; Export</button>
+    <span id="zmb56n-result" style="margin-left:12px;font-size:11px;color:#003399;font-style:italic;"></span>
+  </div>
+  <div class="view-scroll"><div class="view-pad">
+    <div id="zmb56n-sel">
+      <div class="frame"><div class="frame-title">Selection Criteria</div><div class="frame-body">
+        <div class="frow"><label class="flabel flabel-w2">Material</label><input class="finput" id="zmb56n-mat" style="width:180px;" placeholder="Material number"/></div>
+        <div class="frow"><label class="flabel flabel-w2">Plant</label><input class="finput" id="zmb56n-plant" value="HHP1" style="width:80px;"/></div>
+        <div class="frow"><label class="flabel flabel-w2">Product (Finished Good)</label><input class="finput" id="zmb56n-prod" style="width:180px;"/></div>
+        <div class="frow"><label class="flabel flabel-w2">Process Order</label><input class="finput" id="zmb56n-ord" style="width:160px;"/></div>
+        <div class="frow">
+          <label class="flabel flabel-w2">Date From</label>
+          <input class="finput" id="zmb56n-d1" style="width:120px;" placeholder="DD.MM.YYYY"/>
+          <span style="padding:0 8px;font-size:11px;">to</span>
+          <input class="finput" id="zmb56n-d2" style="width:120px;" placeholder="DD.MM.YYYY"/>
+        </div>
+      </div></div>
+      <button class="app-btn primary" onclick="zmb56nExecute()">&#x26A1; Execute</button>
+    </div>
+    <div id="zmb56n-report" style="display:none;"></div>
+  </div></div>
+</div>
+
+</div><!-- /canvas -->
+
+<!-- Status Bar -->
+<div id="status-bar">
+  <div id="status-icon"></div>
+  <span id="status-msg">System ready</span>
+  <div class="status-right">
+    <div class="status-cell" id="status-ins">INS</div>
+    <div class="status-cell">HHP (1) 100</div>
+    <div class="status-cell">vhhdehhpci</div>
+    <div class="status-cell" id="status-time"></div>
+  </div>
+</div>
+<script>
+'use strict';
+/* ══ MOCK DATA ENGINE ══════════════════════════════════════════════ */
+function hh(s){let x=5381;for(let i=0;i<s.length;i++)x=((x<<5)+x+s.charCodeAt(i))>>>0;return x;}
+function sr(seed,a,b){const x=Math.sin(seed+1)*10000;return Math.floor((x-Math.floor(x))*(b-a+1))+a;}
+function pk(arr,seed){return arr[sr(seed,0,arr.length-1)];}
+function pd(n,l){return String(n).padStart(l,'0');}
+function td(){return new Date().toLocaleDateString('en-GB').replace(/\//g,'.');}
+
+const PL=['HHP1','HHP2','IN01','IN02','MH01'],SL=['0001','0002','STR1','STR2','LAB1','QA01','WH01','DISP'],
+MG=['LAB01','CHEM1','PACK1','RM001','PM001','FG001','00102','00107'],
+UN=['KG','G','L','ML','NOS','PC','SET','M','BAG','BTL'],
+VC=['3000','3001','7900','1100','3100'],PC=['PC_MFG','PC_LAB','PC_QA','PC_CORP','PC_DISP'],
+CC=['PROD01','LAB001','QA001','MAINT1','STORE1'],CU=['INR','USD','EUR'],
+PY=['Z001','Z002','NET30','NET60'],IN=['EXW','FCA','DAP','DDP','CIF'],
+CT=['IN','DE','US','GB','CN','JP'],
+VN=['Merck Life Science Pvt Ltd','Thermo Fisher Scientific India','Sigma Aldrich Chemicals','Hikal Limited',
+    "Divi's Laboratories Ltd",'BASF India Ltd','Aarti Industries Ltd','Spectrochem Pvt Ltd',
+    'SD Fine-Chem Ltd','Finar Limited'],
+MP=['API Compound','Excipient','Solvent','Reagent','Catalyst','Intermediate','Raw Material',
+    'Packaging Material','Buffer Solution','Reference Standard'],
+OT=['PI01','PI02','PP01','PP02'],
+BX=['A','B','C','D','E','F'],
+WB=['A-01-01','A-01-02','A-02-01','B-01-01','B-02-03','C-01-01','R-01-01','BULK-01'],
+QC=['Supplier deviation','Out of spec','Documentation issue','Contamination','Wrong quantity',
+    'Damaged packaging','Label error','Stability issue'];
+
+function gMat(k){
+  const s=hh(String(k));
+  return{mn:pd(sr(s,10000000,99999999),8),k:String(k),d:pk(MP,s)+' '+k,
+    mt:pk(['ROH','HALB','FERT','HIBE'],s+1),mg:pk(MG,s+2),un:pk(UN,s+3),pl:pk(PL,s+4),
+    sl:pk(SL,s+5),pc:pk(PC,s+6),cc:pk(CC,s+7),cu:pk(CU,s+8),
+    pr:(sr(s+9,100,99900)/100).toFixed(2),sp:(sr(s+10,500,50000)/100).toFixed(2),
+    st:sr(s+11,10,9999),vc:pk(VC,s+13),lt:sr(s+14,1,90),
+    bn:pd(sr(s+20,100000,999999),6)+pk(BX,s+21),
+    mfg:pd(sr(s+22,1,28),2)+'.'+pd(sr(s+23,1,12),2)+'.'+sr(s+24,2023,2025),
+    exp:pd(sr(s+25,1,28),2)+'.'+pd(sr(s+26,1,12),2)+'.'+sr(s+27,2026,2028),
+    ret:pd(sr(s+28,1,28),2)+'.'+pd(sr(s+29,1,12),2)+'.'+sr(s+30,2025,2027),
+    vn:pk(VN,s+31),ar:'AR-'+sr(s+32,10000,99999),
+    cb:'USR'+pd(sr(s+33,100,999),3),co:pd(sr(s+35,1,28),2)+'.'+pd(sr(s+36,1,12),2)+'.2025'};
+}
+function gVnd(k){
+  const s=hh(String(k));
+  return{vi:pd(sr(s,1000000000,9999999999),10),nm:pk(VN,s),co:pk(CT,s+1),
+    ct:'City-'+pd(sr(s+2,1000,9999),4),st:'Industrial Area, Plot '+sr(s+3,1,999),
+    pn:pd(sr(s+4,100000,999999),6),ph:'+'+sr(s+5,1,99)+'-'+sr(s+6,100,999)+'-'+sr(s+7,1000000,9999999),
+    cu:pk(CU,s+8),py:pk(PY,s+9),ic:pk(IN,s+10),vr:'IN'+pd(sr(s+11,100000000,999999999),9),
+    ag:'0001',ra:pd(sr(s+12,160000,169999),6),sc:sr(s+13,60,100),nf:sr(s+14,0,12),
+    od:sr(s+15,70,100)+'%'};
+}
+function gPO(k){
+  const s=hh(String(k));const v=gVnd(k);const n=sr(s,1,5);const it=[];
+  for(let i=0;i<n;i++){const m=gMat(pd(sr(s+i*7+2,10000000,99999999),8));const q=sr(s+i*7+3,1,500);const p=(sr(s+i*7+4,100,99900)/100).toFixed(2);
+    it.push({ln:pd((i+1)*10,5),mn:m.mn,d:m.d,q,u:m.un,p,cu:v.cu,nv:(q*parseFloat(p)).toFixed(2),pl:m.pl,sl:m.sl,dd:pd(sr(s+i*7+5,1,28),2)+'.'+pd(sr(s+i*7+6,1,12),2)+'.2025'});}
+  return{pn:pd(sr(s,4500000000,4599999999),10),dd:td(),vi:v.vi,vn:v.nm,cu:v.cu,ic:v.ic,py:v.py,
+    po:'HHP1',pg:pd(sr(s+50,1,20),3),tv:it.reduce((a,i)=>a+parseFloat(i.nv),0).toFixed(2),it};
+}
+function gOrd(k){
+  const s=hh(String(k));const m=gMat(k);const n=sr(s,2,6);const cm=[];
+  for(let i=0;i<n;i++){const c=gMat(pd(sr(s+i*7+2,10000000,99999999),8));const rq=sr(s+i*7+3,10,500);
+    cm.push({ln:pd((i+1)*10,4),mn:c.mn,d:c.d,rq,u:c.un,sl:c.sl,bn:c.bn,wd:sr(s+i*7+4,0,rq),
+      st:sr(s+i*7+5,0,1)===0?'Open':'Dispensed'});}
+  const SS=['CRTD','REL','PREL','CNF','TECO','CLSD'];const st=pk(SS,s+60);
+  return{on:pd(sr(s,1000000000,1099999999),10),k:String(k),mn:m.mn,md:m.d,ot:pk(OT,s+61),
+    pl:m.pl,bn:m.bn,q:sr(s+62,100,10000),u:m.un,sd:pd(sr(s+63,1,28),2)+'.'+pd(sr(s+64,1,12),2)+'.2025',
+    fd:pd(sr(s+65,1,28),2)+'.'+pd(sr(s+66,1,12),2)+'.2025',st,
+    cq:['CNF','TECO','CLSD'].includes(st)?sr(s+67,80,100)+'%':'--',
+    cm,pc:m.pc,cc:m.cc,sv:'USR'+pd(sr(s+70,100,999),3),ml:'LINE-'+sr(s+71,1,8),wc:'WC-'+pd(sr(s+72,1,20),2)};
+}
+function gResv(k){
+  let r=APP.rv.find(x=>x.rn===k);
+  if(!r){const s=hh(k+'r');const n=sr(s+1,1,4);const it=[];
+    for(let i=0;i<n;i++){const m=gMat(pd(sr(s+i*7+2,10000000,99999999),8));
+      it.push({ln:pd((i+1)*10,4),mn:m.mn,d:m.d,q:sr(s+i*7+3,1,200),u:m.un,pl:m.pl,sl:m.sl});}
+    r={rn:k,mv:pk(['201','261','311'],s+10),pl:pk(PL,s+11),cc:pk(CC,s+12),rd:pd(sr(s+13,1,28),2)+'.'+pd(sr(s+14,1,12),2)+'.2025',it};}
+  return r;
+}
+function gGP(k){
+  let g=[...MOCK_GPS,...APP.gp].find(x=>x.gn===k);
+  if(!g){const s=hh(k+'g');const tp=k.includes('NRGP')?'NRGP':'RGP';const n=sr(s+1,1,4);const it=[];
+    for(let i=0;i<n;i++){const m=gMat(pd(sr(s+i*7+2,10000000,99999999),8));it.push({ln:pd((i+1)*10,4),mn:m.mn,d:m.d,q:sr(s+i*7+3,1,50),u:m.un});}
+    g={gn:k,gt:tp,vn:pk(VN,s+20),rc:'USR'+pd(sr(s+21,100,999),3),pu:pk(['Equipment repair','Lab calibration','Material testing'],s+22),
+      vh:'MH-'+pd(sr(s+23,10,99),2)+'-'+pd(sr(s+24,1000,9999),4),rd:tp==='RGP'?pd(sr(s+25,1,28),2)+'.'+pd(sr(s+26,1,12),2)+'.2025':'N/A',
+      st:'Approved',it,cb:'USR'+pd(sr(s+27,100,999),3),co:td(),ab:'USR'+pd(sr(s+28,100,999),3)};}
+  return g;
+}
+
+/* ══ APP STATE ═════════════════════════════════════════════════════ */
+const APP={cv:'HOME',rv:[],gp:[],to:[],qm:{saved:false,nn:null},
+  mb21items:[{mn:'',q:'1',d:null}],zgp1items:[{mn:'',q:'1',u:'',d:''}]};
+
+const MOCK_GPS=[
+  {gn:'RGP-2025-10042',gt:'RGP',vn:'Merck Life Science Pvt Ltd',rc:'RAVI.SK',pu:'Equipment calibration',vh:'MH-04-AB-1234',rd:'15.07.2025',st:'Pending Approval',it:[{ln:'0010',mn:'10024567',d:'API Compound 10024567',q:5,u:'KG'}],cb:'MANOJ.TV',co:'02.06.2025'},
+  {gn:'NRGP-2025-33891',gt:'NRGP',vn:'Sigma Aldrich Chemicals',rc:'PRIYA.MN',pu:'Supplier return - Out of spec',vh:'TN-09-CD-5678',rd:'',st:'Pending Approval',it:[{ln:'0010',mn:'20034891',d:'Reagent 20034891',q:10,u:'L'},{ln:'0020',mn:'30045123',d:'Solvent 30045123',q:2,u:'KG'}],cb:'ANAND.KV',co:'01.06.2025'},
+  {gn:'RGP-2025-09981',gt:'RGP',vn:'Thermo Fisher Scientific India',rc:'SURESH.PK',pu:'Instrument repair',vh:'KA-01-EF-9012',rd:'20.07.2025',st:'Approved',ab:'MANOJ.TV',ao:td(),it:[{ln:'0010',mn:'40056789',d:'Sensor Unit 40056789',q:2,u:'NOS'}],cb:'DEEPA.RS',co:'29.05.2025'}
+];
+
+/* ══ T-CODE MAP ════════════════════════════════════════════════════ */
+const TC={MIGO:'Goods Movements (GR / GI)',MB21:'Create Reservation',MB22:'Change Reservation',
+  MB23:'Display Reservation',MB26:'Picking List for Reservations',ZWHRPF:'Reservation Printing',
+  ZGP1:'Create Gate Pass',SBWP:'Business Workplace \u2014 Gate Pass Approval',ZGP3:'Display Gate Pass',
+  ZGR1:'Closing / Return of RGP',MB52:'Warehouse Stocks of Material',COR2:'Change Process Order',
+  ZCOR2:'Process Order Changes',ZWPLN:'Picklist Print Function',ZWPL:'ZWM Picklist Report',
+  MMBE:'Stock Overview',COOISPI:'Process Order Information System',MSC2N:'Change Batch',
+  ZLDM:'List of Materials of Batch',ZATMR:'Transfer Allowed Material Register',
+  QM01:'Create Quality Notification',ME23N:'Display Purchase Order',XK03:'Display Vendor (Centrally)',
+  ZQI06:'ZQM Vendor Report',LX02:'Stock List',LT10:'Create Transfer Order from List',
+  LT12:'Confirm Transfer Order',LT23:'Display Transfer Orders by Numbers',
+  ZMB56N:'Material Where-Used / Product Dispensing List'};
+
+const EA_GROUPS=[
+  {label:'MIGO \u2014 Goods Movement',items:[{tc:'MIGO',d:'Goods Movement (GR / GI / Transfer)'}]},
+  {label:'WH01 \u2014 Reservations & Picking',items:[{tc:'MB21',d:'ZD_2089_WH01_P-V00 \u2192 Create Reservation'},{tc:'MB22',d:'Change Reservation'},{tc:'MB23',d:'ZS_PUR_RESERVATION_DISP_ACCESS \u2192 Display Reservation'},{tc:'MB26',d:'ZD_2089_WH01_P-V00 \u2192 Picking list'},{tc:'ZWHRPF',d:'ZD_2089_WH01_P-V00 \u2192 Reservation Printing'}]},
+  {label:'WH01/WH03 \u2014 Gate Pass',items:[{tc:'ZGP1',d:'ZD_2089_WH01_P-V00 \u2192 Create Gate pass'},{tc:'SBWP',d:'ZS_AUTHORITYCHECK \u2192 SAP Business Workplace'},{tc:'ZGP3',d:'ZD_2089_WH04_P-V00 \u2192 Display Gate Pass'},{tc:'ZGR1',d:'ZD_2089_WH04_P-V00 \u2192 Closing / Return of RGP'}]},
+  {label:'WH04 \u2014 Stock Reports',items:[{tc:'MB52',d:'ZD_2089_WH01_P-V00 \u2192 List of Warehouse Stocks on Hand'},{tc:'MMBE',d:'Stock Overview'},{tc:'LX02',d:'ZD_2089_WH01_P-V00 \u2192 Stock list'}]},
+  {label:'Process Orders \u2014 Dispensing',items:[{tc:'COR2',d:'Change Process Order'},{tc:'ZCOR2',d:'PROCESS ORDER CHANGES'},{tc:'ZWPLN',d:'Picklist Print Function'},{tc:'ZWPL',d:'ZD_2089_WH01_P-V00 \u2192 ZWM_PICKLIST_REPORT'},{tc:'COOISPI',d:'Process Order Information System'}]},
+  {label:'Batch & Material Management',items:[{tc:'MSC2N',d:'Change Batch'},{tc:'ZLDM',d:'ZS_2089_WH01_P4 \u2192 List of Materials of Batch'},{tc:'ZATMR',d:'ZD_2089_WH01_P-V00 \u2192 Transfer Allowed Material Register'},{tc:'ZMB56N',d:'ZS_PUR_RESERVATION_DISP_ACCESS \u2192 Material Where used Product dis.List'}]},
+  {label:'Quality Management',items:[{tc:'QM01',d:'ZD_2089_WH01_P-V00 \u2192 Create Quality Notification'},{tc:'ZQI06',d:'ZD_2089_WH01_P-V00 \u2192 ZQM_VENDOR_REPORT Transaction'}]},
+  {label:'Purchasing & Vendor',items:[{tc:'ME23N',d:'ZD_2089_WH01_P-V00 \u2192 Display Purchase Order'},{tc:'XK03',d:'ZD_2089_WH01_P-V00 \u2192 Display vendor (centrally)'}]},
+  {label:'Warehouse Management (WM)',items:[{tc:'LT10',d:'ZD_2089_WH01_P-V00 \u2192 Create Transfer Order from List'},{tc:'LT12',d:'ZD_2089_WH01_P-V00 \u2192 Confirm transfer order'},{tc:'LT23',d:'ZD_2089_WH01_P-V00 \u2192 Display Transfer Orders by Numbers'}]}
+];
+
+/* ══ UI HELPERS ════════════════════════════════════════════════════ */
+function $(id){return document.getElementById(id);}
+function frow(label,val,hl=false){return`<div class="frow"><label class="flabel flabel-w2">${label}</label><div class="fval${hl?' hl':''}">${val||'&nbsp;'}</div></div>`;}
+function badge(text,cls){return`<span class="badge badge-${cls}">${text}</span>`;}
+function stBadge(st){const m={Open:'orange','Partial':'blue','Partially Dispensed':'blue',Complete:'green','Fully Dispensed':'green',Approved:'green',Rejected:'red','Pending Approval':'orange',Open:'orange',Confirmed:'green',Cancelled:'red',CRTD:'gray',REL:'blue',PREL:'blue',CNF:'green',TECO:'green',CLSD:'gray',Released:'green','Under Test':'blue',Quarantine:'red'};return badge(st,m[st]||'gray');}
+function alv(headers,rows,summary=''){
+  const ths=headers.map(h=>`<th${h.r?' style="text-align:right"':''}>${h.l}</th>`).join('');
+  const trs=rows.map(r=>`<tr>${r.map((c,i)=>`<td${headers[i]&&headers[i].r?' class="r"':''}${headers[i]&&headers[i].link?` class="link"`:''} style="${headers[i]&&headers[i].mw?'max-width:'+headers[i].mw+'px;overflow:hidden;':''}">${c}</td>`).join('')}</tr>`).join('');
+  return`<div class="alv-wrap"><table class="alv"><thead><tr>${ths}</tr></thead><tbody>${trs}</tbody>${summary?`<tfoot><tr>${summary}</tr></tfoot>`:''}</table></div>`;
+}
+function setMsg(msg,type='I'){
+  const ic=$('status-icon');const el=$('status-msg');
+  el.textContent=msg;ic.className='';
+  if(type==='S'){ic.classList.add('green');el.style.color='#006600';el.style.fontWeight='bold';}
+  else if(type==='E'){ic.classList.add('red');el.style.color='#CC0000';el.style.fontWeight='bold';}
+  else if(type==='W'){ic.classList.add('yellow');el.style.color='#884400';el.style.fontWeight='normal';}
+  else{ic.className='';el.style.color='#000';el.style.fontWeight='normal';}
+}
+function msgBanner(msg,type){const t={S:'msg-success',E:'msg-error',W:'msg-warn',I:'msg-info'};return`<div class="${t[type]||'msg-info'}">${msg}</div>`;}
+
+/* ══ NAVIGATION ════════════════════════════════════════════════════ */
+function navCmd(){nav($('cmd-input').value);}
+function showCmdHistory(){}
+function nav(raw){
+  const tc=raw.toUpperCase().replace(/^\/[NO]/,'').trim();
+  if(!tc||tc==='HOME'||tc==='S000'||tc==='SESSION_MANAGER'){goHome();return;}
+  if(!TC[tc]){setMsg('Transaction '+tc+' not found. Check the T-Code and try again.','E');return;}
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+  const el=$('view-'+tc);if(!el){setMsg('View for '+tc+' not available.','E');return;}
+  el.classList.add('active');APP.cv=tc;
+  $('tx-title-bar').style.display='flex';$('tx-title-text').textContent=TC[tc];$('tx-code-text').textContent='Transaction: '+tc;
+  $('wnd-title-text').textContent=TC[tc]+' \u2014 '+tc+' \u2014 HHP (1) 100 \u2014 vhhdehhpci';
+  $('cmd-input').value='';setMsg(TC[tc],'I');
+  if(tc==='SBWP')sbwpRender();
+  if(tc==='ZGP1'){$('zgp1-date-disp').textContent=td();zgp1Init();}
+  if(tc==='QM01')qm01Render('subject');
+  if(tc==='MB21'){$('mb21-docdate').textContent=td();$('mb21-postdate').textContent=td();mb21Init();}
+  if(tc==='MIGO')migoUpdateMvmt();
+}
+function goHome(){
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+  $('view-HOME').classList.add('active');$('tx-title-bar').style.display='none';
+  $('wnd-title-text').textContent='SAP Easy Access \u2014 User Menu for MANOJ KUMAR T V \u2014 HHP (1) 100 \u2014 vhhdehhpci';
+  APP.cv='HOME';setMsg('SAP Easy Access');
+}
+
+/* ══ EASY ACCESS MENU ══════════════════════════════════════════════ */
+function buildEA(){
+  const body=$('ea-body');body.innerHTML='';
+  EA_GROUPS.forEach(g=>{
+    const div=document.createElement('div');div.className='ea-group';
+    div.innerHTML=`<div class="ea-group-hdr"><span class="folder-icon">&#x1F4C2;</span><span class="group-label">${g.label}</span></div>`;
+    g.items.forEach(it=>{
+      const row=document.createElement('div');row.className='ea-item';
+      row.innerHTML=`<span class="star">&#x2605;</span><span class="tc-code">${it.tc}</span><span class="tc-desc">\u2014 ${it.d}</span>`;
+      row.onclick=()=>nav(it.tc);div.appendChild(row);
+    });body.appendChild(div);
+  });
+}
+function eaFilter(q){
+  const lq=q.toLowerCase();
+  document.querySelectorAll('.ea-item').forEach(r=>{
+    const t=r.querySelector('.tc-code').textContent.toLowerCase();
+    const d=r.querySelector('.tc-desc').textContent.toLowerCase();
+    r.style.display=(t.includes(lq)||d.includes(lq))?'':'none';
+  });
+}
+
+/* ══ MIGO ══════════════════════════════════════════════════════════ */
+const MMVT={'A01-PO':[{c:'101',l:'101 \u2013 GR for PO into warehouse/stores'},{c:'103',l:'103 \u2013 GR for PO into GR blocked stock'},{c:'105',l:'105 \u2013 Release GR blocked stock for warehouse'}],
+'A01-RESV':[{c:'101',l:'101 \u2013 GR for reservation into warehouse'}],
+'A07-RESV':[{c:'201',l:'201 \u2013 Consumption for cost center from warehouse'},{c:'202',l:'202 \u2013 Consumption reversal from warehouse'}],
+'A07-OTHER':[{c:'261',l:'261 \u2013 GI for production order'},{c:'551',l:'551 \u2013 GI for scrapping'}],
+'A08-RESV':[{c:'311',l:'311 \u2013 Transfer posting SLoc to SLoc'}],
+'A08-OTHER':[{c:'301',l:'301 \u2013 Transfer posting plant to plant'}],
+'A01-OTHER':[{c:'501',l:'501 \u2013 Receipt without reference (no PO)'}]};
+let mDoc=null,mChk={},mQty={};
+function migoUpdateMvmt(){
+  const t=$('migo-txn').value,r=$('migo-ref').value,opts=MMVT[t+'-'+r]||MMVT['A01-PO'];
+  $('migo-mvmt').innerHTML=opts.map(o=>`<option value="${o.c}">${o.l}</option>`).join('');
+}
+function migoLoad(){
+  const doc=$('migo-doc-in').value.trim();if(!doc){setMsg('Enter a reference document number.','E');return;}
+  const s=hh(doc),n=sr(s+1,1,5),it=[];
+  for(let i=0;i<n;i++){const m=gMat(pd(sr(s+i*7+2,10000000,99999999),8));it.push({ln:pd((i+1)*10,5),mn:m.mn,d:m.d,q:sr(s+i*7+3,1,500),u:m.un,pl:m.pl,sl:m.sl});}
+  mDoc={ref:doc,it};mChk={};mQty={};
+  const mv=$('migo-mvmt').value;const plus=['101','105','501'].includes(mv);const minus=['201','261','551'].includes(mv);
+  const sdCls=plus?'badge-green':minus?'badge-red':'badge-gray';const sdTxt=plus?'+ Stock':minus?'\u2212 Stock':'~';
+  const hi=$('migo-header-info');hi.style.display='flex';
+  hi.innerHTML=`<span><strong>Doc:</strong> ${doc}</span><span><strong>Mvmt.Type:</strong> <strong style="color:#003399">${mv}</strong></span><span><strong>Ref.Type:</strong> ${$('migo-ref').options[$('migo-ref').selectedIndex].text}</span><span><strong>Posting Date:</strong> ${td()}</span>`;
+  const hdrs=[{l:'',r:false},{l:'Item'},{l:'Material',link:true},{l:'Short Text',mw:180},{l:'Doc.Qty',r:true},{l:'GR/GI Qty',r:true},{l:'Unit'},{l:'Plant'},{l:'SLoc'},{l:'S/B'},{l:'Item OK',r:false}];
+  const rows=it.map((x,i)=>[`<span id="mg-ic-${i}"></span>`,x.ln,`<span style="color:#0000EE;text-decoration:underline;cursor:pointer">${x.mn}</span>`,x.d,x.q,`<input type="number" value="${x.q}" id="mg-q-${i}" style="width:70px;height:18px;font-size:11px;padding:0 3px;border:1px solid #7A7974;font-family:Courier New;text-align:right;">`,x.u,x.pl,x.sl,`<span class="badge ${sdCls}">${sdTxt}</span>`,`<input type="checkbox" id="mg-ok-${i}" onchange="mChk[${i}]=this.checked">`]);
+  $('migo-body').innerHTML=`<div style="font-size:11px;margin-bottom:6px;color:#555;">${it.length} item(s) loaded. Check &quot;Item OK&quot; and click Post.</div>`+alv(hdrs,rows);
+  setMsg(it.length+' item(s) loaded \u2014 Mvmt.Type '+mv+'. Mark items and Post.','I');
+}
+function migoPost(){
+  if(!mDoc){setMsg('No document loaded.','E');return;}
+  const ck=mDoc.it.filter((_,i)=>mChk[i]);if(!ck.length){setMsg('No items checked for posting.','E');return;}
+  const nd=pd(sr(hh(mDoc.ref+Date.now()),5000000000,5099999999),10);
+  mDoc.it.forEach((_,i)=>{if(mChk[i]){const r=document.getElementById('mg-ic-'+i);if(r)r.innerHTML='<span class="badge badge-green">Posted</span>';}});
+  $('migo-result').textContent='Mat.Doc. '+nd+' \u2014 '+ck.length+' item(s) posted';
+  $('migo-post-btn').disabled=true;setMsg('Material Document '+nd+' created.','S');
+}
+function migoReset(){mDoc=null;mChk={};mQty={};$('migo-body').innerHTML='';$('migo-result').textContent='';$('migo-post-btn').disabled=false;$('migo-header-info').style.display='none';}
+
+/* ══ MB21 ══════════════════════════════════════════════════════════ */
+function mb21Init(){APP.mb21items=[{mn:'',q:'1',d:null}];mb21Render();}
+function mb21Render(){
+  $('mb21-items-body').innerHTML=APP.mb21items.map((it,i)=>`<tr>
+    <td>${pd((i+1)*10,4)}</td>
+    <td><input class="finput" style="width:130px;" value="${it.mn}" onchange="APP.mb21items[${i}].mn=this.value" onblur="mb21Res(${i})"></td>
+    <td>${it.d?it.d.d:''}</td>
+    <td><input class="finput" style="width:70px;text-align:right;" value="${it.q}" onchange="APP.mb21items[${i}].q=this.value"></td>
+    <td>${it.d?it.d.un:''}</td>
+    <td>${it.d?it.d.pl:($('mb21-plant')||{value:'HHP1'}).value}</td>
+    <td>${it.d?it.d.sl:''}</td>
+  </tr>`).join('');
+}
+function mb21Res(i){const mn=APP.mb21items[i].mn.trim();if(!mn)return;APP.mb21items[i].d=gMat(mn);mb21Render();}
+function mb21AddItem(){APP.mb21items.push({mn:'',q:'1',d:null});mb21Render();}
+function mb21Save(){
+  const pl=$('mb21-plant').value||'HHP1';const fl=APP.mb21items.filter(i=>i.mn.trim());
+  if(!fl.length){setMsg('Enter at least one material.','E');return;}
+  const s=hh(pl+Date.now());const rn=pd(sr(s,10000000,19999999),10);
+  const mv=$('mb21-mvmt').value;const cc=$('mb21-cc').value||'PROD01';
+  const rv={rn,mv,pl,cc,rd:$('mb21-date').value||td(),it:fl.map((it,i)=>{const m=it.d||gMat(it.mn);return{ln:pd((i+1)*10,4),mn:it.mn,d:m.d,q:parseInt(it.q)||1,u:m.un,pl,sl:m.sl};})};
+  APP.rv.push(rv);$('mb21-resv-num').textContent=rn;$('mb21-status-disp').textContent='Active';
+  $('mb21-result').textContent='Reservation '+rn+' created';setMsg('Reservation '+rn+' created. Mvmt.Type '+mv,'S');
+}
+function mb21Reset(){APP.mb21items=[{mn:'',q:'1',d:null}];mb21Render();$('mb21-resv-num').textContent='\u00A0';$('mb21-status-disp').textContent='New';$('mb21-result').textContent='';}
+
+/* ══ MB22/MB23 ═════════════════════════════════════════════════════ */
+function mb22Load(){const n=$('mb22-num').value.trim();if(!n){setMsg('Enter Reservation number.','E');return;}renderResvDetail('mb22-detail',gResv(n),true);setMsg('Reservation '+n+' loaded for change.','I');}
+function mb22Reset(){$('mb22-num').value='';$('mb22-detail').innerHTML='';$('mb22-result').textContent='';}
+function mb23Load(){const n=$('mb23-num').value.trim();if(!n){setMsg('Enter Reservation number.','E');return;}renderResvDetail('mb23-detail',gResv(n),false);setMsg('Reservation '+n+' displayed.','I');}
+function renderResvDetail(tgt,r,editable){
+  const edit=editable;
+  $(tgt).innerHTML=`
+  <div class="form-cols">
+    <div class="form-col"><div class="frame"><div class="frame-title">Document Header</div><div class="frame-body">
+      ${frow('Reservation No.',r.rn,true)}
+      ${frow('Movement Type',r.mv)}
+      <div class="frow"><label class="flabel flabel-w2">Plant</label>${edit?`<input class="finput" value="${r.pl}" style="width:80px;">`:`<div class="fval">${r.pl}</div>`}</div>
+      <div class="frow"><label class="flabel flabel-w2">Cost Center</label>${edit?`<input class="finput" value="${r.cc}" style="width:120px;">`:`<div class="fval">${r.cc}</div>`}</div>
+      <div class="frow"><label class="flabel flabel-w2">Requirement Date</label>${edit?`<input class="finput" value="${r.rd}" style="width:120px;">`:`<div class="fval">${r.rd}</div>`}</div>
+    </div></div></div>
+  </div>
+  <div class="frame"><div class="frame-title">Reservation Items</div><div class="frame-body compact">
+  ${alv([{l:'Item'},{l:'Material',link:true},{l:'Short Text',mw:200},{l:'Req.Qty',r:true},{l:'Unit'},{l:'Plant'},{l:'SLoc'}],
+    r.it.map(x=>[x.ln,x.mn,x.d,edit?`<input class="finput" value="${x.q}" style="width:60px;text-align:right;">`:x.q,x.u,x.pl,x.sl]))}
+  </div></div>
+  ${edit?`<button class="app-btn primary" onclick="setMsg('Reservation ${r.rn} saved.','S');$('mb22-result').textContent='Reservation ${r.rn} saved';">Save Changes</button>`:''}`;
+}
+
+/* ══ MB26 ══════════════════════════════════════════════════════════ */
+function mb26Execute(){
+  const pl=$('mb26-plant').value||'HHP1';const s=hh(pl+'mb26'+Date.now());
+  const sr2=APP.rv.flatMap(r=>r.it.map(it=>({rn:r.rn,it:it.ln,mn:it.mn,d:it.d,rq:it.q,pq:0,u:it.u,pl:it.pl,sl:it.sl,cc:r.cc,rd:r.rd,st:'Open'})));
+  const gr=Array.from({length:12},(_,i)=>{const m=gMat(pd(sr(s+i*11+1,10000000,99999999),8));const rq=sr(s+i*11+2,1,500);return{rn:pd(sr(s+i*11,10000000,19999999),10),it:pd((i%4+1)*10,4),mn:m.mn,d:m.d,rq,pq:sr(s+i*11+3,0,rq),u:m.un,pl,sl:m.sl,cc:pk(CC,s+i*11+4),rd:pd(sr(s+i*11+5,1,28),2)+'.'+pd(sr(s+i*11+6,1,12),2)+'.2025',st:pk(['Open','Partial','Complete'],s+i*11+7)};});
+  const rows=[...sr2,...gr];
+  $('mb26-report').innerHTML=`<div style="font-size:11px;margin-bottom:6px;">Plant: <strong>${pl}</strong> &nbsp;|&nbsp; ${rows.length} record(s)</div>`+
+    alv([{l:'Reservation',link:true},{l:'Item'},{l:'Material',link:true},{l:'Short Text',mw:180},{l:'Req.Qty',r:true},{l:'Picked Qty',r:true},{l:'Unit'},{l:'Plant'},{l:'SLoc'},{l:'Cost Ctr'},{l:'Req.Date'},{l:'Status'}],
+      rows.map(r=>[r.rn,r.it,r.mn,r.d,r.rq,`<span style="color:${r.pq>=r.rq?'#006600':'#000'}">${r.pq}</span>`,r.u,r.pl,r.sl,r.cc,r.rd,stBadge(r.st)]));
+  $('mb26-report').style.display='';$('mb26-sel').style.display='none';$('mb26-result').textContent=rows.length+' record(s)';setMsg('Picking List \u2014 '+rows.length+' reservations for plant '+pl,'I');
+}
+function mb26Reset(){$('mb26-sel').style.display='';$('mb26-report').style.display='none';$('mb26-result').textContent='';}
+
+/* ══ ZWHRPF ════════════════════════════════════════════════════════ */
+function zwhrpfLoad(){
+  const n=$('zwhrpf-num').value.trim();if(!n){setMsg('Enter Reservation number.','E');return;}
+  const r=gResv(n);
+  $('zwhrpf-output').innerHTML=`<div class="print-doc"><div class="print-hdr"><div><div class="print-title">MATERIAL RESERVATION</div><div class="print-org">SAP ERP 6.0 &nbsp;|&nbsp; Inventory Management &nbsp;|&nbsp; Plant: ${r.pl}</div></div><div><div class="print-num">${r.rn}</div><div style="font-size:10px;color:#666;text-align:right;">Req. Date: ${r.rd}<br>Printed: ${td()}</div></div></div>
+  <div class="print-meta"><span>Plant:</span><b>${r.pl}</b><span>Cost Center:</span><b>${r.cc}</b><span>Movement Type:</span><b>${r.mv}</b><span>Document Date:</span><b>${td()}</b></div>
+  ${alv([{l:'Item'},{l:'Material Number'},{l:'Short Text',mw:200},{l:'Req.Qty',r:true},{l:'Unit'},{l:'Plant'},{l:'SLoc'},{l:'Issued Qty',r:true},{l:'Signature',mw:100}],r.it.map(x=>[x.ln,x.mn,x.d,x.q,x.u,x.pl,x.sl,'&nbsp;','&nbsp;']))}
+  <div class="print-sig-row"><div class="print-sig-line">Requested By</div><div class="print-sig-line">Verified By</div><div class="print-sig-line">Issued By</div></div></div>`;
+  setMsg('Reservation '+n+' loaded for printing.','I');
+}
+function zwhrpfPrint(){if($('zwhrpf-output').innerHTML)setMsg('Reservation sent to output device LP01.','S');else setMsg('Load a reservation first.','E');}
+function zwhrpfReset(){$('zwhrpf-num').value='';$('zwhrpf-output').innerHTML='';}
+
+/* ══ ZGP1 ══════════════════════════════════════════════════════════ */
+function zgp1Init(){APP.zgp1items=[{mn:'',q:'1',u:'',d:''}];zgp1Render();}
+function zgp1TypeChange(){const t=document.querySelector('input[name="gptype"]:checked').value;$('zgp1-type-disp').textContent=t==='RGP'?'RGP \u2014 Returnable Gate Pass':'NRGP \u2014 Non-Returnable Gate Pass';$('zgp1-retdate-row').style.display=t==='RGP'?'flex':'none';}
+function zgp1Render(){
+  $('zgp1-items-body').innerHTML=APP.zgp1items.map((it,i)=>`<tr>
+    <td>${pd((i+1)*10,4)}</td>
+    <td><input class="finput" style="width:150px;" value="${it.mn}" placeholder="Material No. or text" onchange="APP.zgp1items[${i}].mn=this.value" onblur="zgp1Res(${i})"></td>
+    <td><span id="zgp1-d-${i}">${it.d}</span></td>
+    <td><input class="finput" style="width:70px;text-align:right;" value="${it.q}" onchange="APP.zgp1items[${i}].q=this.value"></td>
+    <td><span id="zgp1-u-${i}">${it.u}</span></td>
+    <td><input class="finput" style="width:150px;" placeholder="Optional"></td>
+  </tr>`).join('');
+}
+function zgp1Res(i){const mn=APP.zgp1items[i].mn.trim();if(!mn)return;const m=gMat(mn);APP.zgp1items[i].d=m.d;APP.zgp1items[i].u=m.un;zgp1Render();}
+function zgp1AddItem(){APP.zgp1items.push({mn:'',q:'1',u:'',d:''});zgp1Render();}
+function zgp1Save(){
+  const vn=$('zgp1-vendor').value.trim(),rc=$('zgp1-recip').value.trim();
+  if(!vn&&!rc){setMsg('Vendor or Recipient is required.','E');return;}
+  const fl=APP.zgp1items.filter(i=>i.mn.trim());if(!fl.length){setMsg('Enter at least one item.','E');return;}
+  const tp=document.querySelector('input[name="gptype"]:checked').value;
+  const s=hh((vn||rc)+tp+Date.now());const gn=tp+'-'+new Date().getFullYear()+'-'+pd(sr(s,10000,99999),5);
+  const gp={gn,gt:tp,vn,rc,pu:$('zgp1-purpose').value,vh:$('zgp1-vehicle').value,rd:tp==='RGP'?($('zgp1-retdate').value||''):'',st:'Pending Approval',it:fl.map((it,i)=>{const m=gMat(it.mn);return{ln:pd((i+1)*10,4),mn:it.mn,d:it.d||m.d,q:parseInt(it.q)||1,u:it.u||m.un};}),cb:'MANOJ.TV',co:td()};
+  APP.gp.push(gp);$('zgp1-num-disp').textContent=gn;$('zgp1-status-disp').textContent='Pending Approval';
+  $('zgp1-result').textContent=gn+' created \u2014 Send to SBWP for approval';setMsg('Gate Pass '+gn+' created. Pending approval in SBWP.','S');
+}
+function zgp1Reset(){zgp1Init();['zgp1-vendor','zgp1-recip','zgp1-purpose','zgp1-vehicle','zgp1-retdate'].forEach(id=>$(id).value='');$('zgp1-num-disp').textContent='\u00A0';$('zgp1-status-disp').textContent='New';$('zgp1-result').textContent='';}
+
+/* ══ SBWP ══════════════════════════════════════════════════════════ */
+let sbF='Pending',sbSel=null;
+function sbwpFilter(f){sbF=f;sbSel=null;sbwpRender();}
+function sbwpRender(){
+  const all=[...MOCK_GPS,...APP.gp];const fl=sbF==='All'?all:all.filter(g=>g.st.includes(sbF));
+  const inbox=$('sbwp-inbox');$('sbwp-count').textContent=fl.length+' item(s)';
+  inbox.innerHTML='<div style="padding:3px 8px;background:linear-gradient(180deg,#D4E0F0,#C0D0E4);border-bottom:1px solid #9AACC4;font-size:11px;font-weight:bold;color:#1A2A4A;">&#x1F4E5; Inbox ('+fl.length+')</div>';
+  if(!fl.length)inbox.innerHTML+='<div style="padding:16px;text-align:center;font-size:11px;color:#888;">No items match filter.</div>';
+  fl.forEach(gp=>{
+    const sc={Approved:'#006600','Pending Approval':'#884400',Rejected:'#CC0000',Closed:'#555'};
+    const row=document.createElement('div');row.style.cssText='padding:5px 8px;border-bottom:1px solid #E0DDD8;cursor:pointer;';
+    row.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center;"><span style="font-family:Courier New;font-weight:bold;color:#003399;font-size:11px;">${gp.gn}</span><span class="badge" style="background:${sc[gp.st]||'#777'};color:#FFF;border:none;">${gp.st.replace(' Approval','')}</span></div><div style="font-size:10px;color:#444;margin-top:2px;">${gp.vn||gp.rc||''} &mdash; ${gp.pu||''}</div><div style="font-size:10px;color:#888;margin-top:1px;">${gp.cb} | ${gp.co} | ${gp.gt}</div>`;
+    row.onmouseenter=()=>{if(sbSel!==gp.gn)row.style.background='#EBF0F8';};
+    row.onmouseleave=()=>{if(sbSel!==gp.gn)row.style.background='';};
+    row.onclick=()=>{sbSel=gp.gn;sbwpDetail(gp);inbox.querySelectorAll('div').forEach((r,i)=>{if(i>0)r.style.background='';});row.style.background='#C8D8F0';};
+    inbox.appendChild(row);
+  });
+  $('sbwp-detail').innerHTML='<div style="display:flex;align-items:center;justify-content:center;height:100%;color:#888;font-size:12px;">Select a Gate Pass from the inbox.</div>';
+}
+function sbwpDetail(gp){
+  const isPend=gp.st==='Pending Approval';const sc={'Pending Approval':'#884400',Approved:'#006600',Rejected:'#CC0000'};
+  const det=$('sbwp-detail');det.innerHTML='';
+  const div=document.createElement('div');div.style.cssText='padding:0;';
+  div.innerHTML=`<div class="form-cols">
+  <div class="form-col"><div class="frame"><div class="frame-title">Gate Pass Header &mdash; ${gp.gn}</div><div class="frame-body">
+    ${frow('Gate Pass No.',gp.gn,true)}
+    ${frow('Type',gp.gt==='RGP'?'RGP \u2014 Returnable Gate Pass':'NRGP \u2014 Non-Returnable')}
+    ${frow('Vendor / Party',gp.vn||'')}
+    ${frow('Recipient',gp.rc||'')}
+    ${frow('Purpose',gp.pu||'')}
+    ${frow('Vehicle No.',gp.vh||'')}
+    ${gp.gt==='RGP'?frow('Expected Return Date',gp.rd||''):''}
+    ${frow('Created By / On',gp.cb+' / '+gp.co)}
+    <div class="frow"><label class="flabel flabel-w2">Status</label><div class="fval" style="font-weight:bold;color:${sc[gp.st]||'#000'}">${gp.st}</div></div>
+  </div></div></div>
+  <div class="form-col">
+    <div class="frame"><div class="frame-title">Items</div><div class="frame-body compact">
+    ${alv([{l:'Item'},{l:'Material',link:true},{l:'Description',mw:160},{l:'Qty',r:true},{l:'Unit'}],gp.it.map(x=>[x.ln,x.mn,x.d,x.q,x.u]))}
+    </div></div>
+    ${isPend?`<div class="frame"><div class="frame-title">Approval Decision</div><div class="frame-body">
+      <div class="frow"><label class="flabel flabel-w2">Remarks</label><input class="finput" id="sbwp-cmts" style="width:240px;" placeholder="Optional remarks"></div>
+      <div style="margin-top:8px;display:flex;gap:8px;">
+        <button class="app-btn primary" onclick="sbwpDecide('${gp.gn}','Approved')">&#x2705; Approve</button>
+        <button class="app-btn" onclick="sbwpDecide('${gp.gn}','Rejected')">&#x274C; Reject</button>
+      </div>
+    </div></div>`:
+    (gp.st==='Approved'||gp.st==='Rejected')?`<div class="frame"><div class="frame-title">Decision Record</div><div class="frame-body">
+      ${frow('Decision',gp.st,true)}
+      ${frow('Decided By / On',(gp.ab||'')+' / '+(gp.ao||''))}
+      ${frow('Remarks',gp.cm||'(none)')}
+    </div></div>`:''}
+  </div>
+  </div>`;
+  det.appendChild(div);
+}
+function sbwpDecide(gn,dec){const cm=$('sbwp-cmts')?.value||'';[...MOCK_GPS,...APP.gp].forEach(g=>{if(g.gn===gn){g.st=dec;g.ab='MANOJ.TV';g.ao=td();g.cm=cm;}});sbwpRender();setMsg('Gate Pass '+gn+' \u2014 '+dec+'.',dec==='Approved'?'S':'E');}
+
+/* ══ ZGP3 ══════════════════════════════════════════════════════════ */
+function zgp3Load(){
+  const n=$('zgp3-num').value.trim();if(!n){setMsg('Enter Gate Pass number.','E');return;}
+  const gp=gGP(n);
+  $('zgp3-output').innerHTML=`<div class="print-doc"><div class="print-hdr">
+    <div><div class="print-title">GATE PASS</div><div class="print-org"><span style="background:${gp.gt==='RGP'?'#D8E8FF':'#FFE8CC'};border:1px solid ${gp.gt==='RGP'?'#3366CC':'#CC6600'};padding:1px 8px;font-weight:bold;">${gp.gt}</span> ${gp.gt==='RGP'?'\u2014 Returnable Gate Pass':'\u2014 Non-Returnable Gate Pass'}</div></div>
+    <div><div class="print-num">${gp.gn}</div><div style="font-size:10px;color:#666;text-align:right;">Date: ${gp.co}<br>Status: <strong style="color:#006600">${gp.st}</strong></div></div>
+  </div>
+  <div class="print-meta">
+    <span>Vendor / Party:</span><b>${gp.vn||'--'}</b>
+    <span>Recipient:</span><b>${gp.rc||'--'}</b>
+    <span>Purpose / Reason:</span><b>${gp.pu||'--'}</b>
+    <span>Vehicle No.:</span><b>${gp.vh||'--'}</b>
+    <span>Approved By:</span><b>${gp.ab||'--'}</b>
+    <span>${gp.gt==='RGP'?'Expected Return:':'Return Required:'}</span><b>${gp.gt==='RGP'?gp.rd:'Not Applicable'}</b>
+  </div>
+  ${alv([{l:'Item'},{l:'Material'},{l:'Description',mw:180},{l:'Qty',r:true},{l:'Unit'},{l:'Condition'},{l:'Returned?',mw:80}],gp.it.map(x=>[x.ln,x.mn,x.d,x.q,x.u,'Good','&nbsp;']))}
+  <div class="print-sig-row"><div class="print-sig-line">Authorized Signatory</div><div class="print-sig-line">Security Officer</div><div class="print-sig-line">Received By</div></div></div>`;
+  setMsg('Gate Pass '+n+' loaded for printing.','I');
+}
+function zgp3Print(){if($('zgp3-output').innerHTML)setMsg('Gate Pass sent to output device.','S');else setMsg('Load a Gate Pass first.','E');}
+function zgp3Reset(){$('zgp3-num').value='';$('zgp3-output').innerHTML='';}
+
+/* ══ ZGR1 ══════════════════════════════════════════════════════════ */
+function zgr1Load(){
+  const n=$('zgr1-num').value.trim();if(!n){setMsg('Enter RGP Gate Pass number.','E');return;}
+  let gp=[...MOCK_GPS,...APP.gp].find(g=>g.gn===n&&g.gt==='RGP');
+  if(!gp){const s=hh(n+'zgr1');const it=[];for(let i=0;i<sr(s+1,1,4);i++){const m=gMat(pd(sr(s+i*7+2,10000000,99999999),8));it.push({ln:pd((i+1)*10,4),mn:m.mn,d:m.d,q:sr(s+i*7+3,1,50),u:m.un});}gp={gn:n,gt:'RGP',vn:pk(VN,s+20),pu:pk(['Equipment repair','Calibration','Testing'],s+22),rd:pd(sr(s+25,1,28),2)+'.'+pd(sr(s+26,1,12),2)+'.2025',st:'Approved',it,co:td()};}
+  $('zgr1-detail').innerHTML=`<div class="form-cols">
+  <div class="form-col"><div class="frame"><div class="frame-title">RGP Header</div><div class="frame-body">
+    ${frow('Gate Pass No.',gp.gn,true)}${frow('Vendor / Party',gp.vn)}${frow('Purpose',gp.pu)}${frow('Expected Return',gp.rd)}${frow('Original Date',gp.co)}${frow('Actual Return Date',td(),true)}
+  </div></div></div>
+  <div class="form-col"><div class="frame"><div class="frame-title">Return Items &mdash; Confirm Quantities</div><div class="frame-body compact">
+  <div class="alv-wrap"><table class="alv"><thead><tr><th>Item</th><th>Material</th><th>Description</th><th style="text-align:right">Issued Qty</th><th style="text-align:right">Returned Qty</th><th>Unit</th><th>Return Date</th><th>Remarks</th><th>OK</th></tr></thead><tbody>
+  ${gp.it.map((x,i)=>`<tr><td>${x.ln}</td><td class="link">${x.mn}</td><td style="max-width:130px;overflow:hidden">${x.d}</td><td class="r">${x.q}</td><td><input type="number" value="${x.q}" style="width:65px;height:18px;font-size:11px;padding:0 3px;border:1px solid #7A7974;font-family:Courier New;text-align:right;background:#DFF0D8;"></td><td>${x.u}</td><td><input class="finput" value="${td()}" style="width:90px;"></td><td><input class="finput" style="width:120px;" placeholder="Optional"></td><td style="text-align:center"><span class="badge badge-green">&#x2713;</span></td></tr>`).join('')}
+  </tbody></table></div></div></div></div></div>`;
+  $('zgr1-result').textContent='';setMsg('RGP '+n+' loaded. Confirm quantities and Close.','I');
+}
+function zgr1Close(){if(!$('zgr1-detail').innerHTML){setMsg('Load an RGP first.','E');return;}$('zgr1-result').textContent='RGP '+$('zgr1-num').value+' closed successfully';setMsg('RGP closed. Material document created.','S');}
+function zgr1Reset(){$('zgr1-num').value='';$('zgr1-detail').innerHTML='';$('zgr1-result').textContent='';}
+
+/* ══ MB52 ══════════════════════════════════════════════════════════ */
+function mb52Execute(){
+  const pl=$('mb52-plant').value||'HHP1';const s=hh(pl+'mb52'+Date.now());
+  const rows=Array.from({length:24},(_,i)=>{const m=gMat(pd(sr(s+i*13,10000000,99999999),8));return{pl,sl:pk(SL,s+i*13+1),mn:m.mn,d:m.d,u:m.un,ur:m.st,qi:sr(s+i*13+2,0,50),bl:sr(s+i*13+3,0,5),rs:sr(s+i*13+4,0,20),vc:m.vc,v:(m.st*parseFloat(m.sp)).toFixed(2),cu:m.cu};});
+  const tot=rows.reduce((a,r)=>a+r.ur,0),totv=rows.reduce((a,r)=>a+parseFloat(r.v),0);
+  $('mb52-report').innerHTML=`<div style="font-size:11px;margin-bottom:6px;">Plant: <strong>${pl}</strong> &nbsp;|&nbsp; ${rows.length} record(s)</div>`+
+    alv([{l:'Plant'},{l:'SLoc'},{l:'Material',link:true},{l:'Description',mw:180},{l:'Unit'},{l:'Unrestricted',r:true},{l:'Qual.Insp.',r:true},{l:'Blocked',r:true},{l:'Restricted',r:true},{l:'Val.Class'},{l:'Total Value',r:true},{l:'Curr.'}],
+      rows.map(r=>[r.pl,r.sl,`<span class="link">${r.mn}</span>`,r.d,r.u,`<strong>${r.ur.toLocaleString()}</strong>`,r.qi,r.bl,r.rs,r.vc,parseFloat(r.v).toLocaleString('en-IN',{minimumFractionDigits:2}),r.cu]),
+      `<td colspan="5">Total (${rows.length})</td><td class="r"><strong>${tot.toLocaleString()}</strong></td><td class="r">${rows.reduce((a,r)=>a+r.qi,0)}</td><td class="r">${rows.reduce((a,r)=>a+r.bl,0)}</td><td class="r">${rows.reduce((a,r)=>a+r.rs,0)}</td><td></td><td class="r"><strong>${totv.toLocaleString('en-IN',{minimumFractionDigits:2})}</strong></td><td></td>`);
+  $('mb52-report').style.display='';$('mb52-sel').style.display='none';$('mb52-result').textContent=rows.length+' record(s)';setMsg('MB52 \u2014 '+rows.length+' records for plant '+pl,'I');
+}
+function mb52Reset(){$('mb52-sel').style.display='';$('mb52-report').style.display='none';$('mb52-result').textContent='';}
+
+/* ══ COR2 ══════════════════════════════════════════════════════════ */
+let cor2=null;
+function cor2Load(){
+  const k=$('cor2-order').value.trim();if(!k){setMsg('Enter Process Order number.','E');return;}
+  cor2=gOrd(k);const o=cor2;
+  const stC={CRTD:'#555',REL:'#003399',PREL:'#0055CC',CNF:'#006600',TECO:'#004400',CLSD:'#555'};
+  const SS=['CRTD','REL','PREL','CNF','TECO','CLSD'];const si=SS.indexOf(o.st);
+  $('cor2-detail').innerHTML=`<div class="order-status-bar">${SS.map((s,i)=>`<div class="ost ${i<si?'done':i===si?'active':'todo'}">${s}</div>`).join('')}</div>
+  <div class="form-cols">
+  <div class="form-col"><div class="frame"><div class="frame-title">Process Order Header</div><div class="frame-body">
+    ${frow('Order Number',o.on,true)}
+    ${frow('Order Type',o.ot)}
+    ${frow('Material',`${o.mn} &mdash; ${o.md}`,true)}
+    ${frow('Plant',o.pl)}
+    <div class="frow"><label class="flabel flabel-w2">Order Quantity</label><input class="finput" value="${o.q}" style="width:100px;"> <span style="margin-left:4px;font-size:11px;">${o.u}</span></div>
+    ${frow('Batch Number',o.bn,true)}
+    <div class="frow"><label class="flabel flabel-w2">Basic Start Date</label><input class="finput" value="${o.sd}" style="width:120px;"></div>
+    <div class="frow"><label class="flabel flabel-w2">Basic Finish Date</label><input class="finput" value="${o.fd}" style="width:120px;"></div>
+    <div class="frow"><label class="flabel flabel-w2">System Status</label><div class="fval" id="cor2-st-disp" style="font-weight:bold;color:${stC[o.st]||'#000'}">${o.st}</div></div>
+    ${frow('Work Center',o.wc)}${frow('Manufacturing Line',o.ml)}${frow('Profit Center',o.pc)}${frow('Supervisor',o.sv)}
+  </div></div></div>
+  <div class="form-col"><div class="frame"><div class="frame-title">Component List / Dispensing</div><div class="frame-body compact">
+    ${alv([{l:'Item'},{l:'Material',link:true},{l:'Short Text',mw:160},{l:'Req.Qty',r:true},{l:'Withdrawn',r:true},{l:'Unit'},{l:'SLoc'},{l:'Batch'},{l:'Status'}],
+      o.cm.map(c=>[c.ln,`<span class="link">${c.mn}</span>`,c.d,c.rq,`<span style="color:${c.wd>=c.rq?'#006600':'#884400'}">${c.wd}</span>`,c.u,c.sl,c.bn,stBadge(c.st)]))}
+  </div></div>
+  <div class="frame"><div class="frame-title">Quantities</div><div class="frame-body">
+    ${frow('Order Quantity',o.q+' '+o.u,true)}${frow('Confirmed',o.cq)}${frow('Components',o.cm.length+' position(s)')}
+  </div></div></div></div>`;
+  setMsg('Process Order '+o.on+' loaded.','I');
+}
+function cor2Save(){if(!cor2){setMsg('Load a Process Order first.','E');return;}setMsg('Process Order '+cor2.on+' saved.','S');$('cor2-result').textContent='Order '+cor2.on+' saved';}
+function cor2Action(a){if(!cor2){setMsg('Load a Process Order first.','E');return;}const lb={REL:'Released',TECO:'Technically Complete',CLSD:'Closed'};cor2.st=a;const el=$('cor2-st-disp');if(el)el.textContent=a;$('cor2-result').textContent=cor2.on+' \u2014 '+lb[a];setMsg('Process Order '+cor2.on+' \u2192 '+lb[a]+'.','S');}
+function cor2Reset(){cor2=null;$('cor2-order').value='';$('cor2-detail').innerHTML='';$('cor2-result').textContent='';}
+
+/* ══ ZCOR2 ═════════════════════════════════════════════════════════ */
+function zcor2Execute(){
+  const pl=$('zcor2-plant').value||'HHP1';const s=hh(pl+'zcor2'+Date.now());
+  const rows=Array.from({length:15},(_,i)=>{const o=gOrd(pd(sr(s+i*11,1000000000,1099999999),10));return Object.assign({},o,{chb:'USR'+pd(sr(s+i*11+6,100,999),3),cho:pd(sr(s+i*11+7,1,28),2)+'.'+pd(sr(s+i*11+8,1,12),2)+'.2025',cht:pk(['Qty Change','Date Change','Status Change','Material Change'],s+i*11+9)});});
+  $('zcor2-report').innerHTML=`<div style="font-size:11px;margin-bottom:6px;">Plant: <strong>${pl}</strong> &nbsp;|&nbsp; ${rows.length} change(s)</div>`+
+    alv([{l:'Process Order',link:true},{l:'Material',link:true},{l:'Description',mw:160},{l:'Type'},{l:'Plant'},{l:'Qty',r:true},{l:'Unit'},{l:'Status'},{l:'Start Date'},{l:'Finish Date'},{l:'Changed By'},{l:'Changed On'},{l:'Change Type'}],
+      rows.map(r=>[r.on,r.mn,r.md,r.ot,r.pl,r.q,r.u,stBadge(r.st),r.sd,r.fd,r.chb,r.cho,r.cht]));
+  setMsg('ZCOR2 \u2014 '+rows.length+' process order changes.','I');
+}
+function zcor2Reset(){$('zcor2-report').innerHTML='';}
+
+/* ══ ZWPLN ═════════════════════════════════════════════════════════ */
+function zwplnExecute(){
+  const k=$('zwpln-order').value.trim()||'1000000001';const pr=$('zwpln-printer').value||'LP01';const cp=$('zwpln-copies').value||'1';
+  const o=gOrd(k);const sp=pd(sr(hh(k),100000,999999),6);
+  $('zwpln-output').innerHTML=msgBanner('Picklist for Order <strong>'+o.on+'</strong> sent to output device <strong>'+pr+'</strong> &mdash; <strong>'+cp+'</strong> copy/copies. Spool No.: '+sp+' | '+td(),'S')+
+  `<div class="print-doc" style="margin-top:12px;"><div class="print-hdr"><div><div class="print-title">DISPENSING PICKLIST</div><div class="print-org">Order: ${o.on} &nbsp;|&nbsp; Material: ${o.md}</div></div><div style="text-align:right;font-size:10px;color:#666;"><div>Plant: ${o.pl} &nbsp;|&nbsp; Batch: ${o.bn}</div><div>Date: ${td()} &nbsp;|&nbsp; Line: ${o.ml}</div></div></div>
+  <div class="print-meta"><span>Order Qty:</span><b>${o.q} ${o.u}</b><span>Basic Start:</span><b>${o.sd}</b><span>Work Center:</span><b>${o.wc}</b><span>Supervisor:</span><b>${o.sv}</b></div>
+  ${alv([{l:'Item'},{l:'Material Number'},{l:'Short Text',mw:160},{l:'Batch'},{l:'Req.Qty',r:true},{l:'Unit'},{l:'SLoc'},{l:'Weighed Qty',mw:90},{l:'Dispensed By',mw:90},{l:'Checked By',mw:90}],o.cm.map(c=>[c.ln,c.mn,c.d,c.bn,c.rq,c.u,c.sl,'&nbsp;','&nbsp;','&nbsp;']))}
+  <div class="print-sig-row"><div class="print-sig-line">Dispensed By</div><div class="print-sig-line">Pharmacist / QC Check</div><div class="print-sig-line">Production Head</div></div></div>`;
+  setMsg('Picklist printed for order '+o.on+'.','S');
+}
+function zwplnReset(){$('zwpln-order').value='';$('zwpln-output').innerHTML='';}
+
+/* ══ ZWPL ══════════════════════════════════════════════════════════ */
+function zwplExecute(){
+  const pl=$('zwpl-plant').value||'HHP1';const sf=$('zwpl-status').value;const s=hh(pl+'zwpl'+Date.now());
+  const DS=['Open','Partially Dispensed','Fully Dispensed'];
+  let rows=Array.from({length:18},(_,i)=>{const o=gOrd(pd(sr(s+i*11,1000000000,1099999999),10));const ds=pk(DS,s+i*11+5);const c=o.cm[0]||{mn:'',d:'',rq:0,u:'PC',bn:'',sl:''};const dq=ds==='Fully Dispensed'?c.rq:ds==='Open'?0:sr(s+i*11+6,1,Math.max(1,c.rq-1));return{on:o.on,mn:o.mn,md:o.md,pl:o.pl,bn:o.bn,q:o.q,u:o.u,ds,cmn:c.mn,cd:c.d,cbn:c.bn,rq:c.rq,dq,cu:c.u,sl:c.sl,db:'USR'+pd(sr(s+i*11+7,100,999),3),dd:pd(sr(s+i*11+8,1,28),2)+'.'+pd(sr(s+i*11+9,1,12),2)+'.2025'};});
+  if(sf)rows=rows.filter(r=>r.ds===sf);
+  $('zwpl-report').innerHTML=`<div style="font-size:11px;margin-bottom:6px;">Plant: <strong>${pl}</strong>${sf?' | Status: <strong>'+sf+'</strong>':''} &nbsp;|&nbsp; ${rows.length} record(s)</div>`+
+    alv([{l:'Process Order',link:true},{l:'FG Material',link:true},{l:'FG Description',mw:140},{l:'FG Batch'},{l:'Ord.Qty',r:true},{l:'Unit'},{l:'Component',link:true},{l:'Comp.Desc',mw:140},{l:'Comp.Batch'},{l:'Req.Qty',r:true},{l:'Disp.Qty',r:true},{l:'Unit'},{l:'SLoc'},{l:'Status'},{l:'Disp.By'},{l:'Disp.Date'}],
+      rows.map(r=>[r.on,r.mn,r.md,r.bn,r.q,r.u,r.cmn,r.cd,r.cbn,r.rq,`<span style="font-weight:bold;color:${r.dq>=r.rq?'#006600':'#884400'}">${r.dq}</span>`,r.cu,r.sl,stBadge(r.ds),r.db,r.dd]));
+  $('zwpl-report').style.display='';$('zwpl-sel').style.display='none';$('zwpl-result').textContent=rows.length+' record(s)';setMsg('ZWPL \u2014 '+rows.length+' dispensing records.','I');
+}
+function zwplReset(){$('zwpl-sel').style.display='';$('zwpl-report').style.display='none';$('zwpl-result').textContent='';}
+
+/* ══ MMBE ══════════════════════════════════════════════════════════ */
+function mmbeExecute(){
+  const k=$('mmbe-mat').value.trim()||pd(sr(hh('mmbedef'),10000000,99999999),8);const m=gMat(k);
+  const rows=PL.slice(0,4).map((p,i)=>({p,sl:SL[i],ur:Math.max(0,m.st-i*sr(hh(k+i),0,Math.floor(m.st/4))),qi:sr(hh(k+i+1),0,50),bl:sr(hh(k+i+2),0,5),it:sr(hh(k+i+3),0,100)}));
+  $('mmbe-report').innerHTML=`<div style="font-size:11px;margin-bottom:6px;"><strong>${m.mn}</strong> &mdash; ${m.d} &nbsp;|&nbsp; Unit: ${m.un} &nbsp;|&nbsp; Val.Class: ${m.vc} &nbsp;|&nbsp; Price: ${m.sp} ${m.cu}</div>`+
+    alv([{l:'Level'},{l:'Plant'},{l:'SLoc'},{l:'Unrestricted',r:true},{l:'Qual.Insp.',r:true},{l:'Blocked',r:true},{l:'In Transit',r:true},{l:'Total Stock',r:true},{l:'Unit'}],
+      rows.map((r,i)=>[i===0?'Client':'&nbsp;&nbsp;Plant',r.p,r.sl,`<strong>${r.ur}</strong>`,r.qi,r.bl,r.it,r.ur+r.qi+r.bl,m.un]),
+      `<td colspan="3">Total</td><td class="r"><strong>${rows.reduce((a,r)=>a+r.ur,0)}</strong></td><td class="r">${rows.reduce((a,r)=>a+r.qi,0)}</td><td class="r">${rows.reduce((a,r)=>a+r.bl,0)}</td><td class="r">--</td><td class="r"><strong>${rows.reduce((a,r)=>a+r.ur+r.qi+r.bl,0)}</strong></td><td>${m.un}</td>`);
+  setMsg('MMBE \u2014 Stock overview for material '+m.mn,'I');
+}
+function mmbeReset(){$('mmbe-mat').value='';$('mmbe-report').innerHTML='';}
+
+/* ══ COOISPI ════════════════════════════════════════════════════════ */
+function cooispiExecute(){
+  const pl=$('cooispi-plant').value||'HHP1';const sf=$('cooispi-status').value;const s=hh(pl+'cooispi'+Date.now());
+  let rows=Array.from({length:20},(_,i)=>gOrd(pd(sr(s+i*11,1000000000,1099999999),10))).filter(o=>!sf||o.st===sf);
+  $('cooispi-report').innerHTML=`<div style="font-size:11px;margin-bottom:6px;">Plant: <strong>${pl}</strong>${sf?' | Status: <strong>'+sf+'</strong>':''} &nbsp;|&nbsp; ${rows.length} order(s). Click a row to open in COR2.</div>`+
+    alv([{l:'Process Order',link:true},{l:'Material',link:true},{l:'Description',mw:160},{l:'Type'},{l:'Plant'},{l:'Batch'},{l:'Qty',r:true},{l:'Unit'},{l:'Status'},{l:'Start Date'},{l:'Finish Date'},{l:'Work Ctr'},{l:'Mfg Line'},{l:'Confirmed'}],
+      rows.map(o=>[`<span class="link" onclick="nav('COR2');setTimeout(()=>{$('cor2-order').value='${o.k}';cor2Load();},120)">${o.on}</span>`,o.mn,o.md,o.ot,o.pl,o.bn,o.q,o.u,stBadge(o.st),o.sd,o.fd,o.wc,o.ml,o.cq]));
+  $('cooispi-report').style.display='';$('cooispi-sel').style.display='none';$('cooispi-result').textContent=rows.length+' order(s)';setMsg('COOISPI \u2014 '+rows.length+' process orders.','I');
+}
+function cooispiReset(){$('cooispi-sel').style.display='';$('cooispi-report').style.display='none';$('cooispi-result').textContent='';}
+
+/* ══ MSC2N ═════════════════════════════════════════════════════════ */
+function msc2nTabClick(el,tab){document.querySelectorAll('#msc2n-tabs .tab').forEach(t=>t.classList.remove('active'));el.classList.add('active');}
+function msc2nLoad(){
+  const mat=$('msc2n-mat').value.trim();const bat=$('msc2n-batch').value.trim();
+  if(!mat){setMsg('Enter a Material number.','E');return;}
+  const m=gMat(mat);const bn=bat||m.bn;const s=hh(mat+bat);
+  $('msc2n-detail').innerHTML=`<div class="form-cols">
+  <div class="form-col"><div class="frame"><div class="frame-title">Batch Header</div><div class="frame-body">
+    ${frow('Material',m.mn+' \u2014 '+m.d,true)}
+    ${frow('Batch Number',bn,true)}
+    ${frow('Plant',m.pl)}
+    ${frow('Material Type',m.mt)}
+    <div class="frow"><label class="flabel flabel-w2">Batch Status</label>
+      <select class="fselect" style="width:180px;"><option>X \u2014 Unrestricted use</option><option>Q \u2014 Quality inspection</option><option>B \u2014 Blocked</option><option>R \u2014 Restricted</option></select>
+    </div>
+    ${frow('Storage Location',m.sl)}
+    ${frow('Valuation Class',m.vc)}
+    ${frow('Unrestricted Stock',m.st+' '+m.un,true)}
+  </div></div></div>
+  <div class="form-col"><div class="frame"><div class="frame-title">Batch Classification</div><div class="frame-body">
+    <div class="frow"><label class="flabel flabel-w2">Manufacturing Date</label><input class="finput" value="${m.mfg}" style="width:120px;"></div>
+    <div class="frow"><label class="flabel flabel-w2">Shelf Life Exp. Date</label><input class="finput" value="${m.exp}" style="width:120px;"></div>
+    <div class="frow"><label class="flabel flabel-w2">Retest Date</label><input class="finput" value="${m.ret}" style="width:120px;"></div>
+    <div class="frow"><label class="flabel flabel-w2">A.R. Number</label><input class="finput" value="${m.ar}" style="width:160px;"></div>
+    <div class="frow"><label class="flabel flabel-w2">Vendor Batch No.</label><input class="finput" value="VB-${pd(sr(s+50,10000,99999),5)}" style="width:160px;"></div>
+    <div class="frow"><label class="flabel flabel-w2">Country of Origin</label><input class="finput" value="${pk(CT,s+51)}" style="width:60px;"></div>
+    <div class="frow"><label class="flabel flabel-w2">Supplier Name</label><input class="finput" value="${m.vn}" style="width:240px;"></div>
+  </div></div></div></div>
+  <button class="app-btn primary" style="margin-top:8px;" onclick="setMsg('Batch ${bn} saved.','S');$('msc2n-result').textContent='Batch ${bn} saved';">Save Changes</button>`;
+  setMsg('Batch '+bn+' for material '+m.mn+' loaded.','I');
+}
+function msc2nSave(){setMsg('Load a batch first.','E');}
+function msc2nReset(){$('msc2n-mat').value='';$('msc2n-batch').value='';$('msc2n-detail').innerHTML='';$('msc2n-result').textContent='';}
+
+/* ══ ZLDM ══════════════════════════════════════════════════════════ */
+function zldmExecute(){
+  const ord=$('zldm-order').value.trim();const pl=$('zldm-plant').value||'HHP1';const s=hh((ord||pl)+'zldm'+Date.now());
+  const o=ord?gOrd(ord):null;const n=o?o.cm.length:14;
+  const rows=Array.from({length:n},(_,i)=>{const c=o?o.cm[i]:null;const m=c?gMat(c.mn):gMat(pd(sr(s+i*11,10000000,99999999),8));return{on:o?o.on:pd(sr(s+i*11+1,1000000000,1099999999),10),mn:m.mn,d:m.d,bn:m.bn,mfg:m.mfg,exp:m.exp,ret:m.ret,ar:m.ar,rq:c?c.rq:sr(s+i*11+2,10,500),u:m.un,sl:m.sl,st:pk(['Released','Under Test','Approved','Quarantine'],s+i*11+3),vn:m.vn};});
+  $('zldm-report').innerHTML=`<div style="font-size:11px;margin-bottom:6px;">${o?'Order: <strong>'+o.on+'</strong> | ':''}Plant: <strong>${pl}</strong> &nbsp;|&nbsp; ${rows.length} record(s)</div>`+
+    alv([{l:'Process Order',link:true},{l:'Material',link:true},{l:'Short Text',mw:160},{l:'Batch'},{l:'Mfg.Date'},{l:'Exp.Date'},{l:'Retest Date'},{l:'A.R.No.'},{l:'Req.Qty',r:true},{l:'Unit'},{l:'SLoc'},{l:'QC Status'},{l:'Vendor',mw:140}],
+      rows.map(r=>[r.on,r.mn,r.d,r.bn,r.mfg,r.exp,r.ret,r.ar,r.rq,r.u,r.sl,stBadge(r.st),r.vn]));
+  $('zldm-report').style.display='';$('zldm-sel').style.display='none';$('zldm-result').textContent=rows.length+' record(s)';setMsg('ZLDM \u2014 '+rows.length+' batch records.','I');
+}
+function zldmReset(){$('zldm-sel').style.display='';$('zldm-report').style.display='none';$('zldm-result').textContent='';}
+
+/* ══ ZATMR ═════════════════════════════════════════════════════════ */
+function zatmrExecute(){
+  const pl=$('zatmr-plant').value||'HHP1';const s=hh(pl+'zatmr'+Date.now());
+  const rows=Array.from({length:16},(_,i)=>{const m=gMat(pd(sr(s+i*11,10000000,99999999),8));return{dn:pd(sr(s+i*11+1,5000000000,5099999999),10),pl,sf:pk(SL,s+i*11+2),st:pk(SL,s+i*11+3),mn:m.mn,d:m.d,bn:m.bn,q:sr(s+i*11+4,10,500),u:m.un,dd:pd(sr(s+i*11+5,1,28),2)+'.'+pd(sr(s+i*11+6,1,12),2)+'.2025',ab:'USR'+pd(sr(s+i*11+7,100,999),3),mv:pk(['311','312','313'],s+i*11+8),rs:pk(['Dispensing','Return to Store','Quality Transfer','Production Supply'],s+i*11+9)};});
+  $('zatmr-report').innerHTML=`<div style="font-size:11px;margin-bottom:6px;">Plant: <strong>${pl}</strong> &nbsp;|&nbsp; ${rows.length} record(s)</div>`+
+    alv([{l:'Mat.Doc.',link:true},{l:'Plant'},{l:'From SLoc'},{l:'To SLoc'},{l:'Material',link:true},{l:'Description',mw:160},{l:'Batch'},{l:'Qty',r:true},{l:'Unit'},{l:'Mvmt.'},{l:'Transfer Date'},{l:'Approved By'},{l:'Reason'}],
+      rows.map(r=>[r.dn,r.pl,r.sf,r.st,r.mn,r.d,r.bn,r.q,r.u,r.mv,r.dd,r.ab,r.rs]));
+  $('zatmr-report').style.display='';$('zatmr-sel').style.display='none';setMsg('ZATMR \u2014 '+rows.length+' transfer records.','I');
+}
+function zatmrReset(){$('zatmr-sel').style.display='';$('zatmr-report').style.display='none';}
+
+/* ══ QM01 ══════════════════════════════════════════════════════════ */
+function qm01Tab(el,t){document.querySelectorAll('#qm01-tabs .tab').forEach(x=>x.classList.remove('active'));el.classList.add('active');qm01Render(t);}
+function qm01Render(t){
+  const body=$('qm01-body');
+  if(t==='subject'){body.innerHTML=`<div class="form-cols" style="padding:8px 0;">
+    <div class="form-col"><div class="frame"><div class="frame-title">Notification Header</div><div class="frame-body">
+      <div class="frow"><label class="flabel flabel-w2">Notification Type</label><select class="fselect" style="width:240px;"><option>Q1 \u2014 Quality Notification (Internal)</option><option>Q2 \u2014 Quality Notification (Vendor)</option><option>Q3 \u2014 Customer Complaint</option><option>F1 \u2014 Equipment Notification</option></select></div>
+      <div class="frow"><label class="flabel flabel-w2">Material</label><input class="finput" id="qm01-mat" style="width:180px;" placeholder="Material number" onblur="qm01ResolveMat()"></div>
+      <div class="frow"><label class="flabel flabel-w2">Description</label><div class="fval" id="qm01-matdesc">&nbsp;</div></div>
+      <div class="frow"><label class="flabel flabel-w2">Batch Number</label><input class="finput" id="qm01-batch" style="width:140px;"></div>
+      <div class="frow"><label class="flabel flabel-w2">Plant</label><input class="finput" id="qm01-plant" value="HHP1" style="width:80px;"></div>
+      <div class="frow"><label class="flabel flabel-w2">Vendor</label><input class="finput" id="qm01-vendor" style="width:240px;" placeholder="Vendor number or name"></div>
+      <div class="frow"><label class="flabel flabel-w2">Defect Quantity</label><input class="finput" id="qm01-defqty" style="width:80px;"></div>
+    </div></div></div>
+    <div class="form-col"><div class="frame"><div class="frame-title">Problem Description</div><div class="frame-body">
+      <div class="frow"><label class="flabel flabel-w2">Short Text</label><input class="finput" id="qm01-short" style="width:300px;" placeholder="Brief problem description"></div>
+      <div class="frow"><label class="flabel flabel-w2">Cause</label><select class="fselect" style="min-width:240px;">${QC.map(c=>`<option>${c}</option>`).join('')}</select></div>
+      <div class="frow"><label class="flabel flabel-w2">Responsible Dept.</label><input class="finput" style="width:160px;" placeholder="e.g. QA001"></div>
+      <div class="frow"><label class="flabel flabel-w2">Notification Date</label><input class="finput" value="${td()}" style="width:120px;"></div>
+      <div class="frow"><label class="flabel flabel-w2">Required End Date</label><input class="finput" style="width:120px;" placeholder="DD.MM.YYYY"></div>
+      <div class="frow" style="align-items:flex-start;"><label class="flabel flabel-w2" style="padding-top:3px;">Long Text</label><textarea class="ftextarea" style="width:300px;height:70px;" placeholder="Detailed problem description..."></textarea></div>
+    </div></div></div></div>`;}
+  else if(t==='items'){body.innerHTML=`<div style="padding:8px 0;"><div class="frame"><div class="frame-title">Defect Items</div><div class="frame-body compact">`+
+    alv([{l:'Item'},{l:'Defect Type',mw:100},{l:'Defect Location',mw:100},{l:'Qty',r:true},{l:'Unit'},{l:'Defect Class'},{l:'Cause',mw:160}],Array.from({length:3},(_,i)=>[pd((i+1)*10,4),'<input class="finput" style="width:100px;placeholder="0001">','<input class="finput" style="width:100px;">',`<input class="finput" value="${sr(hh('q'+i),1,50)}" style="width:60px;text-align:right;">`,`<input class="finput" style="width:50px;">`,'<select class="fselect"><option>Minor</option><option>Major</option><option>Critical</option></select>',`<input class="finput" style="width:180px;">`]))+
+    `</div></div></div>`;}
+  else if(t==='tasks'){body.innerHTML=`<div style="padding:8px 0;"><div class="frame"><div class="frame-title">Tasks</div><div class="frame-body compact">`+
+    alv([{l:'Task'},{l:'Description',mw:180},{l:'Responsible',mw:100},{l:'Planned Start'},{l:'Planned End'},{l:'Status'}],
+      ['Isolate affected batch','Vendor notification','Root cause analysis','CAPA implementation','Batch release decision'].map((t2,i)=>[pd((i+1)*10,4),t2,'<input class="finput" value="USR'+pd(sr(hh(t2),100,999),3)+'" style="width:90px;">','<input class="finput" value="'+td()+'" style="width:110px;">','<input class="finput" style="width:110px;">','<select class="fselect"><option>Open</option><option>In Process</option><option>Completed</option></select>']))+
+    `</div></div></div>`;}
+  else{body.innerHTML=`<div style="padding:8px 0;"><div class="frame"><div class="frame-title">Activities</div><div class="frame-body compact">`+
+    alv([{l:'Activity'},{l:'Description',mw:180},{l:'Changed By'},{l:'Date / Time'}],
+      ['Notification created','Batch placed in quarantine','Vendor informed','Sample sent to lab'].map((a,i)=>[pd((i+1)*10,4),a,'MANOJ.TV',td()+' '+new Date().toLocaleTimeString()]))+
+    `</div></div></div>`;}
+}
+function qm01ResolveMat(){const mn=$('qm01-mat')?.value?.trim();if(!mn)return;const m=gMat(mn);$('qm01-matdesc').textContent=m.d;const b=$('qm01-batch');if(b&&!b.value)b.value=m.bn;}
+function qm01Save(){const mat=$('qm01-mat')?.value?.trim()||'';const nn=pd(sr(hh(mat+Date.now()),10000000,19999999),8);APP.qm.nn=nn;APP.qm.saved=true;$('qm01-result').textContent='Notification '+nn+' created';setMsg('Quality Notification '+nn+' created.','S');}
+function qm01Act(a){if(!APP.qm.saved){setMsg('Save the notification first.','E');return;}setMsg('Notification '+APP.qm.nn+' \u2014 '+(a==='pip'?'Put in Process':'Completed')+'.','S');$('qm01-result').textContent=(a==='pip'?'In Process':'Completed');}
+function qm01Reset(){APP.qm={saved:false,nn:null};$('qm01-result').textContent='';qm01Render('subject');}
+
+/* ══ ME23N ═════════════════════════════════════════════════════════ */
+function me23nLoad(){
+  const k=$('me23n-po').value.trim();if(!k){setMsg('Enter PO number.','E');return;}
+  const po=gPO(k);$('me23n-result').textContent='PO '+po.pn;
+  $('me23n-detail').innerHTML=`<div class="form-cols">
+  <div class="form-col"><div class="frame"><div class="frame-title">Purchase Order Header</div><div class="frame-body">
+    ${frow('Purchase Order',po.pn,true)}
+    ${frow('Document Date',po.dd)}
+    ${frow('Vendor',po.vi+' \u2014 '+po.vn,true)}
+    ${frow('Purch. Organization',po.po)}
+    ${frow('Purch. Group',po.pg)}
+    ${frow('Currency',po.cu)}
+    ${frow('Incoterms',po.ic)}
+    ${frow('Payment Terms',po.py)}
+    ${frow('Total Net Value','<strong>'+parseFloat(po.tv).toLocaleString('en-IN',{minimumFractionDigits:2})+'</strong> '+po.cu,true)}
+  </div></div></div>
+  <div class="form-col"><div class="frame"><div class="frame-title">Line Items</div><div class="frame-body compact">
+  ${alv([{l:'Item'},{l:'Material',link:true},{l:'Short Text',mw:160},{l:'PO Qty',r:true},{l:'Unit'},{l:'Net Price',r:true},{l:'Net Value',r:true},{l:'Curr.'},{l:'Plant'},{l:'SLoc'},{l:'Del.Date'}],
+    po.it.map(x=>[x.ln,x.mn,x.d,x.q,x.u,x.p,'<strong>'+parseFloat(x.nv).toLocaleString('en-IN',{minimumFractionDigits:2})+'</strong>',x.cu,x.pl,x.sl,x.dd]),
+    `<td colspan="6">Total</td><td class="r"><strong>${parseFloat(po.tv).toLocaleString('en-IN',{minimumFractionDigits:2})}</strong></td><td>${po.cu}</td><td colspan="3"></td>`)}
+  </div></div></div></div>`;
+  setMsg('Purchase Order '+po.pn+' displayed.','I');
+}
+
+/* ══ XK03 ══════════════════════════════════════════════════════════ */
+function xk03Load(){
+  const k=$('xk03-vendor').value.trim();if(!k){setMsg('Enter Vendor number.','E');return;}
+  const v=gVnd(k);
+  $('xk03-detail').innerHTML=`<div class="form-cols">
+  <div class="form-col"><div class="frame"><div class="frame-title">General Data</div><div class="frame-body">
+    ${frow('Vendor Number',v.vi,true)}${frow('Name',v.nm,true)}${frow('Country',v.co)}${frow('City / Region',v.ct)}${frow('Street / House No.',v.st)}${frow('Postal Code',v.pn)}${frow('Telephone',v.ph)}${frow('VAT Reg. No.',v.vr)}
+  </div></div></div>
+  <div class="form-col">
+    <div class="frame"><div class="frame-title">Company Code Data</div><div class="frame-body">
+      ${frow('Account Group',v.ag)}${frow('Reconciliation Acct',v.ra)}${frow('Currency',v.cu)}${frow('Payment Terms',v.py)}${frow('Incoterms',v.ic)}
+    </div></div>
+    <div class="frame"><div class="frame-title">Quality Scorecard</div><div class="frame-body">
+      <div class="frow"><label class="flabel flabel-w2">Quality Score</label><div class="fval hl" style="font-weight:bold;color:${v.sc>=80?'#006600':v.sc>=60?'#884400':'#CC0000'}">${v.sc} / 100</div></div>
+      ${frow('On-Time Delivery',v.od)}${frow('Open Notifications',String(v.nf))}
+    </div></div>
+  </div></div>`;
+  setMsg('Vendor '+v.vi+' \u2014 '+v.nm+' displayed.','I');
+}
+
+/* ══ ZQI06 ═════════════════════════════════════════════════════════ */
+function zqi06Execute(){
+  const s=hh('zqi06'+Date.now());
+  const rows=Array.from({length:12},(_,i)=>{const v=gVnd(pd(sr(s+i*11,1000000000,9999999999),10));return{vi:v.vi,vn:v.nm,nn:pd(sr(s+i*11+1,10000000,19999999),8),tp:pk(['Q1','Q2'],s+i*11+2),mn:pd(sr(s+i*11+3,10000000,99999999),8),d:pk(MP,s+i*11+4)+' '+pd(sr(s+i*11+5,100,999),3),sc:sr(s+i*11+6,40,100),dt:pk(QC,s+i*11+7),st:pk(['Open','In Process','Completed'],s+i*11+8),dd:pd(sr(s+i*11+9,1,28),2)+'.'+pd(sr(s+i*11+10,1,12),2)+'.2025'};});
+  $('zqi06-report').innerHTML=`<div style="font-size:11px;margin-bottom:6px;">${rows.length} vendor quality record(s)</div>`+
+    alv([{l:'Vendor ID',link:true},{l:'Vendor Name',mw:160},{l:'Notif.No.',link:true},{l:'Type'},{l:'Material',link:true},{l:'Description',mw:160},{l:'Defect Type',mw:160},{l:'QC Score',r:true},{l:'Status'},{l:'Date'}],
+      rows.map(r=>[r.vi,r.vn,r.nn,r.tp,r.mn,r.d,r.dt,`<span style="font-weight:bold;color:${r.sc>=80?'#006600':r.sc>=60?'#884400':'#CC0000'}">${r.sc}</span>`,stBadge(r.st),r.dd]));
+  setMsg('ZQI06 \u2014 '+rows.length+' vendor quality records.','I');
+}
+function zqi06Reset(){$('zqi06-report').innerHTML='';}
+
+/* ══ LX02 ══════════════════════════════════════════════════════════ */
+function lx02Execute(){
+  const wh=$('lx02-wh').value||'001';const s=hh(wh+'lx02'+Date.now());
+  const rows=Array.from({length:20},(_,i)=>{const m=gMat(pd(sr(s+i*11,10000000,99999999),8));return{qt:pd(sr(s+i*11+1,10000,99999),5),wh,stp:pd(sr(s+i*11+2,1,5),3),sbn:pk(WB,s+i*11+3),mn:m.mn,d:m.d,bn:m.bn,st:m.st,u:m.un,pl:m.pl,cat:pk(['Unrestricted','Quality Inspection','Blocked'],s+i*11+4)};});
+  $('lx02-report').innerHTML=`<div style="font-size:11px;margin-bottom:6px;">WH: <strong>${wh}</strong> &nbsp;|&nbsp; ${rows.length} quant(s)</div>`+
+    alv([{l:'Quant No.'},{l:'WH'},{l:'St.Type'},{l:'Storage Bin'},{l:'Material',link:true},{l:'Description',mw:160},{l:'Batch'},{l:'Stock Qty',r:true},{l:'Unit'},{l:'Plant'},{l:'Category'}],
+      rows.map(r=>[r.qt,r.wh,r.stp,r.sbn,r.mn,r.d,r.bn,`<strong>${r.st.toLocaleString()}</strong>`,r.u,r.pl,stBadge(r.cat)]),
+      `<td colspan="7">Total (${rows.length} quants)</td><td class="r"><strong>${rows.reduce((a,r)=>a+r.st,0).toLocaleString()}</strong></td><td colspan="3"></td>`);
+  $('lx02-report').style.display='';$('lx02-sel').style.display='none';$('lx02-result').textContent=rows.length+' quant(s)';setMsg('LX02 \u2014 '+rows.length+' records for WH '+wh,'I');
+}
+function lx02Reset(){$('lx02-sel').style.display='';$('lx02-report').style.display='none';$('lx02-result').textContent='';}
+
+/* ══ LT10 ══════════════════════════════════════════════════════════ */
+function lt10LoadMat(){const mn=$('lt10-mat').value.trim();if(!mn)return;const m=gMat(mn);$('lt10-mat-desc').textContent=m.mn+' \u2014 '+m.d;}
+function lt10Save(){
+  const mat=$('lt10-mat').value.trim();if(!mat){setMsg('Enter a material.','E');return;}
+  const m=gMat(mat);const s=hh(mat+Date.now());const tn=pd(sr(s,100000,999999),6);
+  const sb=$('lt10-src-bin').value||pk(WB,s+1);const db=$('lt10-dst-bin').value||pk(WB,s+2);const q=$('lt10-qty').value||'1';
+  const to={tn,wh:$('lt10-wh').value||'001',mn:m.mn,md:m.d,q:parseInt(q),u:m.un,st:$('lt10-src-st').value,sb,dt:$('lt10-dst-st').value,db,st2:'Open',cb:'MANOJ.TV',co:td(),pl:m.pl};
+  APP.to.push(to);
+  $('lt10-result-area').innerHTML=msgBanner('Transfer Order <strong>'+tn+'</strong> created for WH <strong>'+to.wh+'</strong><br>Material: '+m.mn+' \u2014 '+m.d+'<br>From: '+to.st+'/'+sb+' &nbsp;&rarr;&nbsp; To: '+to.dt+'/'+db+' &nbsp;|&nbsp; Qty: '+q+' '+m.un,'S');
+  $('lt10-result').textContent='TO '+tn+' created';setMsg('Transfer Order '+tn+' created.','S');
+}
+function lt10Reset(){$('lt10-mat').value='';$('lt10-mat-desc').textContent='\u00A0';$('lt10-result-area').innerHTML='';$('lt10-result').textContent='';}
+
+/* ══ LT12 ══════════════════════════════════════════════════════════ */
+function lt12Load(){
+  const tn=$('lt12-to').value.trim();if(!tn){setMsg('Enter TO number.','E');return;}
+  let to=APP.to.find(t=>t.tn===tn);
+  if(!to){const s=hh(tn+'lt12');const m=gMat(pd(sr(s+1,10000000,99999999),8));to={tn,wh:$('lt12-wh').value||'001',mn:m.mn,md:m.d,q:sr(s+2,1,500),u:m.un,st:pd(sr(s+3,1,5),3),sb:pk(WB,s+4),dt:pd(sr(s+5,1,5),3),db:pk(WB,s+6),st2:'Open',cb:'USR'+pd(sr(s+7,100,999),3),co:td(),pl:m.pl};}
+  $('lt12-detail').innerHTML=`<div class="to-timeline"><div class="to-step done">1. Created</div><div class="to-arrow">&rarr;</div><div class="to-step active">2. Confirmation</div><div class="to-arrow">&rarr;</div><div class="to-step todo" id="lt12-done-step">3. Confirmed</div></div>
+  <div class="form-cols">
+  <div class="form-col"><div class="frame"><div class="frame-title">Transfer Order ${to.tn}</div><div class="frame-body">
+    ${frow('TO Number',to.tn,true)}${frow('Warehouse No.',to.wh)}${frow('Material',to.mn+' \u2014 '+to.md,true)}${frow('Quantity',to.q+' '+to.u,true)}${frow('Source Bin',to.st+' / '+to.sb)}${frow('Dest. Bin',to.dt+' / '+to.db,true)}${frow('Created By / On',to.cb+' / '+to.co)}
+  </div></div></div>
+  <div class="form-col"><div class="frame"><div class="frame-title">Confirmation Data</div><div class="frame-body">
+    <div class="frow"><label class="flabel flabel-w2">Actual Quantity</label><input class="finput" value="${to.q}" style="width:80px;"> <span style="margin-left:4px;font-size:11px;">${to.u}</span></div>
+    <div class="frow"><label class="flabel flabel-w2">Actual Dest. Bin</label><input class="finput" value="${to.db}" style="width:120px;"></div>
+    <div class="frow"><label class="flabel flabel-w2">Confirmation Note</label><input class="finput" style="width:220px;" placeholder="Optional"></div>
+  </div></div></div></div>`;
+  setMsg('Transfer Order '+tn+' loaded for confirmation.','I');
+}
+function lt12Confirm(){const d=$('lt12-detail');if(!d.innerHTML){setMsg('Load a Transfer Order first.','E');return;}const tn=$('lt12-to').value;const t=APP.to.find(x=>x.tn===tn);if(t)t.st2='Confirmed';const ds=$('lt12-done-step');if(ds)ds.classList.replace('todo','done');const as=d.querySelector('.to-step.active');if(as)as.classList.replace('active','done');$('lt12-result').textContent='TO '+tn+' Confirmed';setMsg('Transfer Order '+tn+' confirmed successfully.','S');}
+function lt12Reset(){$('lt12-to').value='';$('lt12-detail').innerHTML='';$('lt12-result').textContent='';}
+
+/* ══ LT23 ══════════════════════════════════════════════════════════ */
+function lt23Execute(){
+  const wh=$('lt23-wh').value||'001';const s=hh(wh+'lt23'+Date.now());
+  const sr2=APP.to.map(t=>({tn:t.tn,wh:t.wh,mn:t.mn,d:t.md,q:t.q,u:t.u,sb:t.sb,db:t.db,st:t.st2,cb:t.cb,co:t.co}));
+  const gr=Array.from({length:12},(_,i)=>{const m=gMat(pd(sr(s+i*11,10000000,99999999),8));return{tn:pd(sr(s+i*11+1,100000,999999),6),wh,mn:m.mn,d:m.d,q:sr(s+i*11+2,1,500),u:m.un,sb:pk(WB,s+i*11+3),db:pk(WB,s+i*11+4),st:pk(['Open','Confirmed','Cancelled'],s+i*11+5),cb:'USR'+pd(sr(s+i*11+6,100,999),3),co:td()};});
+  const rows=[...sr2,...gr];
+  $('lt23-report').innerHTML=`<div style="font-size:11px;margin-bottom:6px;">WH: <strong>${wh}</strong> &nbsp;|&nbsp; ${rows.length} Transfer Order(s)</div>`+
+    alv([{l:'TO Number',link:true},{l:'WH'},{l:'Material',link:true},{l:'Description',mw:160},{l:'Qty',r:true},{l:'Unit'},{l:'Source Bin'},{l:'Dest. Bin'},{l:'Status'},{l:'Created By'},{l:'Created On'}],
+      rows.map(r=>[r.tn,r.wh,r.mn,r.d,r.q,r.u,r.sb,r.db,stBadge(r.st),r.cb,r.co]));
+  $('lt23-report').style.display='';$('lt23-sel').style.display='none';$('lt23-result').textContent=rows.length+' TO(s)';setMsg('LT23 \u2014 '+rows.length+' Transfer Orders for WH '+wh,'I');
+}
+function lt23Reset(){$('lt23-sel').style.display='';$('lt23-report').style.display='none';$('lt23-result').textContent='';}
+
+/* ══ ZMB56N ════════════════════════════════════════════════════════ */
+function zmb56nExecute(){
+  const pl=$('zmb56n-plant').value||'HHP1';const s=hh(pl+'zmb56n'+Date.now());
+  const rows=Array.from({length:16},(_,i)=>{const c=gMat(pd(sr(s+i*11,10000000,99999999),8));const fg=gMat(pd(sr(s+i*11+1,10000000,99999999),8));const o=gOrd(pd(sr(s+i*11+2,1000000000,1099999999),10));const rq=sr(s+i*11+3,10,500);const dq=sr(s+i*11+4,0,rq);return{on:o.on,fmn:fg.mn,fd:fg.d,fbn:fg.bn,cmn:c.mn,cd:c.d,cbn:c.bn,rq,dq,u:c.un,sl:c.sl,dd:pd(sr(s+i*11+5,1,28),2)+'.'+pd(sr(s+i*11+6,1,12),2)+'.2025',db:'USR'+pd(sr(s+i*11+7,100,999),3),qs:pk(['Approved','Under Test','Quarantine'],s+i*11+8)};});
+  $('zmb56n-report').innerHTML=`<div style="font-size:11px;margin-bottom:6px;">Plant: <strong>${pl}</strong> &nbsp;|&nbsp; ${rows.length} record(s)</div>`+
+    alv([{l:'Process Order',link:true},{l:'FG Material',link:true},{l:'FG Desc.',mw:140},{l:'FG Batch'},{l:'Component',link:true},{l:'Comp.Desc.',mw:140},{l:'Comp.Batch'},{l:'Req.Qty',r:true},{l:'Disp.Qty',r:true},{l:'Unit'},{l:'SLoc'},{l:'Disp.Date'},{l:'Disp.By'},{l:'QC Status'}],
+      rows.map(r=>[r.on,r.fmn,r.fd,r.fbn,r.cmn,r.cd,r.cbn,r.rq,`<span style="font-weight:bold;color:${r.dq>=r.rq?'#006600':'#884400'}">${r.dq}</span>`,r.u,r.sl,r.dd,r.db,stBadge(r.qs)]));
+  $('zmb56n-report').style.display='';$('zmb56n-sel').style.display='none';$('zmb56n-result').textContent=rows.length+' record(s)';setMsg('ZMB56N \u2014 '+rows.length+' dispensing records.','I');
+}
+function zmb56nReset(){$('zmb56n-sel').style.display='';$('zmb56n-report').style.display='none';$('zmb56n-result').textContent='';}
+
+/* ══ INIT ══════════════════════════════════════════════════════════ */
+function init(){
+  buildEA();migoUpdateMvmt();
+  setInterval(()=>{$('status-time').textContent=new Date().toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit',second:'2-digit'});},1000);
+  setMsg('System ready | SAP ERP 6.0 EHP8 | Application Server: vhhdehhpci | Client 100');
+  document.querySelectorAll('.ea-item').forEach(el=>el.style.cursor='pointer');
+}
+init();
+</script>
+</body>
+</html>
